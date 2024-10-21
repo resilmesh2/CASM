@@ -54,14 +54,17 @@ class EasyEasmActivities:
     async def store_result_to_neo4j(self, scan_id: str):
         query = """
         WITH apoc.convert.fromJsonMap($json_string) AS input_
-        UNWIND input_.data as row
-        CREATE (ipadd:EASM_IP { address: row.ip }) 
-        CREATE (node:EASM_Node)-[:HAS_ASSIGNED]->(ipadd) 
-        CREATE (host:EASM_Host)<-[:IS_A]-(node) 
-        with host, row
-        CREATE (domName: EASM_DomainName { domain_name: row.domain_name, tag: 'A/AAAA' })<-[:RESOLVES_TO]-(ipadd) 
-        with host, row
-        CREATE (networkService: EASY_NetworkService {service: row.service, tag: 'services_component', port: row.port, protocol: 'tcp'})-[:ON]->(host);
+        UNWIND input_.data AS row
+        MERGE (ipadd:IP { address: row.ip }) 
+        MERGE (node:Node)-[r1:HAS_ASSIGNED]->(ipadd) 
+        ON CREATE SET r1.start = datetime.truncate('second', datetime.fromepochmillis(TIMESTAMP()))
+        MERGE (host:Host)<-[:IS_A]-(node) 
+        WITH host, row
+        MERGE (domName: DomainName { domain_name: row.domain_name, tag: 'A/AAAA' })<-[r2:RESOLVES_TO]-(ipadd) 
+        ON CREATE SET r2.start = datetime.truncate('second', datetime.fromepochmillis(TIMESTAMP()))
+        WITH host, row
+        MERGE (networkService: NetworkService {service: row.service, tag: 'CASM', port: row.port, protocol: 'tcp'})-[r3:ON]->(host)
+        ON CREATE SET r3.start = datetime.truncate('second', datetime.fromepochmillis(TIMESTAMP()));
         """
         redis_client = Redis(host=self.redis_config.host, port=self.redis_config.port, db=0)
         neo4j_client = GraphDatabase.driver(
