@@ -44,10 +44,10 @@ class AppConfig:
     _config: Config | None = None
 
     @classmethod
-    def get(cls):
+    def get(cls) -> Config:
         if cls._config is None:
             config_file = BASE_DIR / "config/config.yaml"
-            with open(config_file, "r") as f:
+            with Path.open(config_file, "r") as f:
                 raw_config = yaml.safe_load(f)
             cls._config = from_dict(Config, raw_config)
         return cls._config

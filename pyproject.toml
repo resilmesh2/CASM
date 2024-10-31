@@ -14,7 +14,83 @@ dacite = "^1.8.1"
 redis = "^5.1.1"
 neo4j = "^5.25.0"
 
+[tool.poetry.group.dev.dependencies]
+ruff = ">=0.0.261"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+########## RUFF ##########
+[tool.ruff]
+line-length = 120
+target-version = 'py312'
+
+[tool.ruff.lint]
+preview = true
+select = [
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # pyflakes
+    "I", # isort
+    "C", # flake8-comprehensions
+    "B", # flake8-bugbear
+    "C90", # mccabe complexity
+    "N", # pep8-naming
+    "UP", # pyupdate
+    "ANN", # annotations
+    "ASYNC", # async
+    "S", # sus stuff
+    "BLE", # Blind exceptions
+    "ERA", # commented out code
+    "B", # Commonly missused ~ wierd behavior
+    "C4", # Comprehensions
+    "DTZ", # Dont use drunk datetime stuff
+    "INP", # Implicit namespacing alerts
+    "PIE", # Common unnecessary operations with bultins
+    "T20", # Prints
+    "PYI", # Stubs
+    "PT", # pytest
+    "Q", # Double quotes
+    "RET", # Returns
+    "SLF", # Private member access
+    "SIM", # Simplifications
+    "TCH", # Type Checking
+    "ARG", # Unused arguments
+    "PTH", # Pathlib
+    "TRY201", # Use raise without specifying exception name
+    "TRY301", # Raise within try
+    "TRY302", # Useless try-except
+    "TRY400", # Replace logger.error with logger.exception when logging exceptions
+    "FLY002", # Use f strings instead of static joins
+    "PERF101", # Unnecessary list-cast
+    "PERF102", # Incorrect dict iterator
+    "PERF402", # Manual list copy
+    "FURB", # Refurb
+    "RUF", # Ruf Extras
+]
+ignore = [
+    "ANN101", # Self type anntation
+    "ANN102", # cls type anntation
+    "ANN401", # disallowing any type
+]
+fixable = ["ALL"] # Allow fix for all enabled rules
+
+
+[tool.ruff.format]
+# ported from black
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 200
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+

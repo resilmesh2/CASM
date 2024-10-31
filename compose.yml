@@ -14,6 +14,8 @@ services:
       - 9200
     volumes:
       - /var/lib/elasticsearch/data
+    networks:
+      test_casm_network:
 
   postgresql:
     container_name: temporal-postgresql
@@ -25,6 +27,8 @@ services:
       - 5432
     volumes:
       - /var/lib/postgresql/data
+    networks:
+      test_casm_network:
 
   temporal:
     container_name: temporal
@@ -48,6 +52,8 @@ services:
       kompose.volume.type: configMap
     volumes:
       - ./temporalio/dynamicconfig:/etc/temporal/config/dynamicconfig
+    networks:
+      test_casm_network:
 
   temporal-admin-tools:
     container_name: temporal-admin-tools
@@ -59,6 +65,8 @@ services:
     image: temporalio/admin-tools:${TEMPORAL_VERSION:-1.25}
     stdin_open: true
     tty: true
+    networks:
+      test_casm_network:
 
   temporal-ui:
     container_name: temporal-ui
@@ -70,6 +78,8 @@ services:
     image: temporalio/ui:${TEMPORAL_UI_VERSION:-2.31.2}
     ports:
       - 8080:8080
+    networks:
+      test_casm_network:
 
   postgres:
     image: postgres:17
@@ -89,6 +99,8 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:5432:5432"
+    networks:
+      test_casm_network:
 
   worker:
     build: .
@@ -96,6 +108,9 @@ services:
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
       - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
+    networks:
+      test_casm_network:
+
 
   neo4j:
     image: neo4j:5.21.0
@@ -116,6 +131,8 @@ services:
       timeout: 2s
       retries: 10
     restart: unless-stopped
+    networks:
+      test_casm_network:
 
   redis:
     image: docker.io/bitnami/redis:7.0
@@ -124,6 +141,24 @@ services:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - "127.0.0.1:6379:6379"
+    networks:
+      test_casm_network:
+
+  vulnerable_app:
+    image: sasanlabs/owasp-vulnerableapp:1.12.7
+    ports:
+      - 9090:9090
+    networks:
+      test_casm_network:
+        ipv4_address: 192.168.1.5
 
 volumes:
   neo4j_easyeasm_data:
+
+networks:
+  test_casm_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.1
