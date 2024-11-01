@@ -7,12 +7,16 @@ from typing import Any
 
 from neo4j import GraphDatabase, basic_auth
 from redis.client import Redis
+from structlog import getLogger
 from yaml import safe_dump
-
+from temporalio.common import RetryPolicy
 from easyeasm_demo.config import AppConfig, Neo4jConfig, RedisConfig
+from easyeasm_demo.utils import EasyEASMParsedResult, validate_input_target
 from temporalio import activity, workflow
 
 EASYEASM_BASE_PATH = "/tmp/easyeasm"  # noqa: S108
+
+logger = getLogger()
 
 
 class EasyEasmActivities:
@@ -23,16 +27,18 @@ class EasyEasmActivities:
     @activity.defn
     async def run_easyeasm(self, scan_uuid: str, domains: list[str], mode: str = "fast") -> str:
         scan_dir = Path(EASYEASM_BASE_PATH) / scan_uuid
+        if mode.lower() not in ["fast", "complete"]:
+            raise ValueError("Invalid mode!")
+        if not all(map(validate_input_target, domains)):
+            raise ValueError("Invalid targets!")
         scan_dir.mkdir(parents=True, exist_ok=True)
         configuration = {
             "runConfig": {
                 "domains": domains,
                 "runType": mode,
-                "activeThreads": 10,
-                "activeWordList": "subdomains.txt",
             }
         }
-        Path(scan_dir / "config.yml", "w").write_text(safe_dump(configuration))
+        Path(scan_dir / "config.yml").write_text(safe_dump(configuration))
         proc = subprocess.run("easyeasm", cwd=scan_dir, capture_output=True)
         if proc.returncode != 0:
             return "FAIL"
@@ -72,7 +78,13 @@ class EasyEasmActivities:
         loaded_result = {"data": []}
         for line in result[1:]:
             row = line.split(",")
-            loaded_result["data"].append({"ip": row[7], "domain_name": row[4], "service": row[5], "port": row[3]})
+            try:
+                entry = EasyEASMParsedResult(
+                    ip=row[7], domain_name=row[4], service=row[5], port=row[3], protocol=row[6]
+                )
+                loaded_result["data"].append(entry.to_dict())
+            except Exception:
+                logger.exception("Invalid entry!")
         neo4j_client.execute_query(query, json_string=json.dumps(loaded_result))
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
@@ -90,10 +102,26 @@ class EasyEasmDemoWorkflow:
                 domains,
                 mode,
             ),
+            retry_policy=RetryPolicy(
+                backoff_coefficient=2.0,
+                maximum_attempts=5,
+                initial_interval=timedelta(seconds=1),
+                maximum_interval=timedelta(seconds=2),
+                # non_retryable_error_types=["ValueError"],
+            ),
             start_to_close_timeout=timedelta(hours=6),
         )
         await workflow.execute_activity(
-            EasyEasmActivities.store_result_to_neo4j, args=(scan_uuid,), start_to_close_timeout=timedelta(hours=6)
+            EasyEasmActivities.store_result_to_neo4j,
+            args=(scan_uuid,),
+            start_to_close_timeout=timedelta(hours=6),
+            retry_policy=RetryPolicy(
+                backoff_coefficient=2.0,
+                maximum_attempts=5,
+                initial_interval=timedelta(seconds=1),
+                maximum_interval=timedelta(seconds=2),
+                # non_retryable_error_types=["ValueError"],
+            ),
         )
 
     @classmethod

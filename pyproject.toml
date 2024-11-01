@@ -13,6 +13,8 @@ pyyaml = "^6.0.2"
 dacite = "^1.8.1"
 redis = "^5.1.1"
 neo4j = "^5.25.0"
+validators = "^0.34.0"
+structlog = "^24.4.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = ">=0.0.261"
@@ -60,7 +62,7 @@ select = [
     "PTH", # Pathlib
     "TRY201", # Use raise without specifying exception name
     "TRY301", # Raise within try
-    "TRY302", # Useless try-except
+    "TRY203", # Useless try-except
     "TRY400", # Replace logger.error with logger.exception when logging exceptions
     "FLY002", # Use f strings instead of static joins
     "PERF101", # Unnecessary list-cast

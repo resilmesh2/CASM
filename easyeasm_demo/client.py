@@ -9,7 +9,7 @@ from temporalio.client import Client
 async def main() -> None:
     config = AppConfig.get()
     temporal_client = await Client.connect(config.temporal.url, namespace=config.temporal.namespace)
-    domains = ["rt.csirt.muni.cz"]
+    domains = ["hackerone.com"]
     mode = "fast"
     scan_uuid = uuid4().hex
     await temporal_client.start_workflow(
