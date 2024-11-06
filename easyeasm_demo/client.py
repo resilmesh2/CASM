@@ -1,5 +1,4 @@
 import asyncio
-from uuid import uuid4
 
 from easyeasm_demo.config import AppConfig
 from easyeasm_demo.workflow import EasyEasmDemoWorkflow
@@ -11,7 +10,7 @@ async def main() -> None:
     temporal_client = await Client.connect(config.temporal.url, namespace=config.temporal.namespace)
     domains = ["hackerone.com"]
     mode = "fast"
-    scan_uuid = uuid4().hex
+    scan_uuid = "a69c6fabd4eb45f8a2d0554a9046810a"
     await temporal_client.start_workflow(
         EasyEasmDemoWorkflow,
         id=scan_uuid,

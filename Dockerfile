@@ -19,7 +19,7 @@ RUN go install github.com/g0ldencybersec/EasyEASM/easyeasm@latest
 RUN go install github.com/projectdiscovery/alterx/cmd/alterx@latest
 RUN go install github.com/owasp-amass/amass/v3/...@master
 RUN go install github.com/projectdiscovery/dnsx/cmd/dnsx@latest
-RUN go install github.com/projectdiscovery/httpx/cmd/httpx@latest
+RUN go install github.com/projectdiscovery/httpx/cmd/httpx@v1.6.0
 RUN go install github.com/owasp-amass/oam-tools/cmd/oam_subs@master
 RUN go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
 

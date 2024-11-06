@@ -144,14 +144,6 @@ services:
     networks:
       test_casm_network:
 
-  vulnerable_app:
-    image: sasanlabs/owasp-vulnerableapp:1.12.7
-    ports:
-      - 9090:9090
-    networks:
-      test_casm_network:
-        ipv4_address: 192.168.1.5
-
 volumes:
   neo4j_easyeasm_data:
 

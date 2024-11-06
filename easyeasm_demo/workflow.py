@@ -57,18 +57,33 @@ class EasyEasmActivities:
     @activity.defn
     async def store_result_to_neo4j(self, scan_uuid: str) -> None:
         query = """
-        WITH apoc.convert.fromJsonMap($json_string) AS input_
+        WITH apoc.convert.fromJsonMap($json_string) AS input_, datetime.truncate('second', datetime.fromepochmillis(TIMESTAMP())) as scan_dt
         UNWIND input_.data AS row
         MERGE (ipadd:IP { address: row.ip })
         MERGE (node:Node)-[r1:HAS_ASSIGNED]->(ipadd)
-        ON CREATE SET r1.start = datetime.truncate('second', datetime.fromepochmillis(TIMESTAMP()))
+            ON CREATE SET r1.start = scan_dt
         MERGE (host:Host)<-[:IS_A]-(node)
-        WITH host, row
-        MERGE (domName: DomainName { domain_name: row.domain_name, tag: 'A/AAAA' })<-[r2:RESOLVES_TO]-(ipadd)
-        ON CREATE SET r2.start = datetime.truncate('second', datetime.fromepochmillis(TIMESTAMP()))
-        WITH host, row
-        MERGE (networkService: NetworkService {service: row.service, tag: 'CASM', port: row.port, protocol: 'tcp'})-[r3:ON]->(host)
-        ON CREATE SET r3.start = datetime.truncate('second', datetime.fromepochmillis(TIMESTAMP()));
+        WITH host, row, ipadd, scan_dt
+        MERGE (dn: DomainName { domain_name: row.domain_name})
+            ON CREATE SET dn.tag = ['A/AAAA']
+            ON MATCH SET dn.tag = [tag in dn.tag where tag <> 'A/AAAA'] + ['A/AAAA']
+        WITH host, row, dn, ipadd, scan_dt
+        OPTIONAL MATCH (dn)<-[r2:RESOLVES_TO]-(ipadd) WHERE r2.end IS NULL
+        FOREACH(r IN CASE WHEN r2 IS NULL THEN [r2] ELSE [] END |
+            MERGE (dn)<-[:RESOLVES_TO { start:  scan_dt}]-(ipadd)
+        )
+        WITH host, row, scan_dt
+        MERGE (ns: NetworkService {service: row.service, port: row.port, protocol: row.protocol})
+            ON CREATE SET ns.tag = ['CASM']
+            ON MATCH SET ns.tag = [tag in ns.tag where tag <> 'CASM'] + ['CASM']
+        WITH host, row, ns, scan_dt
+        MATCH(ns:NetworkService {service: row.service, port: row.port, protocol: row.protocol})
+        MATCH (host:Host)<-[IS_A]-(:Node)-[:HAS_ASSIGNED]->(:IP {address: row.ip})
+        OPTIONAL MATCH (ns)<-[r3:ON]-(host) WHERE r3.end IS NULL
+            FOREACH(r IN CASE WHEN r3 IS NULL THEN [r3] ELSE [] END |
+                MERGE (ns)<-[:ON { start:  scan_dt}]-(host)
+            )
+        ;
         """
         redis_client = Redis(host=self.redis_config.host, port=self.redis_config.port, db=0)
         neo4j_client = GraphDatabase.driver(
@@ -80,7 +95,7 @@ class EasyEasmActivities:
             row = line.split(",")
             try:
                 entry = EasyEASMParsedResult(
-                    ip=row[7], domain_name=row[4], service=row[5], port=row[3], protocol=row[6]
+                    ip=row[7], domain_name=row[4], service=row[5], port=row[3], protocol=row[5]
                 )
                 loaded_result["data"].append(entry.to_dict())
             except Exception:
