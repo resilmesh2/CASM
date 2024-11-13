@@ -15,7 +15,7 @@ services:
     volumes:
       - /var/lib/elasticsearch/data
     networks:
-      test_casm_network:
+      - casm_isim_test_network
 
   postgresql:
     container_name: temporal-postgresql
@@ -28,7 +28,7 @@ services:
     volumes:
       - /var/lib/postgresql/data
     networks:
-      test_casm_network:
+      - casm_isim_test_network
 
   temporal:
     container_name: temporal
@@ -53,7 +53,7 @@ services:
     volumes:
       - ./temporalio/dynamicconfig:/etc/temporal/config/dynamicconfig
     networks:
-      test_casm_network:
+      - casm_isim_test_network
 
   temporal-admin-tools:
     container_name: temporal-admin-tools
@@ -66,7 +66,7 @@ services:
     stdin_open: true
     tty: true
     networks:
-      test_casm_network:
+      - casm_isim_test_network
 
   temporal-ui:
     container_name: temporal-ui
@@ -79,7 +79,7 @@ services:
     ports:
       - 8080:8080
     networks:
-      test_casm_network:
+      - casm_isim_test_network
 
   postgres:
     image: postgres:17
@@ -100,7 +100,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     networks:
-      test_casm_network:
+      - casm_isim_test_network
 
   worker:
     build: .
@@ -109,7 +109,7 @@ services:
       - ./docker/config.yaml:/app/config/config.yaml
       - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
     networks:
-      test_casm_network:
+      - casm_isim_test_network
 
 
   neo4j:
@@ -132,7 +132,7 @@ services:
       retries: 10
     restart: unless-stopped
     networks:
-      test_casm_network:
+      - casm_isim_test_network
 
   redis:
     image: docker.io/bitnami/redis:7.0
@@ -142,15 +142,12 @@ services:
     ports:
       - "127.0.0.1:6379:6379"
     networks:
-      test_casm_network:
+      - casm_isim_test_network
 
 volumes:
   neo4j_easyeasm_data:
 
+
 networks:
-  test_casm_network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 192.168.1.0/24
-          gateway: 192.168.1.1
+  casm_isim_test_network:
+    name: casm_isim_test_network
