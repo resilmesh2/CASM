@@ -1,0 +1,153 @@
+services:
+  elasticsearch:
+    container_name: temporal-elasticsearch
+    environment:
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=512mb
+      - cluster.routing.allocation.disk.watermark.high=256mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - xpack.security.enabled=false
+    image: elasticsearch:${ELASTICSEARCH_VERSION:-8.9.0}
+    expose:
+      - 9200
+    volumes:
+      - /var/lib/elasticsearch/data
+    networks:
+      - casm_isim_test_network
+
+  postgresql:
+    container_name: temporal-postgresql
+    environment:
+      POSTGRES_PASSWORD: temporal
+      POSTGRES_USER: temporal
+    image: postgres:${POSTGRESQL_VERSION:-17}
+    expose:
+      - 5432
+    volumes:
+      - /var/lib/postgresql/data
+    networks:
+      - casm_isim_test_network
+
+  temporal:
+    container_name: temporal
+    depends_on:
+      - postgresql
+      - elasticsearch
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=postgresql
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+      - ENABLE_ES=true
+      - ES_SEEDS=elasticsearch
+      - ES_VERSION=v7
+    image: temporalio/auto-setup:${TEMPORAL_VERSION:-1.25}
+    ports:
+      - 7233:7233
+    labels:
+      kompose.volume.type: configMap
+    volumes:
+      - ./temporalio/dynamicconfig:/etc/temporal/config/dynamicconfig
+    networks:
+      - casm_isim_test_network
+
+  temporal-admin-tools:
+    container_name: temporal-admin-tools
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    image: temporalio/admin-tools:${TEMPORAL_VERSION:-1.25}
+    stdin_open: true
+    tty: true
+    networks:
+      - casm_isim_test_network
+
+  temporal-ui:
+    container_name: temporal-ui
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    image: temporalio/ui:${TEMPORAL_UI_VERSION:-2.31.2}
+    ports:
+      - 8080:8080
+    networks:
+      - casm_isim_test_network
+
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: amass
+      PG_DATA: /data/postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./postgresql/install_extensions.sql:/docker-entrypoint-initdb.d/install_extensions.sql
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - casm_isim_test_network
+
+  worker:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - ./docker/config.yaml:/app/config/config.yaml
+      - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
+    networks:
+      - casm_isim_test_network
+
+
+  neo4j:
+    image: neo4j:5.21.0
+    environment:
+      - NEO4J_AUTH=neo4j/supertestovaciheslo
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+    volumes:
+      - neo4j_easyeasm_data:/data
+    ports:
+      - 7474:7474
+      - 7687:7687
+    healthcheck:
+      test: ["CMD", "wget", "http://localhost:7474/"]
+      interval: 10s
+      timeout: 2s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - casm_isim_test_network
+
+  redis:
+    image: docker.io/bitnami/redis:7.0
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - casm_isim_test_network
+
+volumes:
+  neo4j_easyeasm_data:
+
+
+networks:
+  casm_isim_test_network:
+    name: casm_isim_test_network
