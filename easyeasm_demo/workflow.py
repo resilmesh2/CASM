@@ -1,6 +1,8 @@
 import json
 import subprocess  # noqa: S404
+import uuid
 from collections.abc import Awaitable, Callable, Sequence
+from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
@@ -21,18 +23,33 @@ EASYEASM_BASE_PATH = "/tmp/easyeasm"  # noqa: S108
 logger = getLogger()
 
 
+@dataclass
+class CASMInput:
+    domains: list[str]
+    scan_uuid: str = uuid.uuid4().hex
+    mode: str = "fast"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"domains": self.domains, "scan_uuid": self.scan_uuid, "mode": self.mode}
+
+
 class EasyEasmActivities:
     def __init__(self, redis_config: RedisConfig, neo4j_config: Neo4jConfig) -> None:
         self.redis_config = redis_config
         self.neo4j_config = neo4j_config
 
     @activity.defn
+    async def validate_input(self, input_: dict[str, Any]) -> tuple[str, list[str], str]:
+        obj_input = CASMInput(**input_)
+        if obj_input.mode.lower() not in ["fast", "complete"]:
+            raise ValueError("Invalid mode!")
+        if not all(map(validate_input_target, obj_input.domains)):
+            raise ValueError("Invalid targets!")
+        return obj_input.scan_uuid, obj_input.domains, obj_input.mode.lower()
+
+    @activity.defn
     async def run_easyeasm(self, scan_uuid: str, domains: list[str], mode: str = "fast") -> str:
         scan_dir = Path(EASYEASM_BASE_PATH) / scan_uuid
-        if mode.lower() not in ["fast", "complete"]:
-            raise ValueError("Invalid mode!")
-        if not all(map(validate_input_target, domains)):
-            raise ValueError("Invalid targets!")
         scan_dir.mkdir(parents=True, exist_ok=True)
         configuration = {
             "runConfig": {
@@ -124,13 +141,22 @@ class EasyEasmActivities:
         neo4j_client.close()
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
-        return [self.run_easyeasm, self.store_result_to_neo4j]
+        return [self.validate_input, self.run_easyeasm, self.store_result_to_neo4j]
 
 
 @workflow.defn(name="EasyEasmWorkflow")
-class EasyEasmDemoWorkflow:
+class EasyEasmWorkflow:
     @workflow.run
-    async def run(self, scan_uuid: str, domains: list[str], mode: str = "fast") -> None:
+    async def run(self, input_: dict[str, Any]) -> None:
+        scan_uuid, domains, mode = await workflow.execute_activity(
+            EasyEasmActivities.validate_input,
+            arg=input_,
+            retry_policy=RetryPolicy(
+                maximum_attempts=1,
+            ),
+            start_to_close_timeout=timedelta(minutes=5),
+        )
+
         scan_uuid = await workflow.execute_activity(
             EasyEasmActivities.run_easyeasm,
             args=(

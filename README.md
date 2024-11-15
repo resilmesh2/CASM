@@ -66,18 +66,16 @@ async def main() -> None:
     domains = ["hackerone.com"]
     mode = "fast"
     scan_uuid = uuid.uuid4().hex
+    input_ = CASMInput(domains=domains, scan_uuid=scan_uuid, mode=mode)
     await temporal_client.start_workflow(
-        EasyEasmDemoWorkflow,
+        EasyEasmWorkflow,
         id=scan_uuid,
-        args=(
-            scan_uuid,
-            domains,
-            mode,
-        ),
+        arg=input_.to_dict(),
         task_queue=config.temporal.task_queue,
     )
 ```
-You can replace the `domains = ["hackerone.com"]` with your own target domains.
+You can replace the `domains = ["hackerone.com"]` with your own target domains. It is not necessary to pass in `mode` and `scan_uuid`,
+if not provided, workflow will generate its own `scan_uuid` and use the default mode - `fast`.
 To trigger the workflow, run:
 ```sh
 python -m easyeasm_demo.client
@@ -132,3 +130,8 @@ If you triggered a workflow and want to see if it succesfully finished, you can:
 
 1) Check the workflow status in Temporal server via GUI
 2) Run Cypher queries on Neo4J to look up the results
+
+# Setting up scheduled workflow
+You can create periodic scheduled scans via Temporal GUI.
+
+![img.png](assets/schedule.png)

@@ -2,7 +2,7 @@ import asyncio
 import uuid
 
 from easyeasm_demo.config import AppConfig
-from easyeasm_demo.workflow import EasyEasmDemoWorkflow
+from easyeasm_demo.workflow import CASMInput, EasyEasmWorkflow
 from temporalio.client import Client
 
 
@@ -12,14 +12,11 @@ async def main() -> None:
     domains = ["hackerone.com"]
     mode = "fast"
     scan_uuid = uuid.uuid4().hex
+    input_ = CASMInput(domains=domains, scan_uuid=scan_uuid, mode=mode)
     await temporal_client.start_workflow(
-        EasyEasmDemoWorkflow,
+        EasyEasmWorkflow,
         id=scan_uuid,
-        args=(
-            scan_uuid,
-            domains,
-            mode,
-        ),
+        arg=input_.to_dict(),
         task_queue=config.temporal.task_queue,
     )
 

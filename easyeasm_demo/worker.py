@@ -1,7 +1,7 @@
 import asyncio
 
 from easyeasm_demo.config import AppConfig
-from easyeasm_demo.workflow import EasyEasmDemoWorkflow
+from easyeasm_demo.workflow import EasyEasmWorkflow
 from temporalio.client import Client
 from temporalio.worker import Worker
 from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxRestrictions
@@ -10,7 +10,7 @@ from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxR
 async def main() -> None:
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url, namespace=config.temporal.namespace)
-    workflows = [EasyEasmDemoWorkflow]
+    workflows = [EasyEasmWorkflow]
     activities = []
     for workflow in workflows:
         activities += workflow.get_activities()
