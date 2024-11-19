@@ -45,7 +45,7 @@ services:
       - ENABLE_ES=true
       - ES_SEEDS=elasticsearch
       - ES_VERSION=v7
-    image: temporalio/auto-setup:${TEMPORAL_VERSION:-1.25}
+    image: temporalio/auto-setup:${TEMPORAL_VERSION:-1.22.7}
     ports:
       - 7233:7233
     labels:
@@ -62,7 +62,7 @@ services:
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CLI_ADDRESS=temporal:7233
-    image: temporalio/admin-tools:${TEMPORAL_VERSION:-1.25}
+    image: temporalio/admin-tools:${TEMPORAL_VERSION:-1.22.7}
     stdin_open: true
     tty: true
     networks:
