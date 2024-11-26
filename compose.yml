@@ -90,7 +90,7 @@ services:
       POSTGRES_DB: amass
       PG_DATA: /data/postgres
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
