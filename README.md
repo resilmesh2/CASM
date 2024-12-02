@@ -91,7 +91,7 @@ redis:
 > Be aware that the point of this project is to run scans against live domain names. This means that you should select your
 > targets **VERY** carefully. Generally, it is advised against running the workflow against random targets available on the Internet.
 > 
-> The workflow was tested against hackerone.com very cautiously. The target was selected because the
+> The workflow was tested against _hackerone.com_ domain name very cautiously. The target was selected because the
 > authors demonstrated EasyEASM against it at their presentation at [DefCon 31](https://www.youtube.com/watch?v=hx0dBo-zKE8).
 
 This project provides user with a prepared client that can connect to Temporal and trigger workflow on selected targets. If you want
