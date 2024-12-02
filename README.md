@@ -45,42 +45,6 @@ You can rebuild this worker by running:
   docker compose up -d --build
 ```
 
-## Triggering workflow
-
-This project provides user with a prepared client that can connect to Temporal and trigger workflow on selected targets. If you want
-to run this client, you need to do the following:
-
-### Dependencies
-This project utilizes Poetry. It is necessary to have Python 3.12 installed together with poetry. To create the venv and install all
-dependencies, run:
-```
-poetry install
-```
-
-### Customizing the scan
-Client does not have its own separate configuration right now. To try it out, you can edit the source file directly [client.py](easyeasm_demo/client.py).
-```python
-async def main() -> None:
-    config = AppConfig.get()
-    temporal_client = await Client.connect(config.temporal.url, namespace=config.temporal.namespace)
-    domains = ["hackerone.com"]
-    mode = "fast"
-    scan_uuid = uuid.uuid4().hex
-    input_ = CASMInput(domains=domains, scan_uuid=scan_uuid, mode=mode)
-    await temporal_client.start_workflow(
-        EasyEasmWorkflow,
-        id=scan_uuid,
-        arg=input_.to_dict(),
-        task_queue=config.temporal.task_queue,
-    )
-```
-You can replace the `domains = ["hackerone.com"]` with your own target domains. It is not necessary to pass in `mode` and `scan_uuid`,
-if not provided, workflow will generate its own `scan_uuid` and use the default mode - `fast`.
-To trigger the workflow, run:
-```sh
-python -m easyeasm_demo.client
-```
-
 # Configuration
 Configuration files are located in the [config](config) and in [docker](docker) folders. Config in [config](config) serves for local deployment of the worker
 and for running the client to trigger on-demand workflow. 
@@ -121,15 +85,60 @@ redis:
   - host: url of Redis
   - port: port where Redis listens
 
+## Triggering workflow
 
-For worker deployment, it is necessary to correctly fill all of the options. For client, it is enough to properly configure the
-`temporal` section.
+> [!WARNING]
+> Be aware that the point of this project is to run scans against live domain names. This means that you should select your
+> targets **VERY** carefully. Generally, it is advised against running the workflow against the random targets available on the Internet.
+> 
+> The workflow was tested against hackerone.com very cautiously. The target was selected because the
+> authors demonstrated EasyEASM against it at their presentation at [DefCon 31](https://www.youtube.com/watch?v=hx0dBo-zKE8).
 
-# Verifying results
+This project provides user with a prepared client that can connect to Temporal and trigger workflow on selected targets. If you want
+to run this client, you need to do the following:
+
+### Dependencies
+This project utilizes Poetry. It is necessary to have Python 3.12 installed together with poetry. To create the venv and install all
+dependencies, run:
+```
+poetry install
+```
+
+### Running the scan
+Client does not have its own separate configuration right now. To try it out, you can edit the source file directly [client.py](easyeasm_demo/client.py).
+```python
+async def main() -> None:
+    config = AppConfig.get()
+    temporal_client = await Client.connect(config.temporal.url, namespace=config.temporal.namespace)
+    domains = ["hackerone.com"]
+    mode = "fast"
+    scan_uuid = uuid.uuid4().hex
+    input_ = CASMInput(domains=domains, scan_uuid=scan_uuid, mode=mode)
+    await temporal_client.start_workflow(
+        EasyEasmWorkflow,
+        id=scan_uuid,
+        arg=input_.to_dict(),
+        task_queue=config.temporal.task_queue,
+    )
+```
+You can replace the `domains = ["hackerone.com"]` with your own target domains. It is not necessary to pass in `mode` and `scan_uuid`,
+if not provided, workflow will generate its own `scan_uuid` and use the default mode - `fast`.
+To trigger the workflow, run:
+```sh
+python -m easyeasm_demo.client
+```
+
+### Verifying results
 If you triggered a workflow and want to see if it succesfully finished, you can:
 
 1) Check the workflow status in Temporal server via GUI
 2) Run Cypher queries on Neo4J to look up the results
+
+This is an example of a NEO4J query fetching all IP addresses and their resolution to domain names.
+```cypher
+MATCH (ip:IP)-[:RESOLVES_TO]-(d:DomainName) RETURN ip,d
+```
+
 
 # Setting up scheduled workflow
 You can create periodic scheduled scans via Temporal GUI.
