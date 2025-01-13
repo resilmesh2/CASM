@@ -28,5 +28,17 @@ WITH apoc.convert.fromJsonMap($json_string) AS input_, datetime.truncate('second
                 MERGE (ns)<-[ns_h:ON { start:  scan_dt}]-(host)
                 ON CREATE SET ns_h.tag = ["unknown", "CASM"]
             )
+        WITH host, row, scan_dt
+        UNWIND row.software_versions AS software_version
+        MERGE (sv:SoftwareVersion {name: software_version.name})
+            ON CREATE SET sv.version = software_version.version
+        WITH host, row, scan_dt, software_version
+        MATCH (sv:SoftwareVersion {name: software_version.name})
+        MATCH (host:Host)<-[IS_A]-(:Node)-[:HAS_ASSIGNED]->(:IP {address: row.ip})
+        OPTIONAL MATCH (sv)<-[r4:ON]-(host) WHERE r4.end IS NULL
+            FOREACH(r IN CASE WHEN r4 IS NULL THEN [r4] ELSE [] END |
+                MERGE (sv)<-[sv_h:ON { start:  scan_dt}]-(host)
+                ON CREATE SET sv_h.tag = ["unknown", "CASM"]
+            )
         ;
 """
