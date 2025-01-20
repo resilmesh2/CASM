@@ -9,9 +9,8 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
 RUN curl -sSL https://install.python-poetry.org | python3 - && \
     python -m venv /venv
 
-COPY pyproject.toml poetry.lock ./
+COPY . ./
 RUN . /venv/bin/activate && ~/.local/bin/poetry install
-COPY . .
 
 FROM golang:1.23.1-bookworm as go_build
 

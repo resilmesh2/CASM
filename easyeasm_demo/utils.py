@@ -11,7 +11,7 @@ import urllib.request
 
 logger = getLogger()
 
-WAPPALYERGO_FINGERPRINTS_URL = "https://raw.githubusercontent.com/projectdiscovery/wappalyzergo/refs/heads/main/fingerprints_data.json"
+WAPPALYZERGO_FINGERPRINTS_URL = "https://raw.githubusercontent.com/projectdiscovery/wappalyzergo/refs/heads/main/fingerprints_data.json"
 
 
 def validate_input_target(target: str) -> bool:
@@ -23,7 +23,7 @@ def validate_input_target(target: str) -> bool:
 
 def determine_software_versions(raw_technologies: str) -> list[dict[str, str]]:
     technologies = raw_technologies[1:-1].split(" ")
-    with urllib.request.urlopen(WAPPALYERGO_FINGERPRINTS_URL) as jsonfile:
+    with urllib.request.urlopen(WAPPALYZERGO_FINGERPRINTS_URL) as jsonfile:
         fingerprints_data = json.load(jsonfile)
         count_of_words = max([len(version.split(' ')) for version in fingerprints_data["apps"].keys()])
 
