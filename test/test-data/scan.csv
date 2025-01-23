@@ -1,0 +1,4 @@
+timestamp,asn,sni,port,input,scheme,body_preview,host,raw_header,request,time,cname,tech,chain,lines
+2024-11-27 15:12:04.590964282 +0000 UTC m=+148.784991415,<nil>,,443,example.com,https,,23.192.228.80,,,528.293976ms,[],[Azure Azure CDN],[],47
+2024-11-27 15:16:20.346300083 +0000 UTC m=+404.540327205,<nil>,,443,www.example.com,https,,2.17.147.80,,,125.111764ms,[],[Azure Azure CDN],[],47
+2025-01-20 13:39:57.56347475 +0000 UTC m=+1.558297749,<nil>,,80,scanme.nmap.org,http,,45.33.32.156,,,353.429105ms,[],[Apache HTTP Server:2.4.7 Ubuntu],[],153
