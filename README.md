@@ -139,8 +139,11 @@ This is an example of a NEO4J query fetching all IP addresses and their resoluti
 MATCH (ip:IP)-[:RESOLVES_TO]-(d:DomainName) RETURN ip,d
 ```
 
-
 # Setting up scheduled workflow
 You can create periodic scheduled scans via Temporal GUI.
 
 ![img.png](assets/schedule.png)
+
+# Tests
+Tests are available in `test` folder. 
+Test data contain an example output that can be obtained from scanning by EasyEASM.
