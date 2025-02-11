@@ -1,4 +1,4 @@
-# C attack surface management (CASM)
+# Cyber Attack Surface Management (CASM)
 
 This demo contains full self-contained demonstrator of domain scanning tool. The demonstrator consists of the following components:
 * Neo4J database for results
@@ -11,6 +11,10 @@ The demonstrator can be deployed with Docker. There is a `compose.yml` file spaw
 
 # How to run
 
+## Prerequisites
+
+CASM needs requires Neo4j database to be set up and running. It is recommended to run ISIM first (e.g., in Docker), then run CASM.
+
 ## Running the app
 
 After running:
@@ -20,9 +24,7 @@ docker compose up -d
 you can verify that the following is available:
 
 ### Neo4J database
-Neo4J should be available at http://localhost:7474/browser/. The default credentials are `neo4j:supertestovaciheslo`. If you want to change the
-credentials you can do so in the `compose` file by chaging the `NEO4J_AUTH` variable. Please, do no forget to pass the
-new credentials to the Temporal worker configuration as well (see [Configuration](#configuration))
+Neo4J should be available at http://localhost:7474/browser/. The default credentials are `neo4j:supertestovaciheslo`. If you want to change the credentials you can do so in the `compose` file by chaging the `NEO4J_AUTH` variable. Please, do no forget to pass the new credentials to the Temporal worker configuration as well (see [Configuration](#configuration))
 
 ### Temporalio server
 Temporalio server should be available at http://localhost:8080/. You can watch the progress of your workflows there, or look for errors
