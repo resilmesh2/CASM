@@ -177,6 +177,8 @@ search_cve_by_date_range_pagination(api_key=api_key, neo4j_password=neo4j_passwo
 
 You can increase count of days to obtain older vulnerabilities, but it can take very long time to store them.
 
+Classification of impacts is experimental and will be tested in the future.
+
 # Tests
 Tests are available in `test` folder. 
 Test data contain an example output that can be obtained from scanning by EasyEASM.
