@@ -106,6 +106,13 @@ dependencies, run:
 poetry install
 ```
 
+If you would like to run the scan from docker container called `worker`, you just need to connect to its terminal using
+```bash
+sudo docker exec -u 0 -it <container_id> bash
+```
+This command connects to the container as the root user because of `-u 0`. If you need to modify some files,
+you can install, e.g., nano using `apt update` and `apt install nano`.
+
 ### Running the scan
 Client does not have its own separate configuration right now. To try it out, you can edit the source file directly [client.py](easyeasm_demo/client.py).
 ```python
@@ -130,6 +137,8 @@ To trigger the workflow, run:
 python -m easyeasm_demo.client
 ```
 
+This command can be used not only on a local machine but also inside the worker container.
+
 ### Verifying results
 If you triggered a workflow and want to see if it succesfully finished, you can:
 
@@ -141,8 +150,25 @@ This is an example of a NEO4J query fetching all IP addresses and their resoluti
 MATCH (ip:IP)-[:RESOLVES_TO]-(d:DomainName) RETURN ip,d
 ```
 
+# Setting up single workflow
+You can create single workflow using Temporal GUI. Click on `Start Workflow` inside of the panel for workflows.
+Use arbitrary workflow ID, `easyeasm_demo` as the Task Queue,
+and `EasyEasmWorkflow` as the Workflow Type. You can use the following input:
+
+```json
+{
+  "domains": ["hackerone.com"],
+  "mode": "fast"
+}
+```
+
+The correct settings are visualized in the following figure.
+
+![img.png](assets/workflow.png)
+
 # Setting up scheduled workflow
-You can create periodic scheduled scans via Temporal GUI.
+You can create periodic scheduled scans via Temporal GUI. When you create such a workflow, it calls the same workflow, 
+which is called in  
 
 ![img.png](assets/schedule.png)
 
