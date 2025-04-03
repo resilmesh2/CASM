@@ -112,27 +112,27 @@ services:
       - casm_isim_test_network
 
 
-  # neo4j:
-  #   image: neo4j:5.21.0
-  #   environment:
-  #     - NEO4J_AUTH=neo4j/supertestovaciheslo
-  #     - NEO4J_PLUGINS=["apoc"]
-  #     - NEO4J_apoc_export_file_enabled=true
-  #     - NEO4J_apoc_import_file_enabled=true
-  #     - NEO4J_apoc_import_file_use__neo4j__config=true
-  #   volumes:
-  #     - neo4j_easyeasm_data:/data
-  #   ports:
-  #     - 7474:7474
-  #     - 7687:7687
-  #   healthcheck:
-  #     test: ["CMD", "wget", "http://localhost:7474/"]
-  #     interval: 10s
-  #     timeout: 2s
-  #     retries: 10
-  #   restart: unless-stopped
-  #   networks:
-  #     - casm_isim_test_network
+#  neo4j:
+#    image: neo4j:5.21.0
+#    environment:
+#      - NEO4J_AUTH=neo4j/supertestovaciheslo
+#      - NEO4J_PLUGINS=["apoc"]
+#      - NEO4J_apoc_export_file_enabled=true
+#      - NEO4J_apoc_import_file_enabled=true
+#      - NEO4J_apoc_import_file_use__neo4j__config=true
+#    volumes:
+#      - neo4j_easyeasm_data:/data
+#    ports:
+#      - 7474:7474
+#      - 7687:7687
+#    healthcheck:
+#      test: ["CMD", "wget", "http://localhost:7474/"]
+#      interval: 10s
+#      timeout: 2s
+#      retries: 10
+#    restart: unless-stopped
+#    networks:
+#      - casm_isim_test_network
 
   redis:
     image: docker.io/bitnami/redis:7.0
@@ -144,8 +144,8 @@ services:
     networks:
       - casm_isim_test_network
 
-# volumes:
-#   neo4j_easyeasm_data:
+#volumes:
+#  neo4j_easyeasm_data:
 
 
 networks:

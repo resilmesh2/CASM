@@ -13,7 +13,7 @@ TEMPORAL_TASK_QUEUE = "easyeasm_demo"
 
 @dataclass
 class Neo4jConfig:
-    password: str
+    password: str = "supertestovaciheslo"
     bolt: str = "bolt://localhost:7687"
     user: str = "neo4j"
 
