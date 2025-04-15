@@ -214,3 +214,15 @@ Classification of impacts is experimental and will be tested in the future.
 # Tests
 Tests are available in `test` folder. 
 Test data contain an example output that can be obtained from scanning by EasyEASM.
+
+# Versions Used During Testing
+CASM was successfully tested with the following OS configuration and docker versions. 
+Versions of software packages can be found in `poetry.lock` and `pyproject.toml` files.
+These versions of software packages are automatically deployed when docker is used according to 
+instructions from this README.md file.
+
+|Operating System|Docker Version|Docker Compose Version| Memory   |CPU Architecture|Number of Cores|
+|----------------|--------------|----------------------|----------|----------------|---------------|
+|Ubuntu 24.04.2 LTS|28.0.4|v2.34.0| 32.0 GiB |x86_64|16 cores|
+|Ubuntu 24.04.1 LTS|26.1.3|v2.14.0| 32.0 GiB |x86_64|6 cores|
+|Ubuntu 22.04.5 LTS|28.0.4|v2.34.0| 64.0 GiB |x86_64|16 cores|
