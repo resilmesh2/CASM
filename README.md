@@ -179,37 +179,7 @@ which is called in
 ![img.png](assets/schedule.png)
 
 # CVE connector
-CVE connector can be run locally. You need to obtain your NVD REST API key from https://nvd.nist.gov/developers/request-an-api-key.
-We used `name and surname` as `organization name` and `personal use / not listed` as `organization type`.
-
-You need a running instance of Neo4j at Neo4j's standard bolt `bolt://localhost:7687`.
-Your database should contain some SoftwareVersions, e.g.,
-
-```neo4j
-CREATE (sv:SoftwareVersion {version: "linux:linux_kernel:*"})
-```
-
-You can also use a Neo4j dump from https://github.com/Resilmesh-EU/datasets/blob/main/CRUSOE%20Datasets/cyber-czech-neo4j-Jan-30-2025-16-36-11.dump,
-but you need to handle or delete old CVEs with old names of properties. This version of CVE connector
-had to add suffixes of CVSS versions to properties to cope with multiple CVSS versions. List of current
-properties is available in schema.graphql in ISIM's GraphQL API and will be soon updated in the data model.
-
-Example use of CVE connector:
-
-```python
-api_key = "your_api_key"
-neo4j_password = "your_neo4j_password"
-from datetime import datetime, timedelta
-end_date = datetime.now()
-start_date = datetime.now() - timedelta(days=60)
-from cve_connector.nvd_cve.cve_client import search_cve_by_date_range_pagination
-search_cve_by_date_range_pagination(api_key=api_key, neo4j_password=neo4j_password, 
-                                    end_date=end_date, start_date=start_date)
-```
-
-You can increase count of days to obtain older vulnerabilities, but it can take very long time to store them.
-
-Classification of impacts is experimental and will be tested in the future.
+Instructions for running the CVE connector are listed in [README](cve_connector/README.md).
 
 # Tests
 Tests are available in `test` folder. 
