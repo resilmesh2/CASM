@@ -87,36 +87,55 @@ def cve_version(neo4j_password: str, neo4j_bolt: str, neo4j_user: str, nvd_api_k
         for part in parts:
             logging.info(f"Processing CVEs for version: {version}, part: {part}")
             cve_data = None
-            for attempt in range(1, max_retries + 1):
+            obtained_all_results = False
+            start_index = 0
+            while not obtained_all_results:
+                for attempt in range(1, max_retries + 1):
+                    try:
+                        raw_data = search_cve_by_version(version=version, part=part, api_key=nvd_api_key, start_index=start_index, is_vulnerable=True)
+                        cve_data = [vuln["cve"] for vuln in raw_data.get("vulnerabilities", [])]
+                        logging.info(f"Found {len(cve_data)} vulnerabilities")
+                        if cve_data is not None:
+                            break
+                        logging.info(f"API returned None for {version} (part: {part}), attempt {attempt}/{max_retries}. Retrying in {retry_delay}s...")
+                        time.sleep(retry_delay)
+                    except Exception as e:
+                        logging.error(f"Error querying NVD API for {version} (part: {part}): {type(e).__name__}: {e}")
+                        if attempt == max_retries:
+                            logging.error(f"Max retries reached for {version} (part: {part}). Skipping.")
+                            break
+                        time.sleep(retry_delay)
+
+                if cve_data is None:
+                    logging.error(f"Failed to retrieve CVEs for {version} (part: {part}) after {max_retries} attempts.")
+                    break
+
+                if not cve_data:
+                    logging.info(f"No CVEs found for version: {version}, part: {part}")
+                    break
+
+                parsed_data = parse_vulnerabilities(data=cve_data)
+                logging.info(f"Successfully parsed {len(parsed_data)} CVEs")
                 try:
-                    cve_data = search_cve_by_version(version=version, part=part, api_key=nvd_api_key)
-                    if cve_data is not None:
-                        break
-                    logging.info(f"API returned None for {version} (part: {part}), attempt {attempt}/{max_retries}. Retrying in {retry_delay}s...")
-                    time.sleep(retry_delay)
+                    data_length = len(parsed_data)
+                    slice_start = 0
+                    slice_step = 100
+                    while slice_start <= data_length:
+                        if slice_start + slice_step <= data_length:
+                            move_cve_data_to_neo4j(parsed_data[slice_start:slice_start+100], neo4j_password, nvd_api_key, bolt=neo4j_bolt, user=neo4j_user)
+                        else:
+                            move_cve_data_to_neo4j(parsed_data[slice_start:data_length], neo4j_password,
+                                                   nvd_api_key, bolt=neo4j_bolt, user=neo4j_user)
+                        logging.info(f"Successfully updated Neo4j with CVEs for {version} (part: {part}), slice_start: {slice_start}")
+                        slice_start += 100
                 except Exception as e:
-                    logging.error(f"Error querying NVD API for {version} (part: {part}): {type(e).__name__}: {e}")
-                    if attempt == max_retries:
-                        logging.error(f"Max retries reached for {version} (part: {part}). Skipping.")
-                        break
-                    time.sleep(retry_delay)
+                    logging.error(f"Failed to update Neo4j for {version} (part: {part}): {type(e).__name__}: {e}")
+                    continue
 
-            if cve_data is None:
-                logging.error(f"Failed to retrieve CVEs for {version} (part: {part}) after {max_retries} attempts.")
-                continue
-
-            if not cve_data:
-                logging.info(f"No CVEs found for version: {version}, part: {part}")
-                continue
-
-            parsed_data = parse_vulnerabilities(data=cve_data)
-            logging.info(f"Successfully parsed {len(parsed_data)} CVEs")
-            try:
-                move_cve_data_to_neo4j(parsed_data, neo4j_password, nvd_api_key, bolt=neo4j_bolt, user=neo4j_user)
-                logging.info(f"Successfully updated Neo4j with CVEs for {version} (part: {part})")
-            except Exception as e:
-                logging.error(f"Failed to update Neo4j for {version} (part: {part}): {type(e).__name__}: {e}")
-                continue
+                if raw_data["startIndex"] + raw_data["resultsPerPage"] < raw_data["totalResults"]:
+                    start_index += 2000
+                else:
+                    obtained_all_results = True
 
 
 class CveDatabaseUpdater:
@@ -130,7 +149,8 @@ class CveDatabaseUpdater:
         :raises Exception: If Neo4j operations fail due to connection or query issues.
         :raises KeyError: If required environment variables are missing.
         """
-        required_env_vars = ['NVD_KEY', 'NEO4J_PASSWORD', 'NEO4J_BOLT', 'NEO4J_USER']
+        # required_env_vars = ['NVD_KEY', 'NEO4J_PASSWORD', 'NEO4J_BOLT', 'NEO4J_USER']
+        required_env_vars = ['NEO4J_PASSWORD', 'NEO4J_BOLT', 'NEO4J_USER']
         for var in required_env_vars:
             if not os.getenv(var):
                 raise KeyError(f"Missing required environment variable: {var}")

@@ -229,10 +229,6 @@ def check_ranges(cpe_match: Dict[str, Any], version: str, nvd_api_key: str) -> b
     if parse_cpe(cpe_match["criteria"])[2] != "*":
         raise ValueError(f"Invalid CPE range containing version number: {cpe_match}")
 
-    # if version.count('.') > 1:
-    #     match = re.match(r"(?P<major>.*?)\.(?P<minor>.*?)\.(?P<build>.*)", version)
-    #     shortened_cpe = vendor + ":" + product + ":" + match.group(1) + "." + match.group(2)
-
     if "versionStartIncluding" in cpe_match or "versionStartExcluding" in cpe_match or \
             "versionEndIncluding" in cpe_match or "versionEndExcluding" in cpe_match:
         result = False
@@ -264,7 +260,7 @@ def check_ranges(cpe_match: Dict[str, Any], version: str, nvd_api_key: str) -> b
         # CPE has * (ANY) as a version, but does not have any indication of start and end - matchCriteriaId should be used
         url = "https://services.nvd.nist.gov/rest/json/cpematch/2.0"
         params = {'matchCriteriaId': f"{cpe_match['matchCriteriaId']}"}
-        headers = {'apiKey': api_key} if nvd_api_key else {}
+        headers = {'apiKey': nvd_api_key} if nvd_api_key else None
         response = requests.get(url, headers=headers, params=params)
         if response.status_code == 200:
             data = response.json()

@@ -740,5 +740,5 @@ class CVEConnectorClient(AbstractClient):
                 "RETURN {version: s.version} AS software",
                 **{'product_string': product_string}
             ).data()
-            logging.info(f"Retrieved software versions for {product_string}:, {result}")
+            # logging.info(f"Retrieved software versions for {product_string}:, {result}")
             return result

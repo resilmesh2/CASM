@@ -118,7 +118,7 @@ def search_cve_by_id(cve_id: str, api_key: Optional[str] = None) -> Optional[Lis
         return None
 
 
-def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
+def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] = None, start_index: int = 0, is_vulnerable: bool = False) -> Optional[List[Dict[str, Any]]]:
     """
     Searches for CVEs associated with a specific product and version using the NVD API.
 
@@ -128,7 +128,9 @@ def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] 
     :param version: Product version in format 'vendor:product:version' (e.g., 'huawei:fusioncompute:8.0.0').
     :param part: CPE part ('a' for application, 'h' for hardware, 'o' for operating system). Defaults to 'a'.
     :param api_key: Optional API key for NVD API authentication.
-    :return: List of CVE dictionaries, empty list if none found, or None if an error occurs.
+    :param start_index: Optional index to start searching from. Defaults to 0.
+    :param is_vulnerable: Optional parameter to obtain results where the product version is vulnerable. Defaults to False.
+    :return: Data obtained from the NVD REST API.
     :raises ValueError: If version format or part value is invalid.
     """
     if not version or not isinstance(version, str) or version.count(':') < 2:
@@ -140,14 +142,17 @@ def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] 
         raise ValueError("Part must be 'a', 'h', or 'o'")
     
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
-    params = {"cpeName": f"cpe:2.3:{part}:{version}"}
+    params = {"cpeName": f"cpe:2.3:{part}:{version}", "startIndex": start_index}
+    if is_vulnerable:
+        params["isVulnerable"] = None
     headers = {'apiKey': api_key} if api_key else {}
     
     try:
         response = requests.get(url, headers=headers, params=params)
         if response.status_code == 200:
             data = response.json()
-            return [vuln["cve"] for vuln in data.get("vulnerabilities", [])]
+            logging.info(f"Total results: {data['totalResults']}")
+            return data
         elif response.status_code == 429:
             logging.error(f"Rate limit exceeded for version {version} (HTTP 429)")
             return None
