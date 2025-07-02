@@ -53,9 +53,9 @@ class CVEConnectorClient(AbstractClient):
         with self._driver.session() as session:
             result = session.run(
                 "MATCH (v:SoftwareVersion) "
-                "RETURN v.version AS version"
-            )
-            return [record["version"] for record in result]
+                "RETURN v.version AS version, v.cve_timestamp AS cve_timestamp"
+            ).data()
+            return [{"version": record["version"], "cve_timestamp": record["cve_timestamp"] if "cve_timestamp" in record else None} for record in result]
 
     def create_new_vulnerability(self, description: str, vulnerability_type: Optional[str] = None) -> None:
         """
@@ -742,3 +742,9 @@ class CVEConnectorClient(AbstractClient):
             ).data()
             # logging.info(f"Retrieved software versions for {product_string}:, {result}")
             return result
+
+    def update_timestamp_of_software_version(self, version: str, cve_timestamp: str) -> None:
+        with self._driver.session() as session:
+            session.run("MATCH (s:SoftwareVersion) WHERE s.version = $version "
+                        "SET s.cve_timestamp = $cve_timestamp",
+                        **{'version': version, 'cve_timestamp': cve_timestamp})

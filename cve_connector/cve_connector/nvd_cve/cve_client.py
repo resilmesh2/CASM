@@ -118,7 +118,9 @@ def search_cve_by_id(cve_id: str, api_key: Optional[str] = None) -> Optional[Lis
         return None
 
 
-def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] = None, start_index: int = 0, is_vulnerable: bool = False) -> Optional[List[Dict[str, Any]]]:
+def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] = None, start_index: int = 0,
+                          is_vulnerable: bool = False, last_mod_start_date: Optional[datetime] = None,
+                          last_mod_end_date: Optional[datetime] = None) -> Optional[List[Dict[str, Any]]]:
     """
     Searches for CVEs associated with a specific product and version using the NVD API.
 
@@ -130,6 +132,8 @@ def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] 
     :param api_key: Optional API key for NVD API authentication.
     :param start_index: Optional index to start searching from. Defaults to 0.
     :param is_vulnerable: Optional parameter to obtain results where the product version is vulnerable. Defaults to False.
+    :param last_mod_start_date: Last modified start date that constraints which vulnerabilities will be obtained. Defaults to None.
+    :param last_mod_end_date: Last modified end date that constraints which vulnerabilities will be obtained. Defaults to None.
     :return: Data obtained from the NVD REST API.
     :raises ValueError: If version format or part value is invalid.
     """
@@ -145,7 +149,15 @@ def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] 
     params = {"cpeName": f"cpe:2.3:{part}:{version}", "startIndex": start_index}
     if is_vulnerable:
         params["isVulnerable"] = None
+    if last_mod_start_date:
+        params["lastModStartDate"] = last_mod_start_date.replace('+', "%2B")
+    if last_mod_end_date:
+        params["lastModEndDate"] = last_mod_end_date.replace('+', "%2B")
+    elif last_mod_start_date:
+        params["lastModEndDate"] = (datetime.now() + timedelta(hours=1)).isoformat().replace('+', '%2B')
+    params = '&'.join([key if value is None else f"{key}={value}" for key, value in params.items()])
     headers = {'apiKey': api_key} if api_key else {}
+    logging.info(f"Searching for CVEs for {version} (part: {part}). Last timestamp is {last_mod_start_date}.")
     
     try:
         response = requests.get(url, headers=headers, params=params)

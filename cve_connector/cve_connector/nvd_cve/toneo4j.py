@@ -372,7 +372,8 @@ def process_nvd_cpe(client: CVEConnectorClient, cpe_match: Dict[str, Any], vul_d
     return vulnerability_created
 
 
-def get_software_versions_from_neo4j(neo4j_passwd: str, bolt: str = "bolt://localhost:7687", user: str = "neo4j") -> List[str]:
+def get_software_versions_from_neo4j(neo4j_passwd: str, bolt: str = "bolt://localhost:7687",
+                                     user: str = "neo4j") -> List[str]:
     """
     Retrieves all software versions stored in the Neo4j database.
 
@@ -383,3 +384,8 @@ def get_software_versions_from_neo4j(neo4j_passwd: str, bolt: str = "bolt://loca
     """
     client = CVEConnectorClient(password=neo4j_passwd, bolt=bolt, user=user)
     return client.get_all_software_versions()
+
+def update_timestamp_for_software_version(software_version: str, timestamp: str, neo4j_passwd: str,
+                                          bolt: str = "bolt://localhost:7687", user: str = "neo4j"):
+    client = CVEConnectorClient(password=neo4j_passwd, bolt=bolt, user=user)
+    client.update_timestamp_of_software_version(software_version, timestamp)

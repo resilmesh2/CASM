@@ -30,7 +30,8 @@ from temporalio.worker import Worker, UnsandboxedWorkflowRunner
 
 from cve_connector.nvd_cve.cve_client import search_cve_by_version
 from cve_connector.nvd_cve.cve_parser import parse_vulnerabilities
-from cve_connector.nvd_cve.toneo4j import move_cve_data_to_neo4j, get_software_versions_from_neo4j
+from cve_connector.nvd_cve.toneo4j import (move_cve_data_to_neo4j, get_software_versions_from_neo4j,
+                                           update_timestamp_for_software_version)
 from cve_connector.cve_config import CveConnectorConfig
 
 
@@ -52,7 +53,8 @@ logging.basicConfig(
 )
 
 
-def cve_version(neo4j_password: str, neo4j_bolt: str, neo4j_user: str, nvd_api_key: str) -> None:
+def cve_version(workflow_start: datetime, neo4j_password: str, neo4j_bolt: str, neo4j_user: str,
+                nvd_api_key: str) -> None:
     """
     Fetches and processes CVEs for software versions stored in Neo4j.
 
@@ -60,6 +62,7 @@ def cve_version(neo4j_password: str, neo4j_bolt: str, neo4j_user: str, nvd_api_k
     and CPE part ('a', 'o', 'h'), parses the results, and updates the Neo4j database. Retries API
     calls up to a maximum limit if they fail.
 
+    :param workflow_start: Timestamp when the workflow started.
     :param neo4j_password: Password for Neo4j authentication.
     :param neo4j_bolt: Bolt connection string for Neo4j.
     :param neo4j_user: Username for Neo4j authentication.
@@ -68,22 +71,24 @@ def cve_version(neo4j_password: str, neo4j_bolt: str, neo4j_user: str, nvd_api_k
     :raises Exception: If Neo4j operations fail due to connection or query issues.
     """
     try:
-        versions = get_software_versions_from_neo4j(neo4j_password, bolt=neo4j_bolt, user=neo4j_user)
+        versions_and_timestamps = get_software_versions_from_neo4j(neo4j_password, bolt=neo4j_bolt, user=neo4j_user)
     except Exception as e:
         logging.error(f"Failed to retrieve software versions from Neo4j: {type(e).__name__}: {e}")
         raise
 
-    if not versions:
+    if not versions_and_timestamps:
         logging.info("No software versions found in Neo4j database.")
         return
 
-    logging.info(f"Versions {len(versions)}")
+    logging.info(f"Versions {len(versions_and_timestamps)}")
 
     parts = ['a', 'o', 'h']
     max_retries = 5
     retry_delay = 5
 
-    for version in versions:
+    for version_item in versions_and_timestamps:
+        version = version_item['version']
+        timestamp = version_item['cve_timestamp']
         for part in parts:
             logging.info(f"Processing CVEs for version: {version}, part: {part}")
             cve_data = None
@@ -92,8 +97,10 @@ def cve_version(neo4j_password: str, neo4j_bolt: str, neo4j_user: str, nvd_api_k
             while not obtained_all_results:
                 for attempt in range(1, max_retries + 1):
                     try:
-                        raw_data = search_cve_by_version(version=version, part=part, api_key=nvd_api_key, start_index=start_index, is_vulnerable=True)
-                        cve_data = [vuln["cve"] for vuln in raw_data.get("vulnerabilities", [])]
+                        raw_data = search_cve_by_version(version=version, part=part, api_key=nvd_api_key, start_index=start_index,
+                                                         is_vulnerable=True, last_mod_start_date=timestamp)
+                        if "vulnerabilities" in raw_data:
+                            cve_data = [vuln["cve"] for vuln in raw_data.get("vulnerabilities", [])]
                         logging.info(f"Found {len(cve_data)} vulnerabilities")
                         if cve_data is not None:
                             break
@@ -137,14 +144,17 @@ def cve_version(neo4j_password: str, neo4j_bolt: str, neo4j_user: str, nvd_api_k
                 else:
                     obtained_all_results = True
 
+        update_timestamp_for_software_version(version, workflow_start, neo4j_password, neo4j_bolt, neo4j_user)
+
 
 class CveDatabaseUpdater:
-    async def run_database_update(self) -> None:
+    async def run_database_update(self, workflow_start) -> None:
         """
         Executes the CVE version update process.
 
         Calls cve_version to fetch, parse, and update CVE data in Neo4j.
 
+        :param workflow_start: Timestamp when the workflow started.
         :return: None
         :raises Exception: If Neo4j operations fail due to connection or query issues.
         :raises KeyError: If required environment variables are missing.
@@ -158,6 +168,7 @@ class CveDatabaseUpdater:
         cve_config = CveConnectorConfig()
 
         cve_version(
+            workflow_start,
             neo4j_password=os.getenv('NEO4J_PASSWORD', ''),
             neo4j_bolt=os.getenv('NEO4J_BOLT', ''),
             neo4j_user=os.getenv('NEO4J_USER', ''),
@@ -176,17 +187,18 @@ class CveUpdateActivities:
         self.db_client = db_client
 
     @activity.defn
-    async def do_database_thing(self) -> None:
+    async def do_database_thing(self, workflow_start) -> None:
         """
         Temporal activity to perform CVE database updates.
 
         Executes the run_database_update method of the database updater.
 
+        :param workflow_start: Timestamp when the workflow started.
         :return: None
         :raises Exception: If Neo4j operations fail due to connection or query issues.
         :raises KeyError: If required environment variables are missing.
         """
-        await self.db_client.run_database_update()
+        await self.db_client.run_database_update(workflow_start)
 
 
 @workflow.defn
@@ -203,6 +215,7 @@ class CveUpdateWorkflow:
         """
         await workflow.execute_activity_method(
             CveUpdateActivities.do_database_thing,
+            workflow.now().isoformat(),
             start_to_close_timeout=timedelta(seconds=10),
         )
 
@@ -259,12 +272,12 @@ async def main() -> None:
                 task_queue="cve-update-task-queue",
             ),
             spec=ScheduleSpec(
-                intervals=[ScheduleIntervalSpec(every=timedelta(minutes=2))]
+                intervals = [ScheduleIntervalSpec(every=timedelta(hours=2))]
             ),
         )
         try:
             await client.create_schedule(schedule_id, schedule)
-            logging.info(f"Schedule '{schedule_id}' created (runs every 2 minutes)")
+            logging.info(f"Schedule '{schedule_id}' created (runs every 2 hours)")
         except Exception as e:
             logging.warning(f"Could not create schedule '{schedule_id}': {e}")
 
