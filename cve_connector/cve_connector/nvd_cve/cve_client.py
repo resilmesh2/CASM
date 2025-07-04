@@ -19,6 +19,7 @@ Dependencies:
 """
 
 import re
+import time
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 import requests
@@ -55,6 +56,8 @@ def search_cve_by_date_range(api_key: Optional[str] = None,
     
     try:
         response = requests.get(url, headers=headers, params=params)
+        # the official documentation recommends 6-second-long sleep
+        time.sleep(6)
         if response.status_code == 200:
             data = response.json()
             return [vuln["cve"] for vuln in data.get("vulnerabilities", [])]
@@ -98,6 +101,8 @@ def search_cve_by_id(cve_id: str, api_key: Optional[str] = None) -> Optional[Lis
     
     try:
         response = requests.get(url, headers=headers, params=params)
+        # the official documentation recommends 6-second-long sleep
+        time.sleep(6)
         if response.status_code == 200:
             data = response.json()
             return [data["vulnerabilities"][0]["cve"]] if data.get("vulnerabilities") else []
@@ -161,6 +166,8 @@ def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] 
     
     try:
         response = requests.get(url, headers=headers, params=params)
+        # the official documentation recommends 6-second-long sleep
+        time.sleep(6)
         if response.status_code == 200:
             data = response.json()
             logging.info(f"Total results: {data['totalResults']}")

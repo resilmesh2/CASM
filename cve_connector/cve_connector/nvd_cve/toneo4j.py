@@ -23,6 +23,7 @@ Dependencies:
 """
 
 import re
+import time
 import logging
 import requests
 from typing import List, Dict, Any, Tuple
@@ -31,7 +32,7 @@ from cve_connector.nvd_cve.CveConnectorClient import CVEConnectorClient
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
 
-def move_cve_data_to_neo4j(vulnerability_list: List[Vulnerability], neo4j_passwd: str, nvd_api_key: str,
+def move_cve_data_to_neo4j(vulnerability_list: List[Vulnerability], neo4j_passwd: str, nvd_api_key: str | None = None,
                            bolt: str = "bolt://localhost:7687", user: str = "neo4j") -> None:
     """
     Moves CVE data from Vulnerability objects into a Neo4j database.
@@ -41,6 +42,7 @@ def move_cve_data_to_neo4j(vulnerability_list: List[Vulnerability], neo4j_passwd
 
     :param vulnerability_list: List of Vulnerability objects.
     :param neo4j_passwd: Password for Neo4j authentication.
+    :param nvd_api_key: Neo4j API key. Defaults to None.
     :param bolt: Bolt connection string. Defaults to "bolt://localhost:7687".
     :param user: Username for Neo4j. Defaults to "neo4j".
     :return: None
@@ -262,6 +264,9 @@ def check_ranges(cpe_match: Dict[str, Any], version: str, nvd_api_key: str) -> b
         params = {'matchCriteriaId': f"{cpe_match['matchCriteriaId']}"}
         headers = {'apiKey': nvd_api_key} if nvd_api_key else None
         response = requests.get(url, headers=headers, params=params)
+
+        # the official documentation recommends to pause scripts for 6 seconds after each request
+        time.sleep(6)
         if response.status_code == 200:
             data = response.json()
             for match_string in data["matchStrings"]:
@@ -387,5 +392,15 @@ def get_software_versions_from_neo4j(neo4j_passwd: str, bolt: str = "bolt://loca
 
 def update_timestamp_for_software_version(software_version: str, timestamp: str, neo4j_passwd: str,
                                           bolt: str = "bolt://localhost:7687", user: str = "neo4j"):
+    """
+    Creates or updates a timestamp for software version.
+
+    :param software_version: Software version that will be updated.
+    :param timestamp: Timestamp of the last retrieval of CVEs from the NVD.
+    :param neo4j_passwd: Password to Neo4j database.
+    :param bolt: Bolt connection string. Defaults to "bolt://localhost:7687".
+    :param user: Username for Neo4j. Defaults to "neo4j".
+    :return: None
+    """
     client = CVEConnectorClient(password=neo4j_passwd, bolt=bolt, user=user)
     client.update_timestamp_of_software_version(software_version, timestamp)

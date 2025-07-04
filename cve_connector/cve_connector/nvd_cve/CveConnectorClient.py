@@ -744,6 +744,12 @@ class CVEConnectorClient(AbstractClient):
             return result
 
     def update_timestamp_of_software_version(self, version: str, cve_timestamp: str) -> None:
+        """
+        Creates or updates a timestamp for an existing software version.
+        :param version: Software version that will be updated.
+        :param cve_timestamp: Timestamp of the last retrieval of CVEs from the NVD.
+        :return: None
+        """
         with self._driver.session() as session:
             session.run("MATCH (s:SoftwareVersion) WHERE s.version = $version "
                         "SET s.cve_timestamp = $cve_timestamp",

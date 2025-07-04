@@ -27,6 +27,7 @@ import logging
 from temporalio import activity, workflow
 from temporalio.client import Client, Schedule, ScheduleSpec, ScheduleActionStartWorkflow, ScheduleIntervalSpec
 from temporalio.worker import Worker, UnsandboxedWorkflowRunner
+from temporalio.common import RetryPolicy
 
 from cve_connector.nvd_cve.cve_client import search_cve_by_version
 from cve_connector.nvd_cve.cve_parser import parse_vulnerabilities
@@ -84,7 +85,7 @@ def cve_version(workflow_start: datetime, neo4j_password: str, neo4j_bolt: str, 
 
     parts = ['a', 'o', 'h']
     max_retries = 5
-    retry_delay = 5
+    retry_delay = 6
 
     for version_item in versions_and_timestamps:
         version = version_item['version']
@@ -102,16 +103,17 @@ def cve_version(workflow_start: datetime, neo4j_password: str, neo4j_bolt: str, 
                         if "vulnerabilities" in raw_data:
                             cve_data = [vuln["cve"] for vuln in raw_data.get("vulnerabilities", [])]
                         logging.info(f"Found {len(cve_data)} vulnerabilities")
+                        time.sleep(retry_delay)
                         if cve_data is not None:
                             break
                         logging.info(f"API returned None for {version} (part: {part}), attempt {attempt}/{max_retries}. Retrying in {retry_delay}s...")
-                        time.sleep(retry_delay)
+
                     except Exception as e:
+                        time.sleep(retry_delay)
                         logging.error(f"Error querying NVD API for {version} (part: {part}): {type(e).__name__}: {e}")
                         if attempt == max_retries:
                             logging.error(f"Max retries reached for {version} (part: {part}). Skipping.")
                             break
-                        time.sleep(retry_delay)
 
                 if cve_data is None:
                     logging.error(f"Failed to retrieve CVEs for {version} (part: {part}) after {max_retries} attempts.")
@@ -145,10 +147,11 @@ def cve_version(workflow_start: datetime, neo4j_password: str, neo4j_bolt: str, 
                     obtained_all_results = True
 
         update_timestamp_for_software_version(version, workflow_start, neo4j_password, neo4j_bolt, neo4j_user)
+    return f"Executed CVE download for {len(versions_and_timestamps)} software versions."
 
 
 class CveDatabaseUpdater:
-    async def run_database_update(self, workflow_start) -> None:
+    def run_database_update(self, workflow_start) -> None:
         """
         Executes the CVE version update process.
 
@@ -198,7 +201,7 @@ class CveUpdateActivities:
         :raises Exception: If Neo4j operations fail due to connection or query issues.
         :raises KeyError: If required environment variables are missing.
         """
-        await self.db_client.run_database_update(workflow_start)
+        self.db_client.run_database_update(workflow_start)
 
 
 @workflow.defn
@@ -216,7 +219,10 @@ class CveUpdateWorkflow:
         await workflow.execute_activity_method(
             CveUpdateActivities.do_database_thing,
             workflow.now().isoformat(),
-            start_to_close_timeout=timedelta(seconds=10),
+            start_to_close_timeout=timedelta(hours=1, minutes=30),
+            retry_policy=RetryPolicy(
+                maximum_attempts=1,
+            ),
         )
 
 
@@ -231,7 +237,8 @@ async def main() -> None:
     :raises ConnectionRefusedError: If connection to Temporal server fails after retries.
     :raises KeyError: If required environment variables are missing.
     """
-    required_env_vars = ['NVD_KEY', 'NEO4J_PASSWORD', 'NEO4J_BOLT', 'NEO4J_USER', 'TEMPORAL_HOST', 'TEMPORAL_PORT']
+    # required_env_vars = ['NVD_KEY', 'NEO4J_PASSWORD', 'NEO4J_BOLT', 'NEO4J_USER', 'TEMPORAL_HOST', 'TEMPORAL_PORT']
+    required_env_vars = ['NEO4J_PASSWORD', 'NEO4J_BOLT', 'NEO4J_USER', 'TEMPORAL_HOST', 'TEMPORAL_PORT']
     for env_var in required_env_vars:
         if not os.getenv(env_var):
             logging.error(f"Missing required environment variable: {env_var}")
@@ -264,7 +271,7 @@ async def main() -> None:
         existing_schedule = await client.get_schedule(schedule_id)
         logging.info(f"Schedule '{schedule_id}' already exists, skipping creation")
     except Exception:
-        asyncio.sleep(retry_interval)
+        await asyncio.sleep(retry_interval)
         schedule = Schedule(
             action=ScheduleActionStartWorkflow(
                 CveUpdateWorkflow.run,

@@ -180,6 +180,7 @@ which is called in
 
 # CVE connector
 Instructions for running the CVE connector are listed in [README](cve_connector/README.md).
+The most important thing is to obtain NVD REST API key that should be used by the CVE connector.
 
 # Tests
 Tests are available in `test` folder. 
