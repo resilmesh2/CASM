@@ -294,6 +294,8 @@ def has_privilege_escalation(vulnerability: Vulnerability) -> bool:
     """
     if not cve_is_about_system(vulnerability.cpe_type):
         return False
+    if len(vulnerability.cvssv2.keys()) != 0 and vulnerability.cvssv2.get('obtainAllPrivilege', '') == 'true':
+        return True
     if has_root_privileges_description(vulnerability.description):
         return True
     return len(vulnerability.cvssv2.keys()) != 0 and \
