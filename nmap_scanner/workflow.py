@@ -1,35 +1,29 @@
-import json
+from collections.abc import Awaitable, Callable, Sequence
+from typing import Any
 
-from temporalio import workflow
-
+from easyeasm_demo.config import AppConfig
 from nmap_scanner.activities import NmapActivities
-from nmap_scanner.dtos import NmapConfig
+from nmap_scanner.dtos import NmapResults
+from temporalio import workflow
 
 
 @workflow.defn
 class NmapWorkflow:
     @workflow.run
-    async def run(self, config: NmapConfig) -> dict:
-        activities = NmapActivities()
-
-        # Parse the Nmap XML file
-        results = await workflow.execute_activity(
-            activities.parse_nmap_xml,
-            config,
+    async def run(self) -> None:
+        nmap_results = await workflow.execute_activity(
+            NmapActivities.run_nmap_scan,
             start_to_close_timeout=30
         )
 
-        # Write results to output file
-        with open(config.output_file, "w") as f:
-            json.dump(results, f, indent=2, default=vars)
+        await workflow.execute_activity(
+            NmapActivities.parse_nmap_xml,
+            nmap_results,
+            start_to_close_timeout=30
+        )
 
-        return {
-            "message": "Nmap parsing completed successfully",
-            "stats": {
-                "hosts": len(results.hosts),
-                "subnets": len(results.subnets),
-                "software_versions": len(results.software_versions),
-                "devices": len(results.devices),
-                "applications": len(results.applications)
-            }
-        }
+    @classmethod
+    def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
+        config = AppConfig.get()
+        activities = NmapActivities(config.nmap)
+        return [*activities.get_activities()]
