@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
@@ -34,10 +34,19 @@ class RedisConfig:
 
 
 @dataclass
+class NmapConfig:
+    targets: list[str]
+    arguments: str
+    org_unit_name: str = "Internal IT"
+    tag: list[str] = field(default_factory=list)
+
+
+@dataclass
 class Config:
     temporal: TemporalConfig
     neo4j: Neo4jConfig
     redis: RedisConfig
+    nmap: NmapConfig
 
 
 class AppConfig:
