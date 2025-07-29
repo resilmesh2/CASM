@@ -17,14 +17,20 @@ class NmapActivities:
     @activity.defn
     async def run_nmap_scan(self) -> ElementTree:
         nmap_client = nmap3.Nmap()
-
-        target = self.nmap_config.targets.split(" ")
+        delimiter = " "
+        target = delimiter.join(self.nmap_config.targets)
         scan_args = self.nmap_config.arguments
 
         return nmap_client.scan_command(target=target, arg=scan_args)
 
     @activity.defn
-    async def parse_nmap_xml(self, nmap_output: ElementTree) -> NmapResults:
+    async def parse_nmap_xml(self) -> NmapResults:
+        nmap_client = nmap3.Nmap()
+        delimiter = " "
+        target = delimiter.join(self.nmap_config.targets)
+        scan_args = self.nmap_config.arguments
+
+        nmap_output = nmap_client.scan_command(target=target, arg=scan_args)
         return parser_activities_impl.parse_nmap_xml(nmap_output, self.nmap_config.tag)
     #
     # @activity.defn
@@ -32,4 +38,4 @@ class NmapActivities:
     #     return parser_activities_impl.parse_nmap_xml(parsed_nmap_results, [])
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
-        return [self.run_nmap_scan, self.parse_nmap_xml]
+        return [self.parse_nmap_xml]
