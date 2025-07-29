@@ -1,5 +1,5 @@
 temporal:
-  url: temporal:7233
+  url: "temporal:7233"
   namespace: default
   task_queue: easyeasm_demo
 
@@ -11,3 +11,7 @@ neo4j:
 redis:
   host: redis
   port: 6379
+
+nmap:
+  targets: ["localhost"]
+  arguments: "-sV -A"

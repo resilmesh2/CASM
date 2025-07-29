@@ -11,3 +11,7 @@ neo4j:
 redis:
   host: localhost
   port: 6379
+
+nmap:
+  targets: ["localhost"]
+  arguments: "-sV -A"
