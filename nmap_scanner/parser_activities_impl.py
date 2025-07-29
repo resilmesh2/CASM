@@ -1,5 +1,5 @@
 import ipaddress
-from xml.etree import ElementTree
+from xml.etree.ElementTree import Element
 
 from dtos import Application, Device, Host, NmapResults, SoftwareVersion, Subnet
 
@@ -22,14 +22,14 @@ def extract_subnet(ip_str: str, prefix: int | None = None) -> str | None:
         return None
 
 
-def _extract_ip_addresses(host: ElementTree.Element) -> list[str]:
+def _extract_ip_addresses(host: Element) -> list[str]:
     return [
         addr for address in host.findall("address")
         if (addr := address.attrib.get("addr", ""))
     ]
 
 
-def _extract_hostnames(host: ElementTree.Element) -> list[str]:
+def _extract_hostnames(host: Element) -> list[str]:
     hostnames = []
     if (hostnames_elem := host.find("hostnames")) is not None:
         hostnames.extend(
@@ -39,7 +39,7 @@ def _extract_hostnames(host: ElementTree.Element) -> list[str]:
     return hostnames
 
 
-def _build_version_description(service: ElementTree.Element) -> str:
+def _build_version_description(service: Element) -> str:
     product = service.attrib.get("product", "")
     version = service.attrib.get("version", "")
     extrainfo = service.attrib.get("extrainfo", "")
@@ -53,12 +53,12 @@ def _build_version_description(service: ElementTree.Element) -> str:
     return full_version.strip() or name
 
 
-def _get_service_cpe(service: ElementTree.Element) -> str:
+def _get_service_cpe(service: Element) -> str:
     cpe_elem = service.find("cpe")
     return cpe_elem.text if cpe_elem is not None else service.attrib.get("cpe", "")
 
 
-def _create_software_version(service: ElementTree.Element, ip: str, tag: list[str]) -> SoftwareVersion | None:
+def _create_software_version(service: Element, ip: str, tag: list[str]) -> SoftwareVersion | None:
     cpe = _get_service_cpe(service)
     if not cpe:
         return None
@@ -70,13 +70,13 @@ def _create_software_version(service: ElementTree.Element, ip: str, tag: list[st
     )
 
 
-def _create_application(service: ElementTree.Element, port_num: str, protocol: str, ip: str) -> Application:
+def _create_application(service: Element, port_num: str, protocol: str, ip: str) -> Application:
     service_name = service.attrib.get("name", "")
     app_name = f"{service_name} (port {port_num}/{protocol})"
     return Application(name=app_name, device=ip)
 
 
-def _process_ports_and_services(host: ElementTree.Element, ip: str, software_versions: list[SoftwareVersion],
+def _process_ports_and_services(host: Element, ip: str, software_versions: list[SoftwareVersion],
                               applications: list[Application], tag: list[str]) -> None:
     if (ports := host.find("ports")) is None:
         return
@@ -112,7 +112,7 @@ def _create_device(ip: str, hostnames: list[str]) -> Device:
     )
 
 
-def _is_host_up(host: ElementTree.Element) -> bool:
+def _is_host_up(host: Element) -> bool:
     status = host.find("status")
     return status is not None and status.attrib.get("state") == "up"
 
@@ -137,20 +137,20 @@ def _add_devices(results: NmapResults, ip_addresses: list[str], hostnames: list[
 def _finalize_results(results: NmapResults, subnet_set: set[str], software_versions: list[SoftwareVersion],
                      applications: list[Application]) -> None:
     results.subnets.extend(
-        Subnet(ip_range=subnet, note=f"Nmap scan results for {subnet}")
+        Subnet(ip_range=subnet, note=subnet)
         for subnet in sorted(subnet_set)
     )
     results.software_versions.extend(software_versions)
     results.applications.extend(applications)
 
 
-def parse_nmap_xml(nmap_output: ElementTree, tag: list[str]) -> NmapResults:
+def parse_nmap_xml(nmap_output: Element, tag: list[str]) -> NmapResults:
     results = NmapResults()
     subnet_set: set[str] = set()
     software_versions: list[SoftwareVersion] = []
     applications: list[Application] = []
 
-    for host in nmap_output.getroot().findall("host"):
+    for host in nmap_output.findall("host"):
         if not _is_host_up(host):
             continue
 
