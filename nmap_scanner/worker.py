@@ -1,12 +1,11 @@
 import asyncio
 
-from temporalio.common import WorkflowIDReusePolicy
-from temporalio.exceptions import WorkflowAlreadyStartedError
-
 from easyeasm_demo.config import AppConfig, TemporalConfig
 from easyeasm_demo.workflow import EasyEasmWorkflow, logger
 from nmap_scanner.workflow import NmapWorkflow
 from temporalio.client import Client
+from temporalio.common import WorkflowIDReusePolicy
+from temporalio.exceptions import WorkflowAlreadyStartedError
 from temporalio.worker import Worker
 from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxRestrictions
 
@@ -36,7 +35,6 @@ async def start_unique_workflow(workflow, workflow_id: str, client: Client) -> N
 
 
 async def main() -> None:
-    config = AppConfig.get()
     client = await Client.connect("localhost:7233")
     workflows = [NmapWorkflow]
     activities = []

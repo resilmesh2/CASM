@@ -11,13 +11,20 @@ from temporalio import workflow
 class NmapWorkflow:
     @workflow.run
     async def run(self) -> None:
-        # nmap_results = await workflow.execute_activity(
-        #     NmapActivities.run_nmap_scan,
-        #     start_to_close_timeout=timedelta(minutes=5),
-        # )
+        nmap_results = await workflow.execute_activity(
+            NmapActivities.run_nmap_scan,
+            start_to_close_timeout=timedelta(minutes=5),
+        )
+
+        parsed_nmap_results = await workflow.execute_activity(
+            NmapActivities.parse_nmap_xml,
+            nmap_results,
+            start_to_close_timeout=timedelta(minutes=5),
+        )
 
         await workflow.execute_activity(
-            NmapActivities.parse_nmap_xml,
+            NmapActivities.send_result_to_api,
+            parsed_nmap_results,
             start_to_close_timeout=timedelta(minutes=5),
         )
 
