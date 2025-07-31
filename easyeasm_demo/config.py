@@ -40,6 +40,9 @@ class NmapConfig:
     org_unit_name: str = "Internal IT"
     tag: list[str] = field(default_factory=list)
 
+@dataclass
+class ISIMConfig:
+    url: str
 
 @dataclass
 class Config:
@@ -47,6 +50,7 @@ class Config:
     neo4j: Neo4jConfig
     redis: RedisConfig
     nmap: NmapConfig
+    isim: ISIMConfig
 
 
 class AppConfig:
