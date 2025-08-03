@@ -1,7 +1,7 @@
 import ipaddress
 from xml.etree.ElementTree import Element
 
-from dtos import Application, Device, Host, NmapResults, SoftwareVersion, Subnet
+from nmap_scanner.dtos import Application, Device, Host, NmapResults, SoftwareVersion, Subnet
 
 
 def _get_ip_version(ip: str) -> int:
