@@ -31,5 +31,5 @@ class NmapWorkflow:
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
         config = AppConfig.get()
-        activities = NmapActivities(config.nmap)
+        activities = NmapActivities(config.nmap, config.isim)
         return [*activities.get_activities()]
