@@ -145,11 +145,11 @@ def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] 
     if not version or not isinstance(version, str) or version.count(':') < 2:
         logging.error(f"Invalid version format: {version}. Expected 'vendor:product:version'")
         raise ValueError("Version must be in format 'vendor:product:version'")
-    
+
     if part not in ['a', 'h', 'o']:
         logging.error(f"Invalid part value: {part}. Must be 'a', 'h', or 'o'")
         raise ValueError("Part must be 'a', 'h', or 'o'")
-    
+
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
     params = {"cpeName": f"cpe:2.3:{part}:{version}", "startIndex": start_index}
     if is_vulnerable:
@@ -163,7 +163,7 @@ def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] 
     params = '&'.join([key if value is None else f"{key}={value}" for key, value in params.items()])
     headers = {'apiKey': api_key} if api_key else {}
     logging.info(f"Searching for CVEs for {version} (part: {part}). Last timestamp is {last_mod_start_date}.")
-    
+
     try:
         response = requests.get(url, headers=headers, params=params)
         # the official documentation recommends 6-second-long sleep

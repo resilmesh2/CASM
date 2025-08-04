@@ -49,12 +49,12 @@ def parse_vulnerabilities(data: List[Dict[str, Any]]) -> List[Vulnerability]:
             continue
         vulnerability.cve = item["id"]
         vulnerability.description = item["descriptions"][0].get("value", "")
-        
+
         if "weaknesses" in item:
             for weakness in item.get("weaknesses", []):
                 for description in weakness.get("description", []):
                     vulnerability.cwe.add(description.get("value", ""))
-        
+
         def get_primary_metric(metric_list: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
             for metric in metric_list:
                 if metric.get("type") == "Primary":
@@ -137,7 +137,7 @@ def parse_vulnerabilities(data: List[Dict[str, Any]]) -> List[Vulnerability]:
                     "baseScore": tmp["cvssData"]["baseScore"],
                     "baseSeverity": tmp["cvssData"]["baseSeverity"],
                 })
-        
+
         if "configurations" in item:
             for cpe_item in item.get("configurations", []):
                 for node in cpe_item.get("nodes", []):
@@ -147,15 +147,15 @@ def parse_vulnerabilities(data: List[Dict[str, Any]]) -> List[Vulnerability]:
                             if criteria:
                                 vulnerability.cpe_type.add(criteria.split(':')[2])
             vulnerability.cpe_configurations = item["configurations"]
-        
+
         vulnerability.published = item.get("published", "")
         vulnerability.lastModified = item.get("lastModified", "")
 
         for ref in item.get("references", []):
             for tag in ref.get("tags", []):
                 vulnerability.ref_tag.add(tag)
-        
+
         vulnerability.result_impacts = list(set(classifier(vulnerability)))
         vulnerabilities.append(vulnerability)
-        
+
     return vulnerabilities
