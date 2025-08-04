@@ -316,7 +316,7 @@ async def main() -> None:
         activities=[activities.do_database_thing],
         workflow_runner=UnsandboxedWorkflowRunner()
     )
-    
+
     async with worker:
         try:
             await shutdown_event.wait()

@@ -58,10 +58,26 @@ def _get_service_cpe(service: Element) -> str:
     return cpe_elem.text if cpe_elem is not None else service.attrib.get("cpe", "")
 
 
+def convert_cpe_to_version_2_3(cpe: str) -> str | None:
+    """
+    Convert 'cpe:/a:vendor:product:version' to
+    'cpe:2.3:a:vendor:product:version:*:*:*:*:*:*:*'
+    Returns None if a version is missing.
+    """
+    parts = cpe.split(":")[1:]  # remove 'cpe:/'
+    part = parts[0][1:] if parts[0].startswith("/") else parts[0]
+    fields = [part] + parts[1:]
+    if len(fields) < 4 or not fields[3].strip():  # Cve_connector doesn't support cpes without a version for now
+        return None
+    fields = fields[:4] + ["*"] * 6
+    return "cpe:2.3:" + ":".join(fields)
+
+
 def _create_software_version(service: Element, ip: str, tag: list[str]) -> SoftwareVersion | None:
     cpe = _get_service_cpe(service)
-    if not cpe:
+    if not (cpe and (cpe := convert_cpe_to_version_2_3(cpe))):
         return None
+
     return SoftwareVersion(
         version=cpe,
         description=_build_version_description(service),
