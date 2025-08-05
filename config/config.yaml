@@ -13,7 +13,7 @@ redis:
   port: 6379
 
 isim:
-  url: "localhost:8000"
+  url: "http://localhost:8000/"
 
 nmap:
   targets: ["localhost"]

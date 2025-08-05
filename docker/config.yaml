@@ -12,6 +12,9 @@ redis:
   host: redis
   port: 6379
 
+isim:
+  url: "localhost:8000"
+
 nmap:
   targets: ["localhost"]
   arguments: "-sV -A"

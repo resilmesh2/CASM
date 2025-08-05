@@ -3,21 +3,20 @@ import json
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import asdict
 from typing import Any
-from urllib.parse import urlparse
 from xml.etree import ElementTree
 
+import httpx
 import nmap3
 
-from easyeasm_demo.config import Neo4jConfig, NmapConfig, ISIMConfig
-from temporal.nmap_scanner import parser_activities_impl
-from temporal.nmap_scanner.dtos import NmapResults
+from easyeasm_demo.config import ISIMConfig, NmapConfig
+from nmap_scanner import parser_activities_impl
+from nmap_scanner.dtos import NmapResults
 from temporalio import activity
 
 
 class NmapActivities:
-    def __init__(self, nmap_config: NmapConfig, neo4j_config: Neo4jConfig, isim_config: ISIMConfig) -> None:
+    def __init__(self, nmap_config: NmapConfig, isim_config: ISIMConfig) -> None:
         self.nmap_config = nmap_config
-        self.neo4j_config = neo4j_config
         self.isim_config = isim_config
 
     @activity.defn
@@ -36,15 +35,10 @@ class NmapActivities:
 
     @activity.defn
     async def send_result_to_api(self, parsed_nmap_results: NmapResults):
-        parsed = urlparse(self.isim_config.url)
         payload = json.dumps(asdict(parsed_nmap_results))
         headers = {"Content-Type": "application/json"}
 
-
-        with http.client.HTTPConnection(parsed.hostname, parsed.port) as conn:
-            conn.request("POST", parsed.path, body=payload, headers=headers)
-            with conn.getresponse() as response:
-                data = response.read().decode()
-                return json.loads(data) if data else None
+        with httpx.Client() as conn:
+            return conn.post(f"{self.isim_config.url}assets", json=payload, headers=headers).text
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
         return [self.parse_nmap_xml, self.run_nmap_scan, self.send_result_to_api]

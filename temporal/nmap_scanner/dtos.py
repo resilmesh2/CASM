@@ -13,17 +13,17 @@ class Host:
 @dataclass
 class Subnet:
     ip_range: str
-    note: str | None = None
+    note: str = field(default="")
     contacts: list[str] = field(default_factory=list)
     parents: list[str] = field(default_factory=list)
-    org_units: list[str] | None = None
+    org_units: list[str] = field(default_factory=list)
 
 
 @dataclass
 class Device:
     name: str
     ip_address: str
-    org_units: list[str] | None = None
+    org_units: list[str] = field(default_factory=list)
 
 
 @dataclass
