@@ -1,8 +1,7 @@
 import asyncio
 
-from easyeasm_demo.config import AppConfig, TemporalConfig
-from easyeasm_demo.workflow import EasyEasmWorkflow, logger
-from nmap_scanner.workflow import NmapWorkflow
+from easyeasm_demo.workflow import logger
+from temporal.nmap_scanner.workflow import NmapWorkflow
 from temporalio.client import Client
 from temporalio.common import WorkflowIDReusePolicy
 from temporalio.exceptions import WorkflowAlreadyStartedError

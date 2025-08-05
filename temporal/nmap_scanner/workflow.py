@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import Any
 
 from easyeasm_demo.config import AppConfig
-from nmap_scanner.activities import NmapActivities
+from temporal.nmap_scanner.activities import NmapActivities
 from temporalio import workflow
 
 

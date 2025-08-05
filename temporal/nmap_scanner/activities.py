@@ -7,11 +7,10 @@ from urllib.parse import urlparse
 from xml.etree import ElementTree
 
 import nmap3
-from neo4j import GraphDatabase, basic_auth
 
-from easyeasm_demo.config import Neo4jConfig, NmapConfig, RedisConfig, ISIMConfig
-from nmap_scanner import parser_activities_impl
-from nmap_scanner.dtos import NmapResults
+from easyeasm_demo.config import Neo4jConfig, NmapConfig, ISIMConfig
+from temporal.nmap_scanner import parser_activities_impl
+from temporal.nmap_scanner.dtos import NmapResults
 from temporalio import activity
 
 
