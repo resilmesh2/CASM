@@ -22,15 +22,39 @@ Dependencies:
   - re, logging modules.
 """
 
+import logging
 import re
 import time
-import logging
+from dataclasses import dataclass
+from typing import Any, Dict, List, Tuple
+
 import requests
-from typing import List, Dict, Any, Tuple
 from packaging.version import Version
+
 from cve_connector.nvd_cve.CveConnectorClient import CVEConnectorClient
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
+
+@dataclass
+class Cpe:
+    part: str
+    vendor: str
+    product: str
+    version: str
+    update: str = "*"
+    edition: str = "*"
+    language: str = "*"
+    sw_edition: str = "*"
+    target_sw: str = "*"
+    target_hw: str = "*"
+    other: str = "*"
+
+    def to_cpe23_string(self) -> str:
+        return (
+            f"cpe:2.3:{self.part}:{self.vendor}:{self.product}:{self.version}:"
+            f"{self.update}:{self.edition}:{self.language}:{self.sw_edition}:"
+            f"{self.target_sw}:{self.target_hw}:{self.other}"
+        )
 
 def move_cve_data_to_neo4j(vulnerability_list: List[Vulnerability], neo4j_passwd: str, nvd_api_key: str | None = None,
                            bolt: str = "bolt://localhost:7687", user: str = "neo4j") -> None:
@@ -199,7 +223,7 @@ def move_cve_data_to_neo4j(vulnerability_list: List[Vulnerability], neo4j_passwd
     logging.info(f"Created {cve_count_created} CVEs, updated {cve_count_updated} CVEs")
 
 
-def parse_cpe(full_cpe: str) -> Tuple[str, str, str]:
+def parse_cpe(full_cpe: str) -> Cpe:
     """
     Parses a CPE string into vendor, product, and version components.
 
@@ -208,10 +232,27 @@ def parse_cpe(full_cpe: str) -> Tuple[str, str, str]:
     :raises ValueError: If CPE string is malformed.
     """
     try:
-        cpe_parts = full_cpe.split(':')
-        if len(cpe_parts) < 6:
+        parts = full_cpe.split(":")
+        if len(parts) < 6 or parts[0] != "cpe" or parts[1] != "2.3":
             raise ValueError(f"Malformed CPE string: {full_cpe}")
-        return cpe_parts[3], cpe_parts[4], cpe_parts[5]
+
+        # Pad optional parts with "*"
+        parts += ["*"] * (13 - len(parts))
+
+        return Cpe(
+            part=parts[2],
+            vendor=parts[3],
+            product=parts[4],
+            version=parts[5],
+            update=parts[6] or "*",
+            edition=parts[7] or "*",
+            language=parts[8] or "*",
+            sw_edition=parts[9] or "*",
+            target_sw=parts[10] or "*",
+            target_hw=parts[11] or "*",
+            other=parts[12] or "*",
+        )
+
     except (IndexError, ValueError) as e:
         logging.error(f"Failed to parse CPE {full_cpe}: {e}")
         raise ValueError(f"Invalid CPE format: {full_cpe}")
@@ -228,7 +269,7 @@ def check_ranges(cpe_match: Dict[str, Any], version: str, nvd_api_key: str) -> b
     :return: True if version is within range; False otherwise.
     """
     logging.info(f"Checking CPE range: {cpe_match}")
-    if parse_cpe(cpe_match["criteria"])[2] != "*":
+    if parse_cpe(cpe_match["criteria"]).version != "*":
         raise ValueError(f"Invalid CPE range containing version number: {cpe_match}")
 
     if "versionStartIncluding" in cpe_match or "versionStartExcluding" in cpe_match or \
@@ -271,7 +312,7 @@ def check_ranges(cpe_match: Dict[str, Any], version: str, nvd_api_key: str) -> b
             data = response.json()
             for match_string in data["matchStrings"]:
                 for match in match_string["matchString"]["matches"]:
-                    if parse_cpe(match["cpeName"])[2] == version:
+                    if parse_cpe(match["cpeName"]).version == version:
                         logging.info(f"Successful check of CPE range: {cpe_match} and version: {match['cpeName']}")
                         return True
         return False
@@ -318,62 +359,62 @@ def check_configurations(client: CVEConnectorClient, cpe_configurations: List[Di
     return vulnerability_created
 
 
-def process_nvd_cpe(client: CVEConnectorClient, cpe_match: Dict[str, Any], vul_description: str, flag: bool, nvd_api_key) -> bool:
+def process_nvd_cpe(
+    client: CVEConnectorClient, cpe_match: Dict[str, Any], vul_description: str, flag: bool, nvd_api_key
+) -> bool:
     """
     Processes a CPE match to create relationships between vulnerabilities and software versions.
-
-    :param client: CVEConnectorClient for Neo4j interactions.
-    :param cpe_match: CPE match data with criteria and version ranges.
-    :param vul_description: Vulnerability description.
-    :param flag: Indicates if a vulnerability node was created.
-    :return: Updated flag indicating if a vulnerability node was created.
+    Uses Cpe dataclass for parsing CPE 2.3 format.
     """
     vulnerability_created = flag
     try:
-        vendor, product, version = parse_cpe(cpe_match["criteria"])
-        logging.info(f"{vul_description} Processing CPE match for vendor={vendor}, product={product}, version={version}")
-        if version.count('.') > 1:
-            match = re.match(r"(?P<major>.*?)\.(?P<minor>.*?)\.(?P<build>.*)", version)
-            shortened_cpe = vendor + ":" + product + ":" + match.group(1) + "." + match.group(2)
+        cpe = parse_cpe(cpe_match["criteria"])
+        logging.info(
+            f"{vul_description} Processing CPE match for vendor={cpe.vendor}, product={cpe.product}, version={cpe.version}"
+        )
+
+        if cpe.version.count(".") > 1:
+            match = re.match(r"(?P<major>.*?)\.(?P<minor>.*?)\.(?P<build>.*)", cpe.version)
+            shortened_cpe = f"{cpe.vendor}:{cpe.product}:{match.group(1)}.{match.group(2)}"
             if client.software_version_exists(shortened_cpe):
                 if not vulnerability_created:
                     vulnerability_created = True
                     client.create_new_vulnerability(vul_description)
-                client.create_relationship_between_vulnerability_and_software_version(
-                    vul_description, shortened_cpe
-                )
-        for possible_software_version in [vendor + ":" + product + ":" + version,
-                                        vendor + ":" + product + ":*",
-                                        vendor + ":*:*"]:
+                client.create_relationship_between_vulnerability_and_software_version(vul_description, shortened_cpe)
+
+        for possible_software_version in [
+            f"{cpe.vendor}:{cpe.product}:{cpe.version}",
+            f"{cpe.vendor}:{cpe.product}:*",
+            f"{cpe.vendor}:*:*",
+        ]:
             if client.software_version_exists(possible_software_version):
                 if not vulnerability_created:
                     vulnerability_created = True
                     client.create_new_vulnerability(vul_description)
                 client.create_relationship_between_vulnerability_and_software_version(
-                    vul_description, possible_software_version)
+                    vul_description, possible_software_version
+                )
 
         # Other parts of code should be executed only for ANY (*) version
-        if parse_cpe(cpe_match["criteria"])[2] != "*":
+        if cpe.version != "*":
             return vulnerability_created
 
-        # vendor_and_product = vendor + ":" + product + ":*"
-        vendor_and_product = vendor + ":" + product
-        # logging.info(f"Before get versions for vendor={vendor}, product={product}, version={version}")
+        vendor_and_product = f"{cpe.vendor}:{cpe.product}"
         sw_versions = [v["software"]["version"] for v in client.get_versions_of_product(vendor_and_product)]
-        # logging.info(f"After get versions, obtained {sw_versions}")
-        # for sw_version in client.get_versions_of_product(vendor_and_product):
+
         for sw_version in sw_versions:
-            # logging.info(f"Inside of for loop for vendor={vendor}, product={product}, version={sw_version}")
-            possible_version = sw_version[sw_version.rfind(':') + 1:]
+            possible_version = sw_version.split(":")[-1]
             if check_ranges(cpe_match, possible_version, nvd_api_key):
                 if not vulnerability_created:
                     vulnerability_created = True
                     client.create_new_vulnerability(vul_description)
                 client.create_relationship_between_vulnerability_and_software_version(
-                    vul_description, vendor + ":" + product + ":" + possible_version)
+                    vul_description, f"{cpe.vendor}:{cpe.product}:{possible_version}"
+                )
+
     except Exception as e:
         logging.warning(f"Skipping CPE processing due to error: {e}")
-    
+
     return vulnerability_created
 
 
