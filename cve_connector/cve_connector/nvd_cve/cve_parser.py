@@ -134,6 +134,7 @@ def parse_vulnerabilities(data: List[Dict[str, Any]]) -> List[Vulnerability]:
                     "subsequentSystemConfidentiality": tmp["cvssData"]["subConfidentialityImpact"],
                     "subsequentSystemIntegrity": tmp["cvssData"]["subIntegrityImpact"],
                     "subsequentSystemAvailability": tmp["cvssData"]["subAvailabilityImpact"],
+                    "exploitMaturity": tmp["cvssData"]["exploitMaturity"],
                     "baseScore": tmp["cvssData"]["baseScore"],
                     "baseSeverity": tmp["cvssData"]["baseSeverity"],
                 })
