@@ -2,7 +2,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from typing import Any
 
-from easyeasm_demo.config import AppConfig
+from config import AppConfig
 from temporal.nmap_scanner.activities import NmapActivities
 from temporalio import workflow
 

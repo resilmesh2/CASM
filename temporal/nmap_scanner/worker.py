@@ -1,12 +1,13 @@
 import asyncio
 
-from easyeasm_demo.workflow import logger
-from temporal.nmap_scanner.workflow import NmapWorkflow
 from temporalio.client import Client
 from temporalio.common import WorkflowIDReusePolicy
 from temporalio.exceptions import WorkflowAlreadyStartedError
 from temporalio.worker import Worker
 from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxRestrictions
+
+from easyeasm_demo.workflow import logger
+from temporal.nmap_scanner.workflow import NmapWorkflow
 
 
 async def start_unique_workflow(workflow, workflow_id: str, client: Client) -> None:
@@ -41,7 +42,8 @@ async def main() -> None:
         activities += workflow.get_activities()
     workflow_runner = SandboxedWorkflowRunner(
         restrictions=SandboxRestrictions.default.with_passthrough_modules(
-            "nmap_scanner",
+            "temporal.nmap_scanner",
+            "config"
         )
     )
 

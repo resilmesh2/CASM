@@ -1,4 +1,3 @@
-import http
 import json
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import asdict
@@ -8,9 +7,9 @@ from xml.etree import ElementTree
 import httpx
 import nmap3
 
-from easyeasm_demo.config import ISIMConfig, NmapConfig
-from nmap_scanner import parser_activities_impl
-from nmap_scanner.dtos import NmapResults
+from config import ISIMConfig, NmapConfig, AppConfig
+from temporal.nmap_scanner import parser_activities_impl
+from temporal.nmap_scanner.dtos import NmapResults
 from temporalio import activity
 
 
@@ -35,10 +34,11 @@ class NmapActivities:
 
     @activity.defn
     async def send_result_to_api(self, parsed_nmap_results: NmapResults):
-        payload = json.dumps(asdict(parsed_nmap_results))
+        payload = asdict(parsed_nmap_results)
         headers = {"Content-Type": "application/json"}
 
         with httpx.Client() as conn:
-            return conn.post(f"{self.isim_config.url}assets", json=payload, headers=headers).text
+            return conn.post(f"{self.isim_config.url}/assets", json=payload, headers=headers).text
+
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
         return [self.parse_nmap_xml, self.run_nmap_scan, self.send_result_to_api]
