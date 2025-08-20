@@ -4,9 +4,9 @@ from pathlib import Path
 import yaml
 from dacite import from_dict
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 
-TEMPORAL_URL = "localhost:7233"
+TEMPORAL_URL = "temporal:7233"
 TEMPORAL_NAMESPACE = "default"
 TEMPORAL_TASK_QUEUE = "easyeasm_demo"
 

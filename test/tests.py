@@ -2,7 +2,7 @@ import unittest
 import uuid
 from pathlib import Path
 from redis.client import Redis
-from easyeasm_demo.config import AppConfig, RedisConfig, Neo4jConfig
+from config import AppConfig, RedisConfig, Neo4jConfig
 from easyeasm_demo.workflow import EasyEasmActivities
 from neo4j import GraphDatabase, basic_auth
 
