@@ -1,6 +1,6 @@
 import asyncio
 
-from easyeasm_demo.config import AppConfig
+from config import AppConfig
 from easyeasm_demo.workflow import EasyEasmWorkflow
 from temporalio.client import Client
 from temporalio.worker import Worker

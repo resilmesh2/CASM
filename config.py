@@ -6,7 +6,7 @@ from dacite import from_dict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-TEMPORAL_URL = "localhost:7233"
+TEMPORAL_URL = "temporal:7233"
 TEMPORAL_NAMESPACE = "default"
 TEMPORAL_TASK_QUEUE = "easyeasm_demo"
 
@@ -14,7 +14,7 @@ TEMPORAL_TASK_QUEUE = "easyeasm_demo"
 @dataclass
 class Neo4jConfig:
     password: str = "supertestovaciheslo"
-    bolt: str = "bolt://localhost:7687"
+    bolt: str = "bolt://neo4j:7687"
     user: str = "neo4j"
 
 
@@ -45,12 +45,18 @@ class ISIMConfig:
     url: str
 
 @dataclass
+class ScannerConfig:
+    domains: list[str] = ["vulnweb.com"]
+    wordlist: str = "wordlist.txt"
+
+@dataclass
 class Config:
     temporal: TemporalConfig
     neo4j: Neo4jConfig
     redis: RedisConfig
     nmap: NmapConfig
     isim: ISIMConfig
+    scanner: ScannerConfig
 
 
 class AppConfig:

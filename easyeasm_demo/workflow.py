@@ -12,7 +12,7 @@ from redis.client import Redis
 from structlog import getLogger
 from yaml import safe_dump
 
-from easyeasm_demo.config import AppConfig, Neo4jConfig, RedisConfig
+from config import AppConfig, Neo4jConfig, RedisConfig
 from easyeasm_demo.queries import CASM_INSERT_QUERY
 from easyeasm_demo.utils import EasyEASMParsedResult, validate_input_target, determine_software_versions
 from temporalio import activity, workflow
