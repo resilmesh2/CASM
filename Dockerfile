@@ -45,8 +45,12 @@ COPY --chown=1001:1001 --from=go_build /app/go /app/go
 RUN mkdir -p .config/amass
 RUN chown -R 1001:1001 .config
 
+RUN apt update && apt install -y nmap
+
 USER 1001:1001
 
 EXPOSE 8000
 
-CMD ["/venv/bin/python", "-m", "easyeasm_demo.worker"]
+#CMD ["/venv/bin/python", "-m", "easyeasm_demo.worker"]
+USER root
+CMD ["/venv/bin/python", "-m", "nmap_topology.worker"]

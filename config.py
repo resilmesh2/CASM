@@ -45,12 +45,18 @@ class ISIMConfig:
     url: str
 
 @dataclass
+class TopologyConfig:
+    targets: list[str]
+    arguments: str
+
+@dataclass
 class Config:
     temporal: TemporalConfig
     neo4j: Neo4jConfig
     redis: RedisConfig
     nmap: NmapConfig
     isim: ISIMConfig
+    topology: TopologyConfig
 
 
 class AppConfig:

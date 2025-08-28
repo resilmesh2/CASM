@@ -144,24 +144,24 @@ services:
     networks:
       - casm_isim_test_network
 
-  cve-connector:
-    build:
-      context: ./cve_connector/
-      dockerfile: DockerFile
-    container_name: cve-connector
-    restart: unless-stopped
-    depends_on:
-      - temporal
-      - neo4j
-    networks:
-      - casm_isim_test_network
-    environment:
-      - NVD_KEY
-      - TEMPORAL_HOST=temporal
-      - TEMPORAL_PORT=7233
-      - NEO4J_USER=neo4j
-      - NEO4J_PASSWORD=supertestovaciheslo
-      - NEO4J_BOLT=bolt://neo4j:7687
+#  cve-connector:
+#    build:
+#      context: ./cve_connector/
+#      dockerfile: DockerFile
+#    container_name: cve-connector
+#    restart: unless-stopped
+#    depends_on:
+#      - temporal
+#      - neo4j
+#    networks:
+#      - casm_isim_test_network
+#    environment:
+#      - NVD_KEY
+#      - TEMPORAL_HOST=temporal
+#      - TEMPORAL_PORT=7233
+#      - NEO4J_USER=neo4j
+#      - NEO4J_PASSWORD=supertestovaciheslo
+#      - NEO4J_BOLT=bolt://neo4j:7687
 
 #volumes:
 #  neo4j_easyeasm_data:
