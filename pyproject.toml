@@ -14,12 +14,24 @@ redis = "^5.1.1"
 neo4j = "^5.25.0"
 validators = "^0.34.0"
 structlog = "^24.4.0"
-python3-nmap = "^1.9.1"
-cve-connector = {path = "cve_connector", develop = true}
 httpx = "^0.28.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = ">=0.0.261"
+
+[tool.poetry.group.cve-connector.dependencies]
+certifi = "2024.8.30"
+charset-normalizer = "3.3.2"
+idna = "3.10"
+pytz = "2024.2"
+requests = "2.32.3"
+setuptools = "75.1.0"
+urllib3 = "2.2.3"
+packaging = "25.0"
+
+[tool.poetry.group.nmap.dependencies]
+python3-nmap = "^1.9.1"
+
 
 [build-system]
 requires = ["poetry-core"]
