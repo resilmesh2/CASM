@@ -54,6 +54,12 @@ services:
       - ./temporalio/dynamicconfig:/etc/temporal/config/dynamicconfig
     networks:
       - casm_isim_test_network
+    healthcheck:
+      test: ["CMD","tctl", "--address", "temporal:7233", "workflow", "list", "||", "exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   temporal-admin-tools:
     container_name: temporal-admin-tools
@@ -106,10 +112,11 @@ services:
     build: .
     restart: unless-stopped
     volumes:
-      - ./docker/config.yaml:/app/config/config.yml
+      - ./docker/config.yaml:/app/config/config.yaml
       - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
     depends_on:
-      - temporal
+      temporal:
+        condition: service_healthy
     networks:
       - casm_isim_test_network
 
@@ -170,22 +177,31 @@ services:
       dockerfile: nmap.Dockerfile
     container_name: nmap-worker
     restart: unless-stopped
+    volumes:
+      - ./docker/config.yaml:/app/config/config.yaml
     depends_on:
-      - temporal
+      temporal:
+        condition: service_healthy
     networks:
       - casm_isim_test_network
     environment:
       - NVD_KEY
       - TEMPORAL_HOST=temporal
       - TEMPORAL_PORT=7233
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=supertestovaciheslo
+      - NEO4J_BOLT=bolt://neo4j:7687
 
   cve-connector-worker:
     build:
       dockerfile: cve-connector.Dockerfile
     container_name: cve-connector
     restart: unless-stopped
+    volumes:
+      - ./docker/config.yaml:/app/config/config.yaml
     depends_on:
-      - temporal
+      temporal:
+        condition: service_healthy
 #      - neo4j
     networks:
       - casm_isim_test_network
