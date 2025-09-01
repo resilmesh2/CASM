@@ -25,7 +25,7 @@ def extract_subnet(ip_str: str, prefix: int | None = None) -> str | None:
 def _extract_ip_addresses(host: Element) -> list[str]:
     return [
         addr for address in host.findall("address")
-        if (addr := address.attrib.get("addr", ""))
+        if (addr := address.attrib.get("addr", "")) and address.attrib.get("addrtype") in ("ipv4", "ipv6")
     ]
 
 

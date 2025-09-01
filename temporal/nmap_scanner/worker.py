@@ -35,7 +35,7 @@ async def start_unique_workflow(workflow, workflow_id: str, client: Client) -> N
 
 
 async def main() -> None:
-    client = await Client.connect("localhost:7233")
+    client = await Client.connect("temporal:7233")
     workflows = [NmapWorkflow]
     activities = []
     for workflow in workflows:
