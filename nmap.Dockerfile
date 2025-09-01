@@ -10,7 +10,7 @@ RUN curl -sSL https://install.python-poetry.org | python3 - && \
     python -m venv /venv
 
 COPY . ./
-RUN . /venv/bin/activate && ~/.local/bin/poetry install --with cve-connector
+RUN . /venv/bin/activate && ~/.local/bin/poetry install --with nmap
 
 FROM python:3.12-slim-bookworm as runtime
 
@@ -18,6 +18,10 @@ ENV VIRTUAL_ENV=/venv \
 	PATH=/venv/bin:/app/go/bin:/usr/local/go/bin:$PATH \
 	PYTHONFAULTHANDLER=1 \
     PYTHONBUFFERED=1
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends nmap && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -32,4 +36,4 @@ USER 1001:1001
 
 EXPOSE 8000
 
-CMD ["/venv/bin/python", "-m", "cve_connector.cve_temporal"]
+CMD ["/venv/bin/python", "-m", "temporal.nmap_scanner.worker"]
