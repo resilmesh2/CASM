@@ -29,6 +29,7 @@ from temporalio.client import Client, Schedule, ScheduleSpec, ScheduleActionStar
 from temporalio.worker import Worker, UnsandboxedWorkflowRunner
 from temporalio.common import RetryPolicy
 
+from cve_connector.nvd_cve.cpe_identifier import CpeIdentifier
 from cve_connector.nvd_cve.cve_client import search_cve_by_version
 from cve_connector.nvd_cve.cve_parser import parse_vulnerabilities
 from cve_connector.nvd_cve.toneo4j import (move_cve_data_to_neo4j, get_software_versions_from_neo4j,
@@ -83,68 +84,67 @@ def cve_version(workflow_start: datetime, neo4j_password: str, neo4j_bolt: str, 
 
     logging.info(f"Versions {len(versions_and_timestamps)}")
 
-    parts = ['a', 'o', 'h']
     max_retries = 5
     retry_delay = 6
 
     for version_item in versions_and_timestamps:
         version = version_item['version']
         timestamp = version_item['cve_timestamp']
-        for part in parts:
-            logging.info(f"Processing CVEs for version: {version}, part: {part}")
-            cve_data = None
-            obtained_all_results = False
-            start_index = 0
-            while not obtained_all_results:
-                for attempt in range(1, max_retries + 1):
-                    try:
-                        raw_data = search_cve_by_version(version=version, part=part, api_key=nvd_api_key, start_index=start_index,
-                                                         is_vulnerable=True, last_mod_start_date=timestamp)
-                        if "vulnerabilities" in raw_data:
-                            cve_data = [vuln["cve"] for vuln in raw_data.get("vulnerabilities", [])]
-                        logging.info(f"Found {len(cve_data)} vulnerabilities")
-                        time.sleep(retry_delay)
-                        if cve_data is not None:
-                            break
-                        logging.info(f"API returned None for {version} (part: {part}), attempt {attempt}/{max_retries}. Retrying in {retry_delay}s...")
-
-                    except Exception as e:
-                        time.sleep(retry_delay)
-                        logging.error(f"Error querying NVD API for {version} (part: {part}): {type(e).__name__}: {e}")
-                        if attempt == max_retries:
-                            logging.error(f"Max retries reached for {version} (part: {part}). Skipping.")
-                            break
-
-                if cve_data is None:
-                    logging.error(f"Failed to retrieve CVEs for {version} (part: {part}) after {max_retries} attempts.")
-                    break
-
-                if not cve_data:
-                    logging.info(f"No CVEs found for version: {version}, part: {part}")
-                    break
-
-                parsed_data = parse_vulnerabilities(data=cve_data)
-                logging.info(f"Successfully parsed {len(parsed_data)} CVEs")
+        cpe_item = CpeIdentifier.from_string(version_item["version"])
+        logging.info(f"Processing CVEs for version: {version}")
+        cve_data = None
+        obtained_all_results = False
+        start_index = 0
+        while not obtained_all_results:
+            for attempt in range(1, max_retries + 1):
                 try:
-                    data_length = len(parsed_data)
-                    slice_start = 0
-                    slice_step = 100
-                    while slice_start <= data_length:
-                        if slice_start + slice_step <= data_length:
-                            move_cve_data_to_neo4j(parsed_data[slice_start:slice_start+100], neo4j_password, nvd_api_key, bolt=neo4j_bolt, user=neo4j_user)
-                        else:
-                            move_cve_data_to_neo4j(parsed_data[slice_start:data_length], neo4j_password,
-                                                   nvd_api_key, bolt=neo4j_bolt, user=neo4j_user)
-                        logging.info(f"Successfully updated Neo4j with CVEs for {version} (part: {part}), slice_start: {slice_start}")
-                        slice_start += 100
-                except Exception as e:
-                    logging.error(f"Failed to update Neo4j for {version} (part: {part}): {type(e).__name__}: {e}")
-                    continue
+                    raw_data = search_cve_by_version(version=f"{cpe_item.vendor}:{cpe_item.product}:{cpe_item.version}", part=cpe_item.part, api_key=nvd_api_key, start_index=start_index,
+                                                     is_vulnerable=True, last_mod_start_date=timestamp)
+                    if "vulnerabilities" in raw_data:
+                        cve_data = [vuln["cve"] for vuln in raw_data.get("vulnerabilities", [])]
+                    logging.info(f"Found {len(cve_data)} vulnerabilities")
+                    time.sleep(retry_delay)
+                    if cve_data is not None:
+                        break
+                    logging.info(f"API returned None for {version}, attempt {attempt}/{max_retries}. Retrying in {retry_delay}s...")
 
-                if raw_data["startIndex"] + raw_data["resultsPerPage"] < raw_data["totalResults"]:
-                    start_index += 2000
-                else:
-                    obtained_all_results = True
+                except Exception as e:
+                    time.sleep(retry_delay)
+                    logging.error(f"Error querying NVD API for {version}: {type(e).__name__}: {e}")
+                    if attempt == max_retries:
+                        logging.error(f"Max retries reached for {version}. Skipping.")
+                        break
+
+            if cve_data is None:
+                logging.error(f"Failed to retrieve CVEs for{version}) after {max_retries} attempts.")
+                break
+
+            if not cve_data:
+                logging.info(f"No CVEs found for version: {version}")
+                break
+
+            parsed_data = parse_vulnerabilities(data=cve_data)
+            logging.info(f"Successfully parsed {len(parsed_data)} CVEs")
+            try:
+                data_length = len(parsed_data)
+                slice_start = 0
+                slice_step = 100
+                while slice_start <= data_length:
+                    if slice_start + slice_step <= data_length:
+                        move_cve_data_to_neo4j(parsed_data[slice_start:slice_start+100], version, neo4j_password, nvd_api_key, bolt=neo4j_bolt, user=neo4j_user)
+                    else:
+                        move_cve_data_to_neo4j(parsed_data[slice_start:data_length], version, neo4j_password,
+                                               nvd_api_key, bolt=neo4j_bolt, user=neo4j_user)
+                    logging.info(f"Successfully updated Neo4j with CVEs for {version}, slice_start: {slice_start}")
+                    slice_start += 100
+            except Exception as e:
+                logging.error(f"Failed to update Neo4j for {version}: {type(e).__name__}: {e}")
+                continue
+
+            if raw_data["startIndex"] + raw_data["resultsPerPage"] < raw_data["totalResults"]:
+                start_index += 2000
+            else:
+                obtained_all_results = True
 
         update_timestamp_for_software_version(version, workflow_start, neo4j_password, neo4j_bolt, neo4j_user)
     return f"Executed CVE download for {len(versions_and_timestamps)} software versions."
@@ -175,7 +175,7 @@ class CveDatabaseUpdater:
             neo4j_password=os.getenv('NEO4J_PASSWORD', ''),
             neo4j_bolt=os.getenv('NEO4J_BOLT', ''),
             neo4j_user=os.getenv('NEO4J_USER', ''),
-            nvd_api_key=cve_config.api_key if cve_config.api_key else os.getenv('NVD_KEY', '')
+            nvd_api_key=cve_config.api_key or os.getenv('NVD_KEY', '')
         )
 
 
@@ -279,7 +279,7 @@ async def main() -> None:
                 task_queue="cve-update-task-queue",
             ),
             spec=ScheduleSpec(
-                intervals = [ScheduleIntervalSpec(every=timedelta(hours=2))]
+                intervals=[ScheduleIntervalSpec(every=timedelta(hours=2))]
             ),
         )
         try:
