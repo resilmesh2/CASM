@@ -127,14 +127,14 @@ services:
     entrypoint: /entrypoint.sh
     environment:
       PASS: myPass
-      #ROOT: yes
-      #CUPS: yes
-      #FTP: yes
+      ROOT: yes
+      CUPS: yes
+      FTP: yes
       HTTP: yes
-      #IRC: yes
+      IRC: yes
       SMB: yes
-      #SSH: yes
-      #SQL: yes
+      SSH: yes
+      SQL: yes
     networks:
       casm_isim_test_network:
 
