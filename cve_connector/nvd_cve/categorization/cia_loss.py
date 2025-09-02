@@ -22,9 +22,8 @@ Dependencies:
   - Vulnerability from cve_connector.nvd_cve.vulnerability.
 """
 
-from typing import List
 
-from cve_connector.nvd_cve.categorization.utils import test_incidence, cve_is_about_system
+from cve_connector.nvd_cve.categorization.utils import cve_is_about_system, test_incidence
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
 
@@ -37,7 +36,7 @@ def has_system_confidentiality_loss(vulnerability: Vulnerability) -> bool:
       - Examining CVSS metrics from versions 4.0, 3.1, 3.0, and 2.
       - Scanning the vulnerability description for sufficient textual indicators (from a predefined list)
         that suggest confidentiality is compromised.
-    
+
     Evaluation details:
       - For CVSS v4.0: If "vulnerableSystemConfidentiality" is LOW, the description is scanned for
         sufficient indicators; otherwise, a HIGH value indicates confidentiality loss.
@@ -48,7 +47,7 @@ def has_system_confidentiality_loss(vulnerability: Vulnerability) -> bool:
     :param vulnerability: An instance of Vulnerability containing CVSS metrics, description, and CPE type.
     :return: True if the vulnerability causes system confidentiality loss; otherwise, False.
     """
-    sufficient_condition: List[str] = [
+    sufficient_condition: list[str] = [
         "devices allow remote attackers to read arbitrary files",
         "compromise the systems confidentiality",
         "read any file on the camera's linux filesystem",
@@ -80,23 +79,19 @@ def has_system_confidentiality_loss(vulnerability: Vulnerability) -> bool:
     if not cve_is_about_system(vulnerability.cpe_type):
         return False
     if len(vulnerability.cvssv40.keys()) != 0:
-        if vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "LOW":
-            if test_incidence(vulnerability.description, sufficient_condition):
-                return True
+        if vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+            return True
         return vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "HIGH"
     if len(vulnerability.cvssv31.keys()) != 0:
-        if vulnerability.cvssv31.get("confidentialityImpact", "") == "LOW":
-            if test_incidence(vulnerability.description, sufficient_condition):
-                return True
+        if vulnerability.cvssv31.get("confidentialityImpact", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+            return True
         return vulnerability.cvssv31.get("confidentialityImpact", "") == "HIGH"
     if len(vulnerability.cvssv30.keys()) != 0:
-        if vulnerability.cvssv30.get("confidentialityImpact", "") == "LOW":
-            if test_incidence(vulnerability.description, sufficient_condition):
-                return True
-        return vulnerability.cvssv30.get("confidentialityImpact", "") == "HIGH"
-    if vulnerability.cvssv2.get("confidentialityImpact", "") == "PARTIAL":
-        if test_incidence(vulnerability.description, sufficient_condition):
+        if vulnerability.cvssv30.get("confidentialityImpact", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
             return True
+        return vulnerability.cvssv30.get("confidentialityImpact", "") == "HIGH"
+    if vulnerability.cvssv2.get("confidentialityImpact", "") == "PARTIAL" and test_incidence(vulnerability.description, sufficient_condition):
+        return True
     return vulnerability.cvssv2.get("confidentialityImpact", "") == "COMPLETE"
 
 
@@ -109,7 +104,7 @@ def has_system_integrity_loss(vulnerability: Vulnerability) -> bool:
       - Evaluating CVSS metrics (v4.0, v3.1, v3.0, and v2) for integrity loss.
       - Scanning the description for phrases (from a predefined list) that indicate modification
         of system files, settings, or kernel memory.
-    
+
     Evaluation details:
       - For CVSS v4.0: If "vulnerableSystemIntegrity" is LOW, the description is checked for sufficient indicators; otherwise, HIGH indicates loss.
       - For CVSS v3.1 and v3.0: Similar evaluation using "integrityImpact".
@@ -120,7 +115,7 @@ def has_system_integrity_loss(vulnerability: Vulnerability) -> bool:
     """
     if not cve_is_about_system(vulnerability.cpe_type):
         return False
-    sufficient_condition: List[str] = [
+    sufficient_condition: list[str] = [
         "compromise the systems confidentiality or integrity",
         "gain read-write access to system settings",
         "all system settings can be read and changed",
@@ -148,23 +143,19 @@ def has_system_integrity_loss(vulnerability: Vulnerability) -> bool:
         "host arbitrary files"
     ]
     if len(vulnerability.cvssv40.keys()) != 0:
-        if vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "LOW":
-            if test_incidence(vulnerability.description, sufficient_condition):
-                return True
+        if vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+            return True
         return vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "HIGH"
     if len(vulnerability.cvssv31.keys()) != 0:
-        if vulnerability.cvssv31.get("integrityImpact", "") == "LOW":
-            if test_incidence(vulnerability.description, sufficient_condition):
-                return True
+        if vulnerability.cvssv31.get("integrityImpact", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+            return True
         return vulnerability.cvssv31.get("integrityImpact", "") == "HIGH"
     if len(vulnerability.cvssv30.keys()) != 0:
-        if vulnerability.cvssv30.get("integrityImpact", "") == "LOW":
-            if test_incidence(vulnerability.description, sufficient_condition):
-                return True
-        return vulnerability.cvssv30.get("integrityImpact", "") == "HIGH"
-    if vulnerability.cvssv2.get("integrityImpact", "") == "PARTIAL":
-        if test_incidence(vulnerability.description, sufficient_condition):
+        if vulnerability.cvssv30.get("integrityImpact", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
             return True
+        return vulnerability.cvssv30.get("integrityImpact", "") == "HIGH"
+    if vulnerability.cvssv2.get("integrityImpact", "") == "PARTIAL" and test_incidence(vulnerability.description, sufficient_condition):
+        return True
     return vulnerability.cvssv2.get("integrityImpact", "") == "COMPLETE"
 
 
@@ -178,22 +169,22 @@ def has_system_availability_loss(vulnerability: Vulnerability) -> bool:
       - Evaluating CVSS metrics (v4.0, v3.1, v3.0, and v2) for availability impact.
       - Using a sufficient_condition list to scan the description when the CVSS metric is LOW.
       - Considering any non-NONE availability impact as significant when system integrity loss is present.
-    
+
     :param vulnerability: An instance of Vulnerability containing CVSS metrics, description, and CPE type.
     :return: True if the vulnerability causes system availability loss; otherwise, False.
     """
     if not cve_is_about_system(vulnerability.cpe_type):
         return False
-    system_tokens: List[str] = [
-        'device crash',
-        'device reload',
-        'system crash',
-        'cpu consumption'
+    system_tokens: list[str] = [
+        "device crash",
+        "device reload",
+        "system crash",
+        "cpu consumption"
     ]
     for token in system_tokens:
         if token in vulnerability.description:
             return True
-    sufficient_condition: List[str] = [
+    sufficient_condition: list[str] = [
         "an extended denial of service condition for the device",
         "exhaust the memory resources of the machine",
         "denial of service (dos) condition on an affected device",
@@ -205,36 +196,28 @@ def has_system_availability_loss(vulnerability: Vulnerability) -> bool:
         "cause an affected system to stop"
     ]
     if len(vulnerability.cvssv40.keys()) != 0:
-        if vulnerability.cvssv40.get("vulnerableSystemAvailability", "") == "LOW":
-            if test_incidence(vulnerability.description, sufficient_condition):
-                return True
-        if has_system_integrity_loss(vulnerability):
-            return vulnerability.cvssv40.get("vulnerableSystemAvailability", "") != 'NONE'
-        else:
-            return vulnerability.cvssv40.get("vulnerableSystemAvailability", "") == 'HIGH'
-    if len(vulnerability.cvssv31.keys()) != 0:
-        if vulnerability.cvssv31.get("availabilityImpact", "") == "LOW":
-            if test_incidence(vulnerability.description, sufficient_condition):
-                return True
-        if has_system_integrity_loss(vulnerability):
-            return vulnerability.cvssv31.get("availabilityImpact", "") != 'NONE'
-        else:
-            return vulnerability.cvssv31.get("availabilityImpact", "") == 'HIGH'
-    if len(vulnerability.cvssv30.keys()) != 0:
-        if vulnerability.cvssv30.get("availabilityImpact", "") == "LOW":
-            if test_incidence(vulnerability.description, sufficient_condition):
-                return True
-        if has_system_integrity_loss(vulnerability):
-            return vulnerability.cvssv30.get("availabilityImpact", "") != 'NONE'
-        else:
-            return vulnerability.cvssv30.get("availabilityImpact", "") == 'HIGH'
-    if vulnerability.cvssv2.get("availabilityImpact", "") == "PARTIAL":
-        if test_incidence(vulnerability.description, sufficient_condition):
+        if vulnerability.cvssv40.get("vulnerableSystemAvailability", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
             return True
+        if has_system_integrity_loss(vulnerability):
+            return vulnerability.cvssv40.get("vulnerableSystemAvailability", "") != "NONE"
+        return vulnerability.cvssv40.get("vulnerableSystemAvailability", "") == "HIGH"
+    if len(vulnerability.cvssv31.keys()) != 0:
+        if vulnerability.cvssv31.get("availabilityImpact", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+            return True
+        if has_system_integrity_loss(vulnerability):
+            return vulnerability.cvssv31.get("availabilityImpact", "") != "NONE"
+        return vulnerability.cvssv31.get("availabilityImpact", "") == "HIGH"
+    if len(vulnerability.cvssv30.keys()) != 0:
+        if vulnerability.cvssv30.get("availabilityImpact", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+            return True
+        if has_system_integrity_loss(vulnerability):
+            return vulnerability.cvssv30.get("availabilityImpact", "") != "NONE"
+        return vulnerability.cvssv30.get("availabilityImpact", "") == "HIGH"
+    if vulnerability.cvssv2.get("availabilityImpact", "") == "PARTIAL" and test_incidence(vulnerability.description, sufficient_condition):
+        return True
     if has_system_integrity_loss(vulnerability):
-        return vulnerability.cvssv2.get("availabilityImpact", "") != 'NONE'
-    else:
-        return vulnerability.cvssv2.get("availabilityImpact", "") == 'COMPLETE'
+        return vulnerability.cvssv2.get("availabilityImpact", "") != "NONE"
+    return vulnerability.cvssv2.get("availabilityImpact", "") == "COMPLETE"
 
 
 def system_confidentiality_changed(vulnerability: Vulnerability) -> bool:
@@ -246,7 +229,7 @@ def system_confidentiality_changed(vulnerability: Vulnerability) -> bool:
       - For CVSS v3.1 and v3.0, a change is indicated by a "CHANGED" scope.
       - For CVSS v2, if the description mentions "in the remote system" and the confidentiality impact is PARTIAL,
         the function returns True.
-    
+
     :param vulnerability: An instance of Vulnerability containing CVSS metrics, description, and CPE type.
     :return: True if system confidentiality is changed; otherwise, False.
     """
@@ -281,7 +264,7 @@ def system_integrity_changed(vulnerability: Vulnerability) -> bool:
       - For CVSS v3.1 and v3.0, a "CHANGED" scope indicates a modification.
       - For CVSS v2, if the description includes "in the remote system" and the integrity impact is PARTIAL,
         it returns True.
-    
+
     :param vulnerability: An instance of Vulnerability with CVSS metrics, description, and CPE type.
     :return: True if system integrity is changed; otherwise, False.
     """
@@ -316,7 +299,7 @@ def system_availability_changed(vulnerability: Vulnerability) -> bool:
       - For CVSS v3.1 and v3.0, a "CHANGED" scope is used.
       - For CVSS v2, if the description contains "in the remote system" and the availability impact is PARTIAL,
         the function returns True.
-    
+
     :param vulnerability: An instance of Vulnerability containing CVSS metrics, description, and CPE type.
     :return: True if system availability is changed; otherwise, False.
     """
@@ -342,7 +325,7 @@ def system_availability_changed(vulnerability: Vulnerability) -> bool:
     return cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv2.get("availabilityImpact", "") == "PARTIAL"
 
 
-def add_other_cia_impacts(result_impacts: List[str], vulnerability: Vulnerability) -> None:
+def add_other_cia_impacts(result_impacts: list[str], vulnerability: Vulnerability) -> None:
     """
     Adds additional CIA (Confidentiality, Integrity, Availability) impacts to the result_impacts list
     based on the vulnerability's CVSS metrics.

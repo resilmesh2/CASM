@@ -10,7 +10,7 @@ WITH apoc.convert.fromJsonMap($json_string) AS input_, datetime.truncate('second
         WITH host, row, ipadd, scan_dt
         MERGE (dn: DomainName { domain_name: row.domain_name})
             ON CREATE SET dn.tag = ["unknown"]
-            SET dn.tag = apoc.coll.toSet(["A/AAAA", "CASM"] + dn.tag) 
+            SET dn.tag = apoc.coll.toSet(["A/AAAA", "CASM"] + dn.tag)
         WITH host, row, dn, ipadd, scan_dt
         OPTIONAL MATCH (dn)<-[r2:RESOLVES_TO]-(ipadd) WHERE r2.end IS NULL
         FOREACH(r IN CASE WHEN r2 IS NULL THEN [r2] ELSE [] END |
@@ -19,7 +19,7 @@ WITH apoc.convert.fromJsonMap($json_string) AS input_, datetime.truncate('second
         WITH host, row, scan_dt
         MERGE (ns: NetworkService {service: row.service, port: row.port, protocol: row.protocol})
             ON CREATE SET ns.tag = ["CASM"]
-            SET ns.tag = apoc.coll.toSet(["CASM"] + ns.tag) 
+            SET ns.tag = apoc.coll.toSet(["CASM"] + ns.tag)
         WITH host, row, ns, scan_dt
         MATCH(ns:NetworkService {service: row.service, port: row.port, protocol: row.protocol})
         MATCH (host:Host)<-[IS_A]-(:Node)-[:HAS_ASSIGNED]->(:IP {address: row.ip})

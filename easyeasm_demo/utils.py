@@ -1,12 +1,11 @@
+import json
+import urllib.request
 from dataclasses import asdict, dataclass
 from ipaddress import IPv4Interface, IPv6Interface
 from typing import Any
 
 from structlog import getLogger
 from validators import ValidationError, domain
-
-import json
-import urllib.request
 
 logger = getLogger()
 
@@ -15,16 +14,14 @@ WAPPALYZERGO_FINGERPRINTS_URL = "https://raw.githubusercontent.com/projectdiscov
 
 def validate_input_target(target: str) -> bool:
     res = domain(target)
-    if isinstance(res, ValidationError):
-        return False
-    return True
+    return not isinstance(res, ValidationError)
 
 
 def determine_software_versions(raw_technologies: str) -> list[dict[str, str]]:
     technologies = raw_technologies[1:-1].split(" ")
     with urllib.request.urlopen(WAPPALYZERGO_FINGERPRINTS_URL) as jsonfile:
         fingerprints_data = json.load(jsonfile)
-        count_of_words = max([len(version.split(' ')) for version in fingerprints_data["apps"].keys()])
+        count_of_words = max(len(version.split(" ")) for version in fingerprints_data["apps"])
 
         i = 0
         j = 1
@@ -34,28 +31,25 @@ def determine_software_versions(raw_technologies: str) -> list[dict[str, str]]:
             numerical_version = None
             technology = " ".join(technologies[i:j])
 
-            if ':' in technologies[j - 1]:
-                numerical_version = technology[technology.rfind(':') + 1:]
-                technology = technology[:technology.rfind(':')]
+            if ":" in technologies[j - 1]:
+                numerical_version = technology[technology.rfind(":") + 1:]
+                technology = technology[:technology.rfind(":")]
 
             if technology in fingerprints_data["apps"]:
                 if "cpe" in fingerprints_data["apps"][technology]:
-                    cpe_parts = fingerprints_data["apps"][technology]["cpe"].split(':')[3:6]
+                    cpe_parts = fingerprints_data["apps"][technology]["cpe"].split(":")[3:6]
                     if numerical_version:
                         potential_version = {
-                            "name": technology + ':' + numerical_version,
-                            "version": ':'.join(cpe_parts[0:2] + [numerical_version])
+                            "name": technology + ":" + numerical_version,
+                            "version": ":".join([*cpe_parts[0:2], numerical_version])
                         }
                     else:
                         potential_version = {
                             "name": technology,
-                            "version": ':'.join(cpe_parts)
+                            "version": ":".join(cpe_parts)
                         }
                 else:
-                    if numerical_version:
-                        potential_version = {"name": technology + ':' + numerical_version}
-                    else:
-                        potential_version = {"name": technology}
+                    potential_version = {"name": technology + ":" + numerical_version} if numerical_version else {"name": technology}
                 if potential_version not in software_versions:
                     software_versions.append(potential_version)
 

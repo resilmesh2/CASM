@@ -26,7 +26,7 @@ import logging
 import re
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import requests
 from packaging.version import Version
@@ -57,7 +57,8 @@ class Cpe:
             f"{self.target_sw}:{self.target_hw}:{self.other}"
         )
 
-def move_cve_data_to_neo4j(vulnerability_list: List[Vulnerability], cpe: str, neo4j_passwd: str, nvd_api_key: str | None = None,
+
+def move_cve_data_to_neo4j(vulnerability_list: list[Vulnerability], cpe: str, neo4j_passwd: str, nvd_api_key: str | None = None,
                            bolt: str = "bolt://localhost:7687", user: str = "neo4j") -> None:
     """
     Moves CVE data from Vulnerability objects into a Neo4j database.
@@ -222,7 +223,7 @@ def move_cve_data_to_neo4j(vulnerability_list: List[Vulnerability], cpe: str, ne
     logging.info(f"Created {cve_count_created} CVEs, updated {cve_count_updated} CVEs")
 
 
-def check_ranges(cpe_match: Dict[str, Any], version: str, nvd_api_key: str) -> bool:
+def check_ranges(cpe_match: dict[str, Any], version: str, nvd_api_key: str) -> bool:
     """
     Checks if a software version falls within the specified version range.
 
@@ -241,48 +242,47 @@ def check_ranges(cpe_match: Dict[str, Any], version: str, nvd_api_key: str) -> b
         result = False
         current_version = Version(version)
         if "versionStartIncluding" in cpe_match:
-            condition = Version(cpe_match['versionStartIncluding'])
+            condition = Version(cpe_match["versionStartIncluding"])
             if current_version < condition:
                 return False
             result = True
         if "versionStartExcluding" in cpe_match:
-            condition = Version(cpe_match['versionStartExcluding'])
+            condition = Version(cpe_match["versionStartExcluding"])
             if current_version <= condition:
                 return False
             result = True
         if "versionEndIncluding" in cpe_match:
-            condition = Version(cpe_match['versionEndIncluding'])
+            condition = Version(cpe_match["versionEndIncluding"])
             if current_version > condition:
                 return False
             result = True
         if "versionEndExcluding" in cpe_match:
-            condition = Version(cpe_match['versionEndExcluding'])
+            condition = Version(cpe_match["versionEndExcluding"])
             if current_version >= condition:
                 return False
             result = True
         logging.info(f"Successful check CPE range: {cpe_match}")
         return result
 
-    else:
-        # CPE has * (ANY) as a version, but does not have any indication of start and end - matchCriteriaId should be used
-        url = "https://services.nvd.nist.gov/rest/json/cpematch/2.0"
-        params = {'matchCriteriaId': f"{cpe_match['matchCriteriaId']}"}
-        headers = {'apiKey': nvd_api_key} if nvd_api_key else None
-        response = requests.get(url, headers=headers, params=params)
+    # CPE has * (ANY) as a version, but does not have any indication of start and end - matchCriteriaId should be used
+    url = "https://services.nvd.nist.gov/rest/json/cpematch/2.0"
+    params = {"matchCriteriaId": f"{cpe_match['matchCriteriaId']}"}
+    headers = {"apiKey": nvd_api_key} if nvd_api_key else None
+    response = requests.get(url, headers=headers, params=params)
 
-        # the official documentation recommends to pause scripts for 6 seconds after each request
-        time.sleep(6)
-        if response.status_code == 200:
-            data = response.json()
-            for match_string in data["matchStrings"]:
-                for match in match_string["matchString"]["matches"]:
-                    if CpeIdentifier.from_string(match["cpeName"]).version == version:
-                        logging.info(f"Successful check of CPE range: {cpe_match} and version: {match['cpeName']}")
-                        return True
-        return False
+    # the official documentation recommends to pause scripts for 6 seconds after each request
+    time.sleep(6)
+    if response.status_code == 200:
+        data = response.json()
+        for match_string in data["matchStrings"]:
+            for match in match_string["matchString"]["matches"]:
+                if CpeIdentifier.from_string(match["cpeName"]).version == version:
+                    logging.info(f"Successful check of CPE range: {cpe_match} and version: {match['cpeName']}")
+                    return True
+    return False
 
 
-def check_configurations(client: CVEConnectorClient, cpe_configurations: List[Dict[str, Any]],
+def check_configurations(client: CVEConnectorClient, cpe_configurations: list[dict[str, Any]],
                          vul_description: str, flag: bool, nvd_api_key: str) -> bool:
     """
     Processes CPE configurations to determine if a vulnerability node should be created or updated.
@@ -322,7 +322,7 @@ def check_configurations(client: CVEConnectorClient, cpe_configurations: List[Di
 
 
 def process_nvd_cpe(
-    client: CVEConnectorClient, cpe_match: Dict[str, Any], vul_description: str, flag: bool, nvd_api_key
+    client: CVEConnectorClient, cpe_match: dict[str, Any], vul_description: str, flag: bool, nvd_api_key
 ) -> bool:
     """
     Processes a CPE match to create relationships between vulnerabilities and software versions.
@@ -380,7 +380,7 @@ def process_nvd_cpe(
 
 
 def get_software_versions_from_neo4j(neo4j_passwd: str, bolt: str = "bolt://localhost:7687",
-                                     user: str = "neo4j") -> List[dict[str, Any]]:
+                                     user: str = "neo4j") -> list[dict[str, Any]]:
     """
     Retrieves all software versions stored in the Neo4j database.
 
@@ -392,8 +392,9 @@ def get_software_versions_from_neo4j(neo4j_passwd: str, bolt: str = "bolt://loca
     client = CVEConnectorClient(password=neo4j_passwd, bolt=bolt, user=user)
     return client.get_all_software_versions()
 
+
 def update_timestamp_for_software_version(software_version: str, timestamp: str, neo4j_passwd: str,
-                                          bolt: str = "bolt://localhost:7687", user: str = "neo4j"):
+                                          bolt: str = "bolt://localhost:7687", user: str = "neo4j") -> None:
     """
     Creates or updates a timestamp for software version.
 

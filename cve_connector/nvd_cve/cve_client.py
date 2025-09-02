@@ -18,18 +18,19 @@ Dependencies:
   - re: For CVE ID validation.
 """
 
+import logging
 import re
 import time
-from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
+from typing import Any
+
 import requests
-import logging
 
 
-def search_cve_by_date_range(api_key: Optional[str] = None,
+def search_cve_by_date_range(api_key: str | None = None,
                              end_date: datetime = datetime.now(),
                              start_date: datetime = datetime.now() - timedelta(days=30)
-                             ) -> Optional[List[Dict[str, Any]]]:
+                             ) -> list[dict[str, Any]] | None:
     """
     Searches for CVE entries published within a specified date range from the NVD API.
 
@@ -46,14 +47,14 @@ def search_cve_by_date_range(api_key: Optional[str] = None,
     if start_date > end_date:
         logging.error("Invalid date range: start_date must be before end_date")
         raise ValueError("start_date must be before end_date")
-    
+
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
     params = {
-        'pubStartDate': start_date.isoformat(),
-        'pubEndDate': end_date.isoformat(),
+        "pubStartDate": start_date.isoformat(),
+        "pubEndDate": end_date.isoformat(),
     }
-    headers = {'apiKey': api_key} if api_key else {}
-    
+    headers = {"apiKey": api_key} if api_key else {}
+
     try:
         response = requests.get(url, headers=headers, params=params)
         # the official documentation recommends 6-second-long sleep
@@ -61,24 +62,23 @@ def search_cve_by_date_range(api_key: Optional[str] = None,
         if response.status_code == 200:
             data = response.json()
             return [vuln["cve"] for vuln in data.get("vulnerabilities", [])]
-        elif response.status_code == 429:
+        if response.status_code == 429:
             logging.error("Rate limit exceeded (HTTP 429)")
             return None
-        else:
-            logging.error(f"HTTP error {response.status_code}")
-            return None
+        logging.error(f"HTTP error {response.status_code}")
+        return None
     except requests.exceptions.ConnectionError:
-        logging.error("Network connection error")
+        logging.exception("Network connection error")
         return None
     except requests.exceptions.Timeout:
-        logging.error("Request timed out")
+        logging.exception("Request timed out")
         return None
     except requests.exceptions.RequestException as e:
-        logging.error(f"Request error: {e}")
+        logging.exception(f"Request error: {e}")
         return None
 
 
-def search_cve_by_id(cve_id: str, api_key: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
+def search_cve_by_id(cve_id: str, api_key: str | None = None) -> list[dict[str, Any]] | None:
     """
     Searches for a specific CVE entry by its unique identifier using the NVD API.
 
@@ -91,14 +91,14 @@ def search_cve_by_id(cve_id: str, api_key: Optional[str] = None) -> Optional[Lis
     :return: List with a single CVE dictionary, empty list if not found, or None if an error occurs.
     :raises ValueError: If cve_id format is invalid.
     """
-    if not re.match(r'^CVE-\d{4}-\d{4,}$', cve_id):
+    if not re.match(r"^CVE-\d{4}-\d{4,}$", cve_id):
         logging.error(f"Invalid CVE ID format: {cve_id}")
         raise ValueError("CVE ID must match format 'CVE-YYYY-NNNN'")
-    
+
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
     params = {"cveId": cve_id}
-    headers = {'apiKey': api_key} if api_key else {}
-    
+    headers = {"apiKey": api_key} if api_key else {}
+
     try:
         response = requests.get(url, headers=headers, params=params)
         # the official documentation recommends 6-second-long sleep
@@ -106,26 +106,25 @@ def search_cve_by_id(cve_id: str, api_key: Optional[str] = None) -> Optional[Lis
         if response.status_code == 200:
             data = response.json()
             return [data["vulnerabilities"][0]["cve"]] if data.get("vulnerabilities") else []
-        elif response.status_code == 429:
+        if response.status_code == 429:
             logging.error(f"Rate limit exceeded for {cve_id} (HTTP 429)")
             return None
-        else:
-            logging.error(f"HTTP error {response.status_code} for {cve_id}")
-            return None
+        logging.error(f"HTTP error {response.status_code} for {cve_id}")
+        return None
     except requests.exceptions.ConnectionError:
-        logging.error(f"Network connection error for {cve_id}")
+        logging.exception(f"Network connection error for {cve_id}")
         return None
     except requests.exceptions.Timeout:
-        logging.error(f"Request timed out for {cve_id}")
+        logging.exception(f"Request timed out for {cve_id}")
         return None
     except requests.exceptions.RequestException as e:
-        logging.error(f"Request error for {cve_id}: {e}")
+        logging.exception(f"Request error for {cve_id}: {e}")
         return None
 
 
-def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] = None, start_index: int = 0,
-                          is_vulnerable: bool = False, last_mod_start_date: Optional[datetime] = None,
-                          last_mod_end_date: Optional[datetime] = None) -> Optional[List[Dict[str, Any]]]:
+def search_cve_by_version(version: str, part: str = "a", api_key: str | None = None, start_index: int = 0,
+                          is_vulnerable: bool = False, last_mod_start_date: datetime | None = None,
+                          last_mod_end_date: datetime | None = None) -> list[dict[str, Any]] | None:
     """
     Searches for CVEs associated with a specific product and version using the NVD API.
 
@@ -142,11 +141,11 @@ def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] 
     :return: Data obtained from the NVD REST API.
     :raises ValueError: If version format or part value is invalid.
     """
-    if not version or not isinstance(version, str) or version.count(':') < 2:
+    if not version or not isinstance(version, str) or version.count(":") < 2:
         logging.error(f"Invalid version format: {version}. Expected 'vendor:product:version'")
         raise ValueError("Version must be in format 'vendor:product:version'")
 
-    if part not in ['a', 'h', 'o']:
+    if part not in ["a", "h", "o"]:
         logging.error(f"Invalid part value: {part}. Must be 'a', 'h', or 'o'")
         raise ValueError("Part must be 'a', 'h', or 'o'")
 
@@ -155,13 +154,13 @@ def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] 
     if is_vulnerable:
         params["isVulnerable"] = None
     if last_mod_start_date:
-        params["lastModStartDate"] = last_mod_start_date.replace('+', "%2B")
+        params["lastModStartDate"] = last_mod_start_date.replace("+", "%2B")
     if last_mod_end_date:
-        params["lastModEndDate"] = last_mod_end_date.replace('+', "%2B")
+        params["lastModEndDate"] = last_mod_end_date.replace("+", "%2B")
     elif last_mod_start_date:
-        params["lastModEndDate"] = (datetime.now() + timedelta(hours=1)).isoformat().replace('+', '%2B')
-    params = '&'.join([key if value is None else f"{key}={value}" for key, value in params.items()])
-    headers = {'apiKey': api_key} if api_key else {}
+        params["lastModEndDate"] = (datetime.now() + timedelta(hours=1)).isoformat().replace("+", "%2B")
+    params = "&".join([key if value is None else f"{key}={value}" for key, value in params.items()])
+    headers = {"apiKey": api_key} if api_key else {}
     logging.info(f"Searching for CVEs for {version} (part: {part}). Last timestamp is {last_mod_start_date}.")
 
     try:
@@ -172,18 +171,17 @@ def search_cve_by_version(version: str, part: str = 'a', api_key: Optional[str] 
             data = response.json()
             logging.info(f"Total results: {data['totalResults']}")
             return data
-        elif response.status_code == 429:
+        if response.status_code == 429:
             logging.error(f"Rate limit exceeded for version {version} (HTTP 429)")
             return None
-        else:
-            logging.error(f"HTTP error {response.status_code} for version {version}")
-            return None
+        logging.error(f"HTTP error {response.status_code} for version {version}")
+        return None
     except requests.exceptions.ConnectionError:
-        logging.error(f"Network connection error for version {version}")
+        logging.exception(f"Network connection error for version {version}")
         return None
     except requests.exceptions.Timeout:
-        logging.error(f"Request timed out for version {version}")
+        logging.exception(f"Request timed out for version {version}")
         return None
     except requests.exceptions.RequestException as e:
-        logging.error(f"Request error for version {version}: {e}")
+        logging.exception(f"Request error for version {version}: {e}")
         return None

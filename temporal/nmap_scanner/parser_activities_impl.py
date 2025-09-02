@@ -65,8 +65,8 @@ def convert_cpe_to_version_2_3(cpe: str) -> str | None:
     Returns None if a version is missing.
     """
     parts = cpe.split(":")[1:]  # remove 'cpe:/'
-    part = parts[0][1:] if parts[0].startswith("/") else parts[0]
-    fields = [part] + parts[1:]
+    part = parts[0].removeprefix("/")
+    fields = [part, *parts[1:]]
     if len(fields) < 4 or not fields[3].strip():  # Cve_connector doesn't support cpes without a version for now
         return None
     fields = fields[:4] + ["*"] * 6

@@ -1,9 +1,10 @@
 import asyncio
 import uuid
 
+from temporalio.client import Client
+
 from config import AppConfig
 from easyeasm_demo.workflow import CASMInput, EasyEasmWorkflow
-from temporalio.client import Client
 
 
 async def main() -> None:

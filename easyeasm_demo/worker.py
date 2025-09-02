@@ -1,10 +1,11 @@
 import asyncio
 
-from config import AppConfig
-from easyeasm_demo.workflow import EasyEasmWorkflow
 from temporalio.client import Client
 from temporalio.worker import Worker
 from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxRestrictions
+
+from config import AppConfig
+from easyeasm_demo.workflow import EasyEasmWorkflow
 
 
 async def main() -> None:
