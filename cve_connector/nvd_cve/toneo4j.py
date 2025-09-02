@@ -380,7 +380,7 @@ def process_nvd_cpe(
 
 
 def get_software_versions_from_neo4j(neo4j_passwd: str, bolt: str = "bolt://localhost:7687",
-                                     user: str = "neo4j") -> List[str]:
+                                     user: str = "neo4j") -> List[dict[str, Any]]:
     """
     Retrieves all software versions stored in the Neo4j database.
 
