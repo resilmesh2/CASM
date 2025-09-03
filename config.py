@@ -1,12 +1,12 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
 from dacite import from_dict
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 
-TEMPORAL_URL = "localhost:7233"
+TEMPORAL_URL = "temporal:7233"
 TEMPORAL_NAMESPACE = "default"
 TEMPORAL_TASK_QUEUE = "easyeasm_demo"
 
@@ -34,10 +34,25 @@ class RedisConfig:
 
 
 @dataclass
+class NmapConfig:
+    targets: list[str]
+    arguments: str
+    org_unit_name: str = "Internal IT"
+    tag: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ISIMConfig:
+    url: str
+
+
+@dataclass
 class Config:
     temporal: TemporalConfig
     neo4j: Neo4jConfig
     redis: RedisConfig
+    nmap: NmapConfig
+    isim: ISIMConfig
 
 
 class AppConfig:

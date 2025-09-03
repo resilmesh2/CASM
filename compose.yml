@@ -54,6 +54,12 @@ services:
       - ./temporalio/dynamicconfig:/etc/temporal/config/dynamicconfig
     networks:
       - casm_isim_test_network
+    healthcheck:
+      test: ["CMD","tctl", "--address", "temporal:7233", "workflow", "list", "||", "exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   temporal-admin-tools:
     container_name: temporal-admin-tools
@@ -108,11 +114,33 @@ services:
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
       - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
+    depends_on:
+      temporal:
+        condition: service_healthy
     networks:
       - casm_isim_test_network
 
+  metasploitable3:
+    image: kirscht/metasploitable3-ub1404
+    container_name: metasploitable3
+    # use environment variables to set password, enable root and start services
+    entrypoint: /entrypoint.sh
+    environment:
+      PASS: myPass
+      ROOT: yes
+      CUPS: yes
+      FTP: yes
+      HTTP: yes
+      IRC: yes
+      SMB: yes
+      SSH: yes
+      SQL: yes
+    networks:
+      casm_isim_test_network:
 
-#  neo4j:
+
+
+  #  neo4j:
 #    image: neo4j:5.21.0
 #    environment:
 #      - NEO4J_AUTH=neo4j/supertestovaciheslo
@@ -144,15 +172,16 @@ services:
     networks:
       - casm_isim_test_network
 
-  cve-connector:
+  nmap-worker:
     build:
-      context: ./cve_connector/
-      dockerfile: DockerFile
-    container_name: cve-connector
+      dockerfile: nmap.Dockerfile
+    container_name: nmap-worker
     restart: unless-stopped
+    volumes:
+      - ./docker/config.yaml:/app/config/config.yaml
     depends_on:
-      - temporal
-      - neo4j
+      temporal:
+        condition: service_healthy
     networks:
       - casm_isim_test_network
     environment:
@@ -163,8 +192,29 @@ services:
       - NEO4J_PASSWORD=supertestovaciheslo
       - NEO4J_BOLT=bolt://neo4j:7687
 
-#volumes:
-#  neo4j_easyeasm_data:
+  cve-connector-worker:
+    build:
+      dockerfile: cve-connector.Dockerfile
+    container_name: cve-connector
+    restart: unless-stopped
+    volumes:
+      - ./docker/config.yaml:/app/config/config.yaml
+    depends_on:
+      temporal:
+        condition: service_healthy
+#      - neo4j
+    networks:
+      - casm_isim_test_network
+    environment:
+      - NVD_KEY
+      - TEMPORAL_HOST=temporal
+      - TEMPORAL_PORT=7233
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=supertestovaciheslo
+      - NEO4J_BOLT=bolt://neo4j:7687
+
+volumes:
+  neo4j_easyeasm_data:
 
 
 networks:

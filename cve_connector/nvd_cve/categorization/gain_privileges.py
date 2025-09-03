@@ -19,9 +19,8 @@ Dependencies:
   - Vulnerability from cve_connector.nvd_cve.vulnerability.
 """
 
-from typing import List
 
-from cve_connector.nvd_cve.categorization.utils import test_incidence, cve_is_about_application, cve_is_about_system
+from cve_connector.nvd_cve.categorization.utils import cve_is_about_application, cve_is_about_system, test_incidence
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
 
@@ -36,7 +35,7 @@ def test_privileges(description: str) -> bool:
     :param description: The vulnerability description text.
     :return: True if the description suggests privilege gain; otherwise, False.
     """
-    condition: List[str] = [
+    condition: list[str] = [
         "root privilege",
         "obtain root access",
         "elevation of privilege vulnerability",
@@ -207,7 +206,7 @@ def has_root_privileges_description(description: str) -> bool:
     :param description: The vulnerability description text.
     :return: True if the description indicates root privilege gain; otherwise, False.
     """
-    condition: List[str] = [
+    condition: list[str] = [
         "with the privileges of the root user",
         "add root ssh key",
         "gain root privilege",
@@ -269,7 +268,7 @@ def has_gain_root_privileges(vulnerability: Vulnerability) -> bool:
         return False
     if len(vulnerability.cvssv30.keys()) != 0 and vulnerability.cvssv30.get("privilegesRequired", "") != "NONE":
         return False
-    if len(vulnerability.cvssv2.keys()) != 0 and vulnerability.cvssv2.get('obtainAllPrivilege', '') == 'true':
+    if len(vulnerability.cvssv2.keys()) != 0 and vulnerability.cvssv2.get("obtainAllPrivilege", "") == "true":
         return True
     if has_root_privileges_description(vulnerability.description):
         return True
@@ -294,7 +293,7 @@ def has_privilege_escalation(vulnerability: Vulnerability) -> bool:
     """
     if not cve_is_about_system(vulnerability.cpe_type):
         return False
-    if len(vulnerability.cvssv2.keys()) != 0 and vulnerability.cvssv2.get('obtainAllPrivilege', '') == 'true':
+    if len(vulnerability.cvssv2.keys()) != 0 and vulnerability.cvssv2.get("obtainAllPrivilege", "") == "true":
         return True
     if has_root_privileges_description(vulnerability.description):
         return True
@@ -332,9 +331,9 @@ def has_gain_user_privileges(vulnerability: Vulnerability) -> bool:
     """
     if not cve_is_about_system(vulnerability.cpe_type):
         return False
-    if vulnerability.cvssv2.get('obtainUserPrivilege', '') == 'true':
+    if vulnerability.cvssv2.get("obtainUserPrivilege", "") == "true":
         return True
-    system_tokens: List[str] = [
+    system_tokens: list[str] = [
         "gain elevated privileges on the system",
         "with the knowledge of the default password may login to the system",
         "log in as an admin user of the affected device",

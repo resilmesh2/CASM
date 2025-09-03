@@ -16,37 +16,40 @@ Classes:
   - CveUpdateWorkflow: Defines the Temporal workflow to execute activities.
 """
 
-import os
-import time
-import logging.handlers
-import signal
 import asyncio
+import logging
+import logging.handlers
+import os
+import signal
+import time
 from datetime import datetime, timedelta
 
-import logging
-from temporalio import activity, workflow
-from temporalio.client import Client, Schedule, ScheduleSpec, ScheduleActionStartWorkflow, ScheduleIntervalSpec
-from temporalio.worker import Worker, UnsandboxedWorkflowRunner
+from temporalio.client import Client, Schedule, ScheduleActionStartWorkflow, ScheduleIntervalSpec, ScheduleSpec
 from temporalio.common import RetryPolicy
+from temporalio.worker import UnsandboxedWorkflowRunner, Worker
 
+from cve_connector.cve_config import CveConnectorConfig
+from cve_connector.nvd_cve.cpe_identifier import CpeIdentifier
 from cve_connector.nvd_cve.cve_client import search_cve_by_version
 from cve_connector.nvd_cve.cve_parser import parse_vulnerabilities
-from cve_connector.nvd_cve.toneo4j import (move_cve_data_to_neo4j, get_software_versions_from_neo4j,
-                                           update_timestamp_for_software_version)
-from cve_connector.cve_config import CveConnectorConfig
-
+from cve_connector.nvd_cve.toneo4j import (
+    get_software_versions_from_neo4j,
+    move_cve_data_to_neo4j,
+    update_timestamp_for_software_version,
+)
+from temporalio import activity, workflow
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
     handlers=[
         logging.handlers.TimedRotatingFileHandler(
             filename=f'runtime_{datetime.now().strftime("%Y-%m-%d")}.log',
-            when='midnight',
+            when="midnight",
             interval=1,
             backupCount=30,
-            encoding='utf-8',
+            encoding="utf-8",
             delay=False
         ),
         logging.StreamHandler()
@@ -74,77 +77,76 @@ def cve_version(workflow_start: datetime, neo4j_password: str, neo4j_bolt: str, 
     try:
         versions_and_timestamps = get_software_versions_from_neo4j(neo4j_password, bolt=neo4j_bolt, user=neo4j_user)
     except Exception as e:
-        logging.error(f"Failed to retrieve software versions from Neo4j: {type(e).__name__}: {e}")
+        logging.exception(f"Failed to retrieve software versions from Neo4j: {type(e).__name__}: {e}")
         raise
 
     if not versions_and_timestamps:
         logging.info("No software versions found in Neo4j database.")
-        return
+        return None
 
     logging.info(f"Versions {len(versions_and_timestamps)}")
 
-    parts = ['a', 'o', 'h']
     max_retries = 5
     retry_delay = 6
 
     for version_item in versions_and_timestamps:
-        version = version_item['version']
-        timestamp = version_item['cve_timestamp']
-        for part in parts:
-            logging.info(f"Processing CVEs for version: {version}, part: {part}")
-            cve_data = None
-            obtained_all_results = False
-            start_index = 0
-            while not obtained_all_results:
-                for attempt in range(1, max_retries + 1):
-                    try:
-                        raw_data = search_cve_by_version(version=version, part=part, api_key=nvd_api_key, start_index=start_index,
-                                                         is_vulnerable=True, last_mod_start_date=timestamp)
-                        if "vulnerabilities" in raw_data:
-                            cve_data = [vuln["cve"] for vuln in raw_data.get("vulnerabilities", [])]
-                        logging.info(f"Found {len(cve_data)} vulnerabilities")
-                        time.sleep(retry_delay)
-                        if cve_data is not None:
-                            break
-                        logging.info(f"API returned None for {version} (part: {part}), attempt {attempt}/{max_retries}. Retrying in {retry_delay}s...")
-
-                    except Exception as e:
-                        time.sleep(retry_delay)
-                        logging.error(f"Error querying NVD API for {version} (part: {part}): {type(e).__name__}: {e}")
-                        if attempt == max_retries:
-                            logging.error(f"Max retries reached for {version} (part: {part}). Skipping.")
-                            break
-
-                if cve_data is None:
-                    logging.error(f"Failed to retrieve CVEs for {version} (part: {part}) after {max_retries} attempts.")
-                    break
-
-                if not cve_data:
-                    logging.info(f"No CVEs found for version: {version}, part: {part}")
-                    break
-
-                parsed_data = parse_vulnerabilities(data=cve_data)
-                logging.info(f"Successfully parsed {len(parsed_data)} CVEs")
+        version = version_item["version"]
+        timestamp = version_item["cve_timestamp"]
+        cpe_item = CpeIdentifier.from_string(version_item["version"])
+        logging.info(f"Processing CVEs for version: {version}")
+        cve_data = None
+        obtained_all_results = False
+        start_index = 0
+        while not obtained_all_results:
+            for attempt in range(1, max_retries + 1):
                 try:
-                    data_length = len(parsed_data)
-                    slice_start = 0
-                    slice_step = 100
-                    while slice_start <= data_length:
-                        if slice_start + slice_step <= data_length:
-                            move_cve_data_to_neo4j(parsed_data[slice_start:slice_start+100], neo4j_password, nvd_api_key, bolt=neo4j_bolt, user=neo4j_user)
-                        else:
-                            move_cve_data_to_neo4j(parsed_data[slice_start:data_length], neo4j_password,
-                                                   nvd_api_key, bolt=neo4j_bolt, user=neo4j_user)
-                        logging.info(f"Successfully updated Neo4j with CVEs for {version} (part: {part}), slice_start: {slice_start}")
-                        slice_start += 100
-                except Exception as e:
-                    logging.error(f"Failed to update Neo4j for {version} (part: {part}): {type(e).__name__}: {e}")
-                    continue
+                    raw_data = search_cve_by_version(version=f"{cpe_item.vendor}:{cpe_item.product}:{cpe_item.version}", part=cpe_item.part, api_key=nvd_api_key, start_index=start_index,
+                                                     is_vulnerable=True, last_mod_start_date=timestamp)
+                    if "vulnerabilities" in raw_data:
+                        cve_data = [vuln["cve"] for vuln in raw_data.get("vulnerabilities", [])]
+                    logging.info(f"Found {len(cve_data)} vulnerabilities")
+                    time.sleep(retry_delay)
+                    if cve_data is not None:
+                        break
+                    logging.info(f"API returned None for {version}, attempt {attempt}/{max_retries}. Retrying in {retry_delay}s...")
 
-                if raw_data["startIndex"] + raw_data["resultsPerPage"] < raw_data["totalResults"]:
-                    start_index += 2000
-                else:
-                    obtained_all_results = True
+                except Exception as e:
+                    time.sleep(retry_delay)
+                    logging.exception(f"Error querying NVD API for {version}: {type(e).__name__}: {e}")
+                    if attempt == max_retries:
+                        logging.exception(f"Max retries reached for {version}. Skipping.")
+                        break
+
+            if cve_data is None:
+                logging.error(f"Failed to retrieve CVEs for{version}) after {max_retries} attempts.")
+                break
+
+            if not cve_data:
+                logging.info(f"No CVEs found for version: {version}")
+                break
+
+            parsed_data = parse_vulnerabilities(data=cve_data)
+            logging.info(f"Successfully parsed {len(parsed_data)} CVEs")
+            try:
+                data_length = len(parsed_data)
+                slice_start = 0
+                slice_step = 100
+                while slice_start <= data_length:
+                    if slice_start + slice_step <= data_length:
+                        move_cve_data_to_neo4j(parsed_data[slice_start:slice_start + 100], version, neo4j_password, nvd_api_key, bolt=neo4j_bolt, user=neo4j_user)
+                    else:
+                        move_cve_data_to_neo4j(parsed_data[slice_start:data_length], version, neo4j_password,
+                                               nvd_api_key, bolt=neo4j_bolt, user=neo4j_user)
+                    logging.info(f"Successfully updated Neo4j with CVEs for {version}, slice_start: {slice_start}")
+                    slice_start += 100
+            except Exception as e:
+                logging.exception(f"Failed to update Neo4j for {version}: {type(e).__name__}: {e}")
+                continue
+
+            if raw_data["startIndex"] + raw_data["resultsPerPage"] < raw_data["totalResults"]:
+                start_index += 2000
+            else:
+                obtained_all_results = True
 
         update_timestamp_for_software_version(version, workflow_start, neo4j_password, neo4j_bolt, neo4j_user)
     return f"Executed CVE download for {len(versions_and_timestamps)} software versions."
@@ -163,7 +165,7 @@ class CveDatabaseUpdater:
         :raises KeyError: If required environment variables are missing.
         """
         # required_env_vars = ['NVD_KEY', 'NEO4J_PASSWORD', 'NEO4J_BOLT', 'NEO4J_USER']
-        required_env_vars = ['NEO4J_PASSWORD', 'NEO4J_BOLT', 'NEO4J_USER']
+        required_env_vars = ["NEO4J_PASSWORD", "NEO4J_BOLT", "NEO4J_USER"]
         for var in required_env_vars:
             if not os.getenv(var):
                 raise KeyError(f"Missing required environment variable: {var}")
@@ -172,15 +174,15 @@ class CveDatabaseUpdater:
 
         cve_version(
             workflow_start,
-            neo4j_password=os.getenv('NEO4J_PASSWORD', ''),
-            neo4j_bolt=os.getenv('NEO4J_BOLT', ''),
-            neo4j_user=os.getenv('NEO4J_USER', ''),
-            nvd_api_key=cve_config.api_key if cve_config.api_key else os.getenv('NVD_KEY', '')
+            neo4j_password=os.getenv("NEO4J_PASSWORD", ""),
+            neo4j_bolt=os.getenv("NEO4J_BOLT", ""),
+            neo4j_user=os.getenv("NEO4J_USER", ""),
+            nvd_api_key=cve_config.api_key or os.getenv("NVD_KEY", "")
         )
 
 
 class CveUpdateActivities:
-    def __init__(self, db_client: CveDatabaseUpdater):
+    def __init__(self, db_client: CveDatabaseUpdater) -> None:
         """
         Initializes the CveUpdateActivities class with a database updater.
 
@@ -238,7 +240,7 @@ async def main() -> None:
     :raises KeyError: If required environment variables are missing.
     """
     # required_env_vars = ['NVD_KEY', 'NEO4J_PASSWORD', 'NEO4J_BOLT', 'NEO4J_USER', 'TEMPORAL_HOST', 'TEMPORAL_PORT']
-    required_env_vars = ['NEO4J_PASSWORD', 'NEO4J_BOLT', 'NEO4J_USER', 'TEMPORAL_HOST', 'TEMPORAL_PORT']
+    required_env_vars = ["NEO4J_PASSWORD", "NEO4J_BOLT", "NEO4J_USER", "TEMPORAL_HOST", "TEMPORAL_PORT"]
     for env_var in required_env_vars:
         if not os.getenv(env_var):
             logging.error(f"Missing required environment variable: {env_var}")
@@ -247,7 +249,7 @@ async def main() -> None:
     max_retries = 20
     retry_interval = 10
     temporal_address = f"{os.getenv('TEMPORAL_HOST')}:{os.getenv('TEMPORAL_PORT')}"
-    
+
     for attempt in range(1, max_retries + 1):
         try:
             client = await Client.connect(temporal_address)
@@ -256,19 +258,19 @@ async def main() -> None:
         except ConnectionRefusedError as e:
             logging.warning(f"Connection refused on attempt {attempt}/{max_retries}: {e}")
             if attempt == max_retries:
-                logging.error("Max retries reached. Could not connect to Temporal server.")
+                logging.exception("Max retries reached. Could not connect to Temporal server.")
                 raise ConnectionRefusedError("Failed to connect to Temporal server")
             await asyncio.sleep(retry_interval)
         except Exception as e:
             logging.warning(f"Unexpected error on attempt {attempt}/{max_retries}: {e}")
             if attempt == max_retries:
-                logging.error("Max retries reached. Could not connect to Temporal server.")
+                logging.exception("Max retries reached. Could not connect to Temporal server.")
                 raise
             await asyncio.sleep(retry_interval)
 
     schedule_id = "cve-update-scheduled-workflow"
     try:
-        existing_schedule = await client.get_schedule(schedule_id)
+        await client.get_schedule(schedule_id)
         logging.info(f"Schedule '{schedule_id}' already exists, skipping creation")
     except Exception:
         await asyncio.sleep(retry_interval)
@@ -279,7 +281,7 @@ async def main() -> None:
                 task_queue="cve-update-task-queue",
             ),
             spec=ScheduleSpec(
-                intervals = [ScheduleIntervalSpec(every=timedelta(hours=2))]
+                intervals=[ScheduleIntervalSpec(every=timedelta(hours=2))]
             ),
         )
         try:
@@ -316,7 +318,7 @@ async def main() -> None:
         activities=[activities.do_database_thing],
         workflow_runner=UnsandboxedWorkflowRunner()
     )
-    
+
     async with worker:
         try:
             await shutdown_event.wait()

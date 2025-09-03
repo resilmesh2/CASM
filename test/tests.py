@@ -1,13 +1,16 @@
 import unittest
 import uuid
 from pathlib import Path
-from redis.client import Redis
-from easyeasm_demo.config import AppConfig, RedisConfig, Neo4jConfig
-from easyeasm_demo.workflow import EasyEasmActivities
+
 from neo4j import GraphDatabase, basic_auth
+from redis.client import Redis
+
+from config import AppConfig, Neo4jConfig, RedisConfig
+from easyeasm_demo.workflow import EasyEasmActivities
+
 
 class TestMethods(unittest.IsolatedAsyncioTestCase):
-    async def test_storing_to_neo4j(self):
+    async def test_storing_to_neo4j(self) -> None:
         # Store results from scanning to Redis
         scan_uuid = str(uuid.uuid4())
         result_file = Path("test-data/scan.csv")
@@ -36,25 +39,25 @@ class TestMethods(unittest.IsolatedAsyncioTestCase):
             MATCH (sv:SoftwareVersion)
             RETURN COUNT(sv) AS count
             """
-            sv_result = session.run(sv_query).data()[0]['count']
+            sv_result = session.run(sv_query).data()[0]["count"]
 
             ns_query = """
             MATCH (ns:NetworkService)
             RETURN COUNT(ns) AS count
             """
-            ns_result = session.run(ns_query).data()[0]['count']
+            ns_result = session.run(ns_query).data()[0]["count"]
 
             ip_query = """
             MATCH (ip:IP)
             RETURN COUNT(ip) AS count
             """
-            ip_result = session.run(ip_query).data()[0]['count']
+            ip_result = session.run(ip_query).data()[0]["count"]
 
             domain_result = """
             MATCH (d:DomainName)
             RETURN COUNT(d) AS count
             """
-            domain_result = session.run(domain_result).data()[0]['count']
+            domain_result = session.run(domain_result).data()[0]["count"]
 
             ip_list_query = """
             MATCH (ip:IP)
@@ -71,15 +74,9 @@ class TestMethods(unittest.IsolatedAsyncioTestCase):
         neo4j_client.close()
 
         # Assert equals
-        self.assertEqual(sv_result, 4)
-        self.assertEqual(ns_result, 2)
-        self.assertEqual(ip_result, 3)
-        self.assertEqual(domain_result, 3)
-        self.assertEqual(ip_list_result, [{'ip': '23.192.228.80'},
-                                          {'ip': '2.17.147.80'},
-                                          {'ip': '45.33.32.156'}])
-        self.assertEqual(sv_list_result, [{'sv': {'name': 'Azure'}},
-                                     {'sv': {'name': 'Azure CDN'}},
-                                     {'sv': {'name': 'Apache HTTP Server:2.4.7',
-                                             'version': 'apache:http_server:2.4.7'}},
-                                     {'sv': {'name': 'Ubuntu', 'version': 'canonical:ubuntu_linux:*'}}])
+        assert sv_result == 4
+        assert ns_result == 2
+        assert ip_result == 3
+        assert domain_result == 3
+        assert ip_list_result == [{"ip": "23.192.228.80"}, {"ip": "2.17.147.80"}, {"ip": "45.33.32.156"}]
+        assert sv_list_result == [{"sv": {"name": "Azure"}}, {"sv": {"name": "Azure CDN"}}, {"sv": {"name": "Apache HTTP Server:2.4.7", "version": "apache:http_server:2.4.7"}}, {"sv": {"name": "Ubuntu", "version": "canonical:ubuntu_linux:*"}}]
