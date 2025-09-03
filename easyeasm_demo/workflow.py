@@ -93,7 +93,7 @@ class EasyEasmActivities:
             try:
                 entry = EasyEASMParsedResult(
                     ip=row[7], domain_name=row[4], service=row[5], port=row[3], protocol=row[5],
-                    software_versions = determine_software_versions(row[12])
+                    software_versions=determine_software_versions(row[12])
                 )
 
                 loaded_result["data"].append(entry.to_dict())

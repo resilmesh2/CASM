@@ -23,7 +23,7 @@ The implementation was prepared for Neo4j database version 5.24.0
 
 CVE connector can be run locally. You need to obtain your NVD REST API key from https://nvd.nist.gov/developers/request-an-api-key.
 We used `name and surname` as `organization name` and `personal use / not listed` as `organization type`.
-The API KEY should be filled into [config.py](cve_connector/cve_config.py) as api_key as a string, i.e., `"<api_key_value>"`.
+The API KEY should be filled into [config.py](cve_config.py) as api_key as a string, i.e., `"<api_key_value>"`.
 
 The easiest way to use CVE connector is to use [compose.yml](../compose.yml) and 
 instructions from the [README.md](../README.md) for the whole CASM 

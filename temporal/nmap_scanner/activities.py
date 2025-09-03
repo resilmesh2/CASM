@@ -1,4 +1,3 @@
-import json
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import asdict
 from typing import Any
@@ -7,7 +6,7 @@ from xml.etree import ElementTree
 import httpx
 import nmap3
 
-from config import ISIMConfig, NmapConfig, AppConfig
+from config import ISIMConfig, NmapConfig
 from temporal.nmap_scanner import parser_activities_impl
 from temporal.nmap_scanner.dtos import NmapResults
 from temporalio import activity

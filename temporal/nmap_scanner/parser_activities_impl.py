@@ -25,7 +25,7 @@ def extract_subnet(ip_str: str, prefix: int | None = None) -> str | None:
 def _extract_ip_addresses(host: Element) -> list[str]:
     return [
         addr for address in host.findall("address")
-        if (addr := address.attrib.get("addr", ""))
+        if (addr := address.attrib.get("addr", "")) and address.attrib.get("addrtype") in ("ipv4", "ipv6")
     ]
 
 
@@ -65,8 +65,8 @@ def convert_cpe_to_version_2_3(cpe: str) -> str | None:
     Returns None if a version is missing.
     """
     parts = cpe.split(":")[1:]  # remove 'cpe:/'
-    part = parts[0][1:] if parts[0].startswith("/") else parts[0]
-    fields = [part] + parts[1:]
+    part = parts[0].removeprefix("/")
+    fields = [part, *parts[1:]]
     if len(fields) < 4 or not fields[3].strip():  # Cve_connector doesn't support cpes without a version for now
         return None
     fields = fields[:4] + ["*"] * 6

@@ -17,9 +17,8 @@ Dependencies:
   - Vulnerability from cve_connector.nvd_cve.vulnerability.
 """
 
-from typing import List
 
-from cve_connector.nvd_cve.categorization.utils import test_incidence, cve_is_about_system
+from cve_connector.nvd_cve.categorization.utils import cve_is_about_system, test_incidence
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
 
@@ -39,7 +38,7 @@ def has_code_execution_as_root(vulnerability: Vulnerability) -> bool:
     :param vulnerability: An instance of Vulnerability containing description, CVSS metrics, and CPE type.
     :return: True if the vulnerability allows remote code execution as root; otherwise, False.
     """
-    necessary_condition: List[str] = [
+    necessary_condition: list[str] = [
         "execute arbitrary code as root",
         "execute arbitrary code with root privileges",
         "execute arbitrary code as the root user",
@@ -110,7 +109,7 @@ def has_code_execution_as_user(vulnerability: Vulnerability) -> bool:
     :param vulnerability: An instance of Vulnerability containing description and CVSS metrics.
     :return: True if the vulnerability allows remote code execution as a user; otherwise, False.
     """
-    necessary_condition: List[str] = [
+    necessary_condition: list[str] = [
         "include and execute arbitrary local php files",
         "execute arbitrary code",
         "command injection",
@@ -162,18 +161,15 @@ def has_code_execution_as_user(vulnerability: Vulnerability) -> bool:
            vulnerability.cvssv30.get("integrityImpact", "") == "HIGH" and \
            vulnerability.cvssv30.get("confidentialityImpact", "") == "HIGH":
             return True
-    required_verbs: List[str] = [
+    required_verbs: list[str] = [
         " execut",
         " run ",
         " inject"
     ]
-    required_nouns: List[str] = [
+    required_nouns: list[str] = [
         " code ",
         " command",
         "arbitrary script",
         " code."
     ]
-    if test_incidence(vulnerability.description, required_nouns) and \
-       test_incidence(vulnerability.description, required_verbs):
-        return True
-    return False
+    return bool(test_incidence(vulnerability.description, required_nouns) and test_incidence(vulnerability.description, required_verbs))

@@ -12,7 +12,7 @@ RUN curl -sSL https://install.python-poetry.org | python3 - && \
 COPY . ./
 RUN . /venv/bin/activate && ~/.local/bin/poetry install
 
-FROM golang:1.23.1-bookworm as go_build
+FROM golang:1.24.0-bookworm as go_build
 
 RUN go install github.com/g0ldencybersec/EasyEASM/easyeasm@latest
 RUN go install github.com/projectdiscovery/alterx/cmd/alterx@latest
