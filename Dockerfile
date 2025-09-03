@@ -51,6 +51,4 @@ USER 1001:1001
 
 EXPOSE 8000
 
-#CMD ["/venv/bin/python", "-m", "easyeasm_demo.worker"]
-USER root
-CMD ["/venv/bin/python", "-m", "nmap_topology.worker"]
+CMD ["/venv/bin/python", "-m", "easyeasm_demo.worker"]
