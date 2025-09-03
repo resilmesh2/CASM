@@ -1,7 +1,7 @@
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
-import requests
+import httpx
 
 from config import ISIMConfig, Neo4jConfig, NmapTopologyConfig
 from temporal.nmap.topology.scanner import topology_scan_neo
@@ -20,12 +20,15 @@ class NmapTopologyActivities:
 
     @activity.defn
     async def nmap_traceroute_neo4j(self, nmap_output: dict[str, Any]) -> str:
-        return requests.post(f"{self.isim_config.url}/traceroute", json=nmap_output).content.decode()
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"{self.isim_config.url}/traceroute", json=nmap_output)
+            return response.text
 
     @activity.defn
     async def compute_criticalities(self) -> None:
-        requests.post(f"{self.isim_config.url}/nodes/betweenness_centrality")
-        requests.post(f"{self.isim_config.url}/nodes/degree_centrality")
+        async with httpx.AsyncClient() as client:
+            await client.post(f"{self.isim_config.url}/nodes/betweenness_centrality")
+            await client.post(f"{self.isim_config.url}/nodes/degree_centrality")
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
         return [self.run_nmap_traceroute_scan, self.nmap_traceroute_neo4j, self.compute_criticalities]

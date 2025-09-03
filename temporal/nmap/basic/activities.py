@@ -36,8 +36,8 @@ class NmapBasicActivities:
         payload = asdict(parsed_nmap_results)
         headers = {"Content-Type": "application/json"}
 
-        with httpx.Client() as conn:
-            return conn.post(f"{self.isim_config.url}/assets", json=payload, headers=headers).text
+        with httpx.AsyncClient() as conn:
+            return await conn.post(f"{self.isim_config.url}/assets", json=payload, headers=headers).text
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
         return [self.parse_nmap_xml, self.run_nmap_scan, self.send_result_to_api]
