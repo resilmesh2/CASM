@@ -4,12 +4,13 @@ Module responsible for network topology mapping
 
 import datetime
 import os
-import structlog
-import nmap3
 import shlex
-import xml.etree.ElementTree as ET
 import urllib.request
+import xml.etree.ElementTree as ET
 from urllib.error import URLError
+
+import nmap3
+import structlog
 
 
 def get_ip():
@@ -18,7 +19,7 @@ def get_ip():
     :return: IP if request was successful, empty string otherwise
     """
     try:
-        return urllib.request.urlopen('https://ident.me').read().decode('utf8')
+        return urllib.request.urlopen("https://ident.me").read().decode("utf8")
     except URLError:
         return ""
 

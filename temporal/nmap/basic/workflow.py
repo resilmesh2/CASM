@@ -42,7 +42,7 @@ class NmapBasicWorkflow:
 async def main() -> None:
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url)
-    await start_unique_workflow(NmapBasicWorkflow, config.temporal.casm_task_queue, client)
+    await start_unique_workflow(NmapBasicWorkflow, config.temporal.nmap_task_queue, client)
 
 
 if __name__ == "__main__":

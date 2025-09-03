@@ -41,7 +41,7 @@ class NmapTopologyWorkflow:
 async def main() -> None:
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url)
-    await start_unique_workflow(NmapTopologyWorkflow, config.temporal.casm_task_queue, client)
+    await start_unique_workflow(NmapTopologyWorkflow, config.temporal.nmap_task_queue, client)
 
 
 if __name__ == "__main__":

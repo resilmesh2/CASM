@@ -1,9 +1,10 @@
 import asyncio
 import uuid
 
-from config import AppConfig
 from temporalio.client import Client
-from nmap_topology.workflow import NmapTopologyWorkflow
+
+from config import AppConfig
+from temporal.nmap.topology.workflow import NmapTopologyWorkflow
 
 
 async def main() -> None:

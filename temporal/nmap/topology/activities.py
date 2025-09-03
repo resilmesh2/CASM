@@ -1,9 +1,11 @@
-from temporalio import activity
-from nmap_topology.scanner import topology_scan_neo
-from config import NmapTopologyConfig, Neo4jConfig, ISIMConfig
-from typing import Dict, Any
+from collections.abc import Awaitable, Callable, Sequence
+from typing import Any
+
 import requests
-from collections.abc import Sequence, Callable, Awaitable
+
+from config import ISIMConfig, Neo4jConfig, NmapTopologyConfig
+from temporal.nmap.topology.scanner import topology_scan_neo
+from temporalio import activity
 
 
 class NmapTopologyActivities:
@@ -13,11 +15,11 @@ class NmapTopologyActivities:
         self.isim_config = isim_config
 
     @activity.defn
-    async def run_nmap_traceroute_scan(self) -> Dict[str, Any]:
+    async def run_nmap_traceroute_scan(self) -> dict[str, Any]:
         return topology_scan_neo(self.topology_config.targets)
 
     @activity.defn
-    async def nmap_traceroute_neo4j(self, nmap_output: Dict[str, Any]) -> str:
+    async def nmap_traceroute_neo4j(self, nmap_output: dict[str, Any]) -> str:
         return requests.post(f"{self.isim_config.url}/traceroute", json=nmap_output).content.decode()
 
     @activity.defn
