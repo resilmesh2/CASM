@@ -1,9 +1,13 @@
+import asyncio
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from typing import Any
 
+from temporalio.client import Client
+
 from config import AppConfig
-from nmap_topology.activities import NmapTopologyActivities
+from temporal.lib.util import start_unique_workflow
+from temporal.nmap.topology.activities import NmapTopologyActivities
 from temporalio import workflow
 
 
@@ -30,5 +34,15 @@ class NmapTopologyWorkflow:
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
         config = AppConfig.get()
-        activities = NmapTopologyActivities(config.topology, config.neo4j, config.isim)
+        activities = NmapTopologyActivities(config.nmap_topology, config.neo4j, config.isim)
         return [*activities.get_activities()]
+
+
+async def main() -> None:
+    config = AppConfig.get()
+    client = await Client.connect(config.temporal.url)
+    await start_unique_workflow(NmapTopologyWorkflow, config.temporal.casm_task_queue, client)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
