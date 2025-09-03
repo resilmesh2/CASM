@@ -15,10 +15,10 @@ redis:
 isim:
   url: "http://localhost:8000"
 
-nmap:
-  targets: ["localhost"]
+nmap_basic:
+  targets: ["scanme.nmap.org"]
   arguments: "-sV -A"
 
-topology:
+nmap_topology:
   targets: ["scanme.nmap.org"]
   arguments: "-sn -n --traceroute"
