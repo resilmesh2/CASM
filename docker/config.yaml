@@ -16,9 +16,9 @@ isim:
   url: "http://localhost:8000"
 
 nmap_basic:
-  targets: ["scanme.nmap.org"]
+  targets: ["metasploitable3"]
   arguments: "-sV -A"
 
 nmap_topology:
-  targets: ["scanme.nmap.org"]
+  targets: ["metasploitable3"]
   arguments: "-sn -n --traceroute"
