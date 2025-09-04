@@ -182,8 +182,9 @@ which is called in
 Instructions for running the CVE connector are listed in [README](cve_connector/README.md).
 The most important thing is to obtain NVD REST API key that should be used by the CVE connector.
 
-## Nmap and CVE-connector DEMO
-Start the CASM application with the following command inside the project root directory: 
+## Nmap and CVE connector DEMO
+For this demo, we have prepared a `metasploitable3` container in compose.yml, which needs to be uncommented.
+Then you can start the CASM application with the following command inside the project root directory: 
 
 ```bash
 docker compose up -d
@@ -193,7 +194,7 @@ Then build start the ISIM application the same way and make sure the `external: 
 When everything is up and running, you can run the nmap demo by running:
 
 ```bash
-exec -it nmap-worker python -m temporal.nmap.topology.workflow && docker exec -it nmap-worker python -m temporal.nmap.basic.workflow
+docker exec -it nmap-worker python -m temporal.nmap.topology.workflow && docker exec -it nmap-worker python -m temporal.nmap.basic.workflow
 ```
 
 You can check the workflow progress in the Temporal server GUI http://localhost:8080/namespaces/default/workflows.
@@ -201,7 +202,14 @@ When the nmap workflows finish successfully, you can check the populated neo4j d
 
 Then either wait for cve-connector scheduled workflow to trigger, or trigger it manually  by going here: 
 http://localhost:8080/namespaces/default/schedules, click on the cve-update-scheduled-workflow and in the right upper 
-corner select `Trigger`. Again, you can check the workflow progress in the Temporal server GUI http://localhost:8080/namespaces/default/workflows.
+corner select `Trigger`. 
+
+![img.png](assets/select_trigger.png)
+
+You can leave the first `Use Policy` option and click `Trigger`.
+
+
+Again, you can check the workflow progress in the Temporal server GUI http://localhost:8080/namespaces/default/workflows.
 When the cve-connector workflow finishes successfully, you can check the populated neo4j database on http://localhost:7474/browser/
 
 # Tests
