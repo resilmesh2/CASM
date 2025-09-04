@@ -182,6 +182,19 @@ which is called in
 Instructions for running the CVE connector are listed in [README](cve_connector/README.md).
 The most important thing is to obtain NVD REST API key that should be used by the CVE connector.
 
+## Nmap and CVE-connector DEMO
+Start the CASM application with `docker compose up -d`. Then build start the ISIM docker setup and make sure the `external: true` is uncommented in `casm_isim_test_network` network.: 
+When everything is up and running, you can run the nmap demo by running:
+
+``` exec -it nmap-worker python -m temporal.nmap.topology.workflow && docker exec -it nmap-worker python -m temporal.nmap.basic.workflow```
+
+You can check the workflow progress in the Temporal server GUI http://localhost:8080/namespaces/default/workflows.
+When the nmap workflows finish successfully, you can check the populated neo4j database on http://localhost:7474/browser/ 
+Then either wait for cve-connector scheduled workflow to trigger, or trigger it manually  by going here: 
+http://localhost:8080/namespaces/default/schedules, click on the cve-update-scheduled-workflow and in the right upper 
+corner select `Trigger`. Again, you can check the workflow progress in the Temporal server GUI http://localhost:8080/namespaces/default/workflows.
+When the cve-connector workflows finish successfully, you can check the populated neo4j database on http://localhost:7474/browser/
+
 # Tests
 Tests are available in `test` folder. 
 Test data contain an example output that can be obtained from scanning by EasyEASM.
