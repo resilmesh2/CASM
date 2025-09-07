@@ -183,14 +183,14 @@ Instructions for running the CVE connector are listed in [README](cve_connector/
 The most important thing is to obtain NVD REST API key that should be used by the CVE connector.
 
 ## Nmap and CVE connector DEMO
-For this demo, we have prepared a `metasploitable3` container in compose.yml, which needs to be uncommented.
+For this demo, we have prepared a `metasploitable3` container in compose.yml, which you need to uncomment.
 Then you can start the CASM application with the following command inside the project root directory: 
 
 ```bash
 docker compose up -d
 ```
 
-Then build start the ISIM application the same way and make sure the `external: true` is uncommented in `casm_isim_test_network` network.
+Then, build and start the ISIM application similarly and ensure the `external: true` is uncommented in the `casm_isim_test_network` network.
 When everything is up and running, you can run the nmap demo by running:
 
 ```bash
@@ -198,9 +198,9 @@ docker exec -it nmap-worker python -m temporal.nmap.topology.workflow && docker 
 ```
 
 You can check the workflow progress in the Temporal server GUI http://localhost:8080/namespaces/default/workflows.
-When the nmap workflows finish successfully, you can check the populated neo4j database on http://localhost:7474/browser/.
+When the nmap workflows finish successfully, you can check the populated Neo4j database on http://localhost:7474/browser/.
 
-Then either wait for cve-connector scheduled workflow to trigger, or trigger it manually  by going here: 
+Then either wait for the cve-connector scheduled workflow to trigger, or trigger it manually  by going here: 
 http://localhost:8080/namespaces/default/schedules, click on the cve-update-scheduled-workflow and in the right upper 
 corner select `Trigger`. 
 
