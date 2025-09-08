@@ -1,4 +1,3 @@
-import asyncio
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from typing import Any
@@ -12,11 +11,11 @@ from temporalio import workflow
 @workflow.defn
 class ActiveEnumeratonWorkflow:
     @workflow.run
-    async def run(self, domains: list[str], wordlist: str) -> str:
+    async def run(self, passive_scan_domains_uuid: str, wordlist: str) -> str:
         # Active bruteforce
         dnsx_result_uuid = await workflow.execute_activity(
             ActiveEnumerationActivities.active_dnsx,
-            args=[domains, wordlist],
+            args=[passive_scan_domains_uuid, wordlist],
             start_to_close_timeout=timedelta(minutes=5),
         )
 

@@ -1,10 +1,12 @@
 import asyncio
-from datetime import timedelta
 from collections.abc import Awaitable, Callable, Sequence
+from datetime import timedelta
+from typing import Any
 
-from temporalio import workflow
+from config import AppConfig
 from temporal.enumeration.passive_enumeration.activities import PassiveEnumerationActivities
 from temporal.enumeration.ulitity_activities import UtilityActivities
+from temporalio import workflow
 
 
 @workflow.defn
@@ -37,6 +39,7 @@ class PassiveEnumerationWorkflow:
         return await workflow.execute_activity(
             UtilityActivities.get_unique_subdomains,
             args=[subfinder_results, amass_results],
+            start_to_close_timeout=timedelta(seconds=60),
         )
 
     @classmethod
@@ -44,4 +47,4 @@ class PassiveEnumerationWorkflow:
         config = AppConfig.get()
         passive_enum_activities = PassiveEnumerationActivities(config.redis)
         utility_activities = UtilityActivities()
-        return [*activities.get_activities(), utility_activities.get_unique_subdomains]
+        return [*passive_enum_activities.get_activities(), utility_activities.get_unique_subdomains]
