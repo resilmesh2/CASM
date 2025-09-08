@@ -1,7 +1,6 @@
-from typing import Set, List
 
 
-def cve_is_about_system(cpe_type: Set[str]) -> bool:
+def cve_is_about_system(cpe_type: set[str]) -> bool:
     """
     Determines whether a CVE targets a system component.
 
@@ -13,10 +12,10 @@ def cve_is_about_system(cpe_type: Set[str]) -> bool:
     :param cpe_type: A set of strings representing CPE types ('a', 'o', 'h').
     :return: True if the CVE is related to a system; otherwise, False.
     """
-    return ('o' in cpe_type or 'h' in cpe_type) and 'a' not in cpe_type
+    return ("o" in cpe_type or "h" in cpe_type) and "a" not in cpe_type
 
 
-def cve_is_about_application(cpe_type: Set[str]) -> bool:
+def cve_is_about_application(cpe_type: set[str]) -> bool:
     """
     Determines whether a CVE specifically affects an application.
 
@@ -26,10 +25,10 @@ def cve_is_about_application(cpe_type: Set[str]) -> bool:
     :param cpe_type: A set of strings representing CPE types ('a', 'o', 'h').
     :return: True if the CVE is about an application; otherwise, False.
     """
-    return 'a' in cpe_type
+    return "a" in cpe_type
 
 
-def test_incidence(description: str, list_of_keywords: List[str]) -> bool:
+def test_incidence(description: str, list_of_keywords: list[str]) -> bool:
     """
     Determines if at least one of the specified keywords is present in the description.
 
@@ -41,7 +40,4 @@ def test_incidence(description: str, list_of_keywords: List[str]) -> bool:
     :return: True if at least one keyword is found; otherwise, False.
     """
     description_lower = description.lower()
-    for word in list_of_keywords:
-        if word.lower() in description_lower:
-            return True
-    return False
+    return any(word.lower() in description_lower for word in list_of_keywords)

@@ -10,13 +10,13 @@ from typing import Any
 from neo4j import GraphDatabase, basic_auth
 from redis.client import Redis
 from structlog import getLogger
+from temporalio.common import RetryPolicy
 from yaml import safe_dump
 
 from config import AppConfig, Neo4jConfig, RedisConfig
 from easyeasm_demo.queries import CASM_INSERT_QUERY
-from easyeasm_demo.utils import EasyEASMParsedResult, validate_input_target, determine_software_versions
+from easyeasm_demo.utils import EasyEASMParsedResult, determine_software_versions, validate_input_target
 from temporalio import activity, workflow
-from temporalio.common import RetryPolicy
 
 EASYEASM_BASE_PATH = "/tmp/easyeasm"  # noqa: S108
 
@@ -93,7 +93,7 @@ class EasyEasmActivities:
             try:
                 entry = EasyEASMParsedResult(
                     ip=row[7], domain_name=row[4], service=row[5], port=row[3], protocol=row[5],
-                    software_versions = determine_software_versions(row[12])
+                    software_versions=determine_software_versions(row[12])
                 )
 
                 loaded_result["data"].append(entry.to_dict())

@@ -4,11 +4,10 @@ from pathlib import Path
 import yaml
 from dacite import from_dict
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 
 TEMPORAL_URL = "temporal:7233"
 TEMPORAL_NAMESPACE = "default"
-TEMPORAL_TASK_QUEUE = "easyeasm_demo"
 
 
 @dataclass
@@ -22,7 +21,9 @@ class Neo4jConfig:
 class TemporalConfig:
     url: str = TEMPORAL_URL
     namespace: str = TEMPORAL_NAMESPACE
-    task_queue: str = TEMPORAL_TASK_QUEUE
+    casm_task_queue: str = "easyeasm_demo"
+    nmap_task_queue: str = "nmap"
+    cve_connector_task_queue: str = "cve_connector"
 
 
 @dataclass
@@ -34,7 +35,7 @@ class RedisConfig:
 
 
 @dataclass
-class NmapConfig:
+class NmapBasicConfig:
     targets: list[str]
     arguments: str
     org_unit_name: str = "Internal IT"
@@ -43,6 +44,11 @@ class NmapConfig:
 @dataclass
 class ISIMConfig:
     url: str
+
+@dataclass
+class NmapTopologyConfig:
+    targets: list[str]
+    arguments: str
 
 @dataclass
 class ScannerConfig:
@@ -54,7 +60,8 @@ class Config:
     temporal: TemporalConfig
     neo4j: Neo4jConfig
     redis: RedisConfig
-    nmap: NmapConfig
+    nmap_basic: NmapBasicConfig
+    nmap_topology: NmapTopologyConfig
     isim: ISIMConfig
     scanner: ScannerConfig
 

@@ -26,11 +26,12 @@ import logging
 import re
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import requests
 from packaging.version import Version
 
+from cve_connector.nvd_cve.cpe_identifier import CpeIdentifier
 from cve_connector.nvd_cve.CveConnectorClient import CVEConnectorClient
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
@@ -56,7 +57,8 @@ class Cpe:
             f"{self.target_sw}:{self.target_hw}:{self.other}"
         )
 
-def move_cve_data_to_neo4j(vulnerability_list: List[Vulnerability], neo4j_passwd: str, nvd_api_key: str | None = None,
+
+def move_cve_data_to_neo4j(vulnerability_list: list[Vulnerability], cpe: str, neo4j_passwd: str, nvd_api_key: str | None = None,
                            bolt: str = "bolt://localhost:7687", user: str = "neo4j") -> None:
     """
     Moves CVE data from Vulnerability objects into a Neo4j database.
@@ -77,145 +79,143 @@ def move_cve_data_to_neo4j(vulnerability_list: List[Vulnerability], neo4j_passwd
     for vulnerability in vulnerability_list:
         vul_description = f"Assumed vulnerability with ID {vulnerability.cve}"
         if not client.cve_exists(vulnerability.cve):
-            vulnerability_created = check_configurations(
-                client, vulnerability.cpe_configurations,
-                vul_description, False, nvd_api_key)
-            if vulnerability_created:
-                client.create_cve_from_nvd(
-                    cve_id=vulnerability.cve,
-                    description=vulnerability.description,
-                    cwe=list(vulnerability.cwe),
-                    vectorString_v2=vulnerability.cvssv2.get("vectorString"),
-                    accessVector_v2=vulnerability.cvssv2.get("accessVector"),
-                    accessComplexity_v2=vulnerability.cvssv2.get("accessComplexity"),
-                    authentication_v2=vulnerability.cvssv2.get("authentication"),
-                    confidentialityImpact_v2=vulnerability.cvssv2.get("confidentialityImpact"),
-                    integrityImpact_v2=vulnerability.cvssv2.get("integrityImpact"),
-                    availabilityImpact_v2=vulnerability.cvssv2.get("availabilityImpact"),
-                    baseScore_v2=vulnerability.cvssv2.get("baseScore"),
-                    baseSeverity_v2=vulnerability.cvssv2.get("baseSeverity"),
-                    exploitabilityScore_v2=vulnerability.cvssv2.get("exploitabilityScore"),
-                    impactScore_v2=vulnerability.cvssv2.get("impactScore"),
-                    acInsufInfo_v2=vulnerability.cvssv2.get("acInsufInfo"),
-                    obtainAllPrivilege_v2=vulnerability.cvssv2.get("obtainAllPrivilege"),
-                    obtainUserPrivilege_v2=vulnerability.cvssv2.get("obtainUserPrivilege"),
-                    obtainOtherPrivilege_v2=vulnerability.cvssv2.get("obtainOtherPrivilege"),
-                    userInteractionRequired_v2=vulnerability.cvssv2.get("userInteractionRequired"),
-                    vectorString_v30=vulnerability.cvssv30.get("vectorString"),
-                    attackVector_v30=vulnerability.cvssv30.get("attackVector"),
-                    attackComplexity_v30=vulnerability.cvssv30.get("attackComplexity"),
-                    privilegesRequired_v30=vulnerability.cvssv30.get("privilegesRequired"),
-                    userInteraction_v30=vulnerability.cvssv30.get("userInteraction"),
-                    scope_v30=vulnerability.cvssv30.get("scope"),
-                    confidentialityImpact_v30=vulnerability.cvssv30.get("confidentialityImpact"),
-                    integrityImpact_v30=vulnerability.cvssv30.get("integrityImpact"),
-                    availabilityImpact_v30=vulnerability.cvssv30.get("availabilityImpact"),
-                    baseScore_v30=vulnerability.cvssv30.get("baseScore"),
-                    baseSeverity_v30=vulnerability.cvssv30.get("baseSeverity"),
-                    exploitabilityScore_v30=vulnerability.cvssv30.get("exploitabilityScore"),
-                    impactScore_v30=vulnerability.cvssv30.get("impactScore"),
-                    vectorString_v31=vulnerability.cvssv31.get("vectorString"),
-                    attackVector_v31=vulnerability.cvssv31.get("attackVector"),
-                    attackComplexity_v31=vulnerability.cvssv31.get("attackComplexity"),
-                    privilegesRequired_v31=vulnerability.cvssv31.get("privilegesRequired"),
-                    userInteraction_v31=vulnerability.cvssv31.get("userInteraction"),
-                    scope_v31=vulnerability.cvssv31.get("scope"),
-                    confidentialityImpact_v31=vulnerability.cvssv31.get("confidentialityImpact"),
-                    integrityImpact_v31=vulnerability.cvssv31.get("integrityImpact"),
-                    availabilityImpact_v31=vulnerability.cvssv31.get("availabilityImpact"),
-                    baseScore_v31=vulnerability.cvssv31.get("baseScore"),
-                    baseSeverity_v31=vulnerability.cvssv31.get("baseSeverity"),
-                    exploitabilityScore_v31=vulnerability.cvssv31.get("exploitabilityScore"),
-                    impactScore_v31=vulnerability.cvssv31.get("impactScore"),
-                    vectorString_v40=vulnerability.cvssv40.get("vectorString"),
-                    attackVector_v40=vulnerability.cvssv40.get("attackVector"),
-                    attackComplexity_v40=vulnerability.cvssv40.get("attackComplexity"),
-                    attackRequirements_v40=vulnerability.cvssv40.get("attackRequirements"),
-                    privilegesRequired_v40=vulnerability.cvssv40.get("privilegesRequired"),
-                    userInteraction_v40=vulnerability.cvssv40.get("userInteraction"),
-                    vulnerableSystemConfidentiality_v40=vulnerability.cvssv40.get("vulnerableSystemConfidentiality"),
-                    vulnerableSystemIntegrity_v40=vulnerability.cvssv40.get("vulnerableSystemIntegrity"),
-                    vulnerableSystemAvailability_v40=vulnerability.cvssv40.get("vulnerableSystemAvailability"),
-                    subsequentSystemConfidentiality_v40=vulnerability.cvssv40.get("subsequentSystemConfidentiality"),
-                    subsequentSystemIntegrity_v40=vulnerability.cvssv40.get("subsequentSystemIntegrity"),
-                    subsequentSystemAvailability_v40=vulnerability.cvssv40.get("subsequentSystemAvailability"),
-                    baseScore_v40=vulnerability.cvssv40.get("baseScore"),
-                    baseSeverity_v40=vulnerability.cvssv40.get("baseSeverity"),
-                    cpe_type=list(vulnerability.cpe_type),
-                    ref_tags=list(vulnerability.ref_tag),
-                    published=vulnerability.published,
-                    lastModified=vulnerability.lastModified,
-                    result_impacts=vulnerability.result_impacts
-                )
-                client.create_relationship_between_cve_and_vulnerability(vulnerability.cve, vul_description)
-                cve_count_created += 1
+            client.create_new_vulnerability(vul_description)
+            client.create_relationship_between_vulnerability_and_software_version(vul_description, cpe)
+            client.create_cve_from_nvd(
+                cve_id=vulnerability.cve,
+                description=vulnerability.description,
+                cwe=list(vulnerability.cwe),
+                vector_string_v2=vulnerability.cvssv2.get("vectorString"),
+                access_vector_v2=vulnerability.cvssv2.get("accessVector"),
+                access_complexity_v2=vulnerability.cvssv2.get("accessComplexity"),
+                authentication_v2=vulnerability.cvssv2.get("authentication"),
+                confidentiality_impact_v2=vulnerability.cvssv2.get("confidentialityImpact"),
+                integrity_impact_v2=vulnerability.cvssv2.get("integrityImpact"),
+                availability_impact_v2=vulnerability.cvssv2.get("availabilityImpact"),
+                base_score_v2=vulnerability.cvssv2.get("baseScore"),
+                base_severity_v2=vulnerability.cvssv2.get("baseSeverity"),
+                exploitability_score_v2=vulnerability.cvssv2.get("exploitabilityScore"),
+                impact_score_v2=vulnerability.cvssv2.get("impactScore"),
+                ac_insuf_info_v2=vulnerability.cvssv2.get("acInsufInfo"),
+                obtain_all_privilege_v2=vulnerability.cvssv2.get("obtainAllPrivilege"),
+                obtain_user_privilege_v2=vulnerability.cvssv2.get("obtainUserPrivilege"),
+                obtain_other_privilege_v2=vulnerability.cvssv2.get("obtainOtherPrivilege"),
+                user_interaction_required_v2=vulnerability.cvssv2.get("userInteractionRequired"),
+                vector_string_v30=vulnerability.cvssv30.get("vectorString"),
+                attack_vector_v30=vulnerability.cvssv30.get("attackVector"),
+                attack_complexity_v30=vulnerability.cvssv30.get("attackComplexity"),
+                privileges_required_v30=vulnerability.cvssv30.get("privilegesRequired"),
+                user_interaction_v30=vulnerability.cvssv30.get("userInteraction"),
+                scope_v30=vulnerability.cvssv30.get("scope"),
+                confidentiality_impact_v30=vulnerability.cvssv30.get("confidentialityImpact"),
+                integrity_impact_v30=vulnerability.cvssv30.get("integrityImpact"),
+                availability_impact_v30=vulnerability.cvssv30.get("availabilityImpact"),
+                base_score_v30=vulnerability.cvssv30.get("baseScore"),
+                base_severity_v30=vulnerability.cvssv30.get("baseSeverity"),
+                exploitability_score_v30=vulnerability.cvssv30.get("exploitabilityScore"),
+                impact_score_v30=vulnerability.cvssv30.get("impactScore"),
+                vector_string_v31=vulnerability.cvssv31.get("vectorString"),
+                attack_vector_v31=vulnerability.cvssv31.get("attackVector"),
+                attack_complexity_v31=vulnerability.cvssv31.get("attackComplexity"),
+                privileges_required_v31=vulnerability.cvssv31.get("privilegesRequired"),
+                user_interaction_v31=vulnerability.cvssv31.get("userInteraction"),
+                scope_v31=vulnerability.cvssv31.get("scope"),
+                confidentiality_impact_v31=vulnerability.cvssv31.get("confidentialityImpact"),
+                integrity_impact_v31=vulnerability.cvssv31.get("integrityImpact"),
+                availability_impact_v31=vulnerability.cvssv31.get("availabilityImpact"),
+                base_score_v31=vulnerability.cvssv31.get("baseScore"),
+                base_severity_v31=vulnerability.cvssv31.get("baseSeverity"),
+                exploitability_score_v31=vulnerability.cvssv31.get("exploitabilityScore"),
+                impact_score_v31=vulnerability.cvssv31.get("impactScore"),
+                vector_string_v40=vulnerability.cvssv40.get("vectorString"),
+                attack_vector_v40=vulnerability.cvssv40.get("attackVector"),
+                attack_complexity_v40=vulnerability.cvssv40.get("attackComplexity"),
+                attack_requirements_v40=vulnerability.cvssv40.get("attackRequirements"),
+                privileges_required_v40=vulnerability.cvssv40.get("privilegesRequired"),
+                user_interaction_v40=vulnerability.cvssv40.get("userInteraction"),
+                vulnerable_system_confidentiality_v40=vulnerability.cvssv40.get("vulnerableSystemConfidentiality"),
+                vulnerable_system_integrity_v40=vulnerability.cvssv40.get("vulnerableSystemIntegrity"),
+                vulnerable_system_availability_v40=vulnerability.cvssv40.get("vulnerableSystemAvailability"),
+                subsequent_system_confidentiality_v40=vulnerability.cvssv40.get("subsequentSystemConfidentiality"),
+                subsequent_system_integrity_v40=vulnerability.cvssv40.get("subsequentSystemIntegrity"),
+                subsequent_system_availability_v40=vulnerability.cvssv40.get("subsequentSystemAvailability"),
+                exploit_maturity_v40=vulnerability.cvssv40.get("exploitMaturity"),
+                    base_score_v40=vulnerability.cvssv40.get("baseScore"),
+                base_severity_v40=vulnerability.cvssv40.get("baseSeverity"),
+                cpe_type=list(vulnerability.cpe_type),
+                ref_tags=list(vulnerability.ref_tag),
+                published=vulnerability.published,
+                last_modified=vulnerability.lastModified,
+                result_impacts=vulnerability.result_impacts
+            )
+            client.create_relationship_between_cve_and_vulnerability(vulnerability.cve, vul_description)
+            cve_count_created += 1
         else:
-            check_configurations(client, vulnerability.cpe_configurations,
-                                 vul_description, True, nvd_api_key)
             client.update_cve_from_nvd(
                 cve_id=vulnerability.cve,
                 description=vulnerability.description,
                 cwe=list(vulnerability.cwe),
-                vectorString_v2=vulnerability.cvssv2.get("vectorString"),
-                accessVector_v2=vulnerability.cvssv2.get("accessVector"),
-                accessComplexity_v2=vulnerability.cvssv2.get("accessComplexity"),
+                vector_string_v2=vulnerability.cvssv2.get("vectorString"),
+                access_vector_v2=vulnerability.cvssv2.get("accessVector"),
+                access_complexity_v2=vulnerability.cvssv2.get("accessComplexity"),
                 authentication_v2=vulnerability.cvssv2.get("authentication"),
-                confidentialityImpact_v2=vulnerability.cvssv2.get("confidentialityImpact"),
-                integrityImpact_v2=vulnerability.cvssv2.get("integrityImpact"),
-                availabilityImpact_v2=vulnerability.cvssv2.get("availabilityImpact"),
-                baseScore_v2=vulnerability.cvssv2.get("baseScore"),
-                baseSeverity_v2=vulnerability.cvssv2.get("baseSeverity"),
-                exploitabilityScore_v2=vulnerability.cvssv2.get("exploitabilityScore"),
-                impactScore_v2=vulnerability.cvssv2.get("impactScore"),
-                acInsufInfo_v2=vulnerability.cvssv2.get("acInsufInfo"),
-                obtainAllPrivilege_v2=vulnerability.cvssv2.get("obtainAllPrivilege"),
-                obtainUserPrivilege_v2=vulnerability.cvssv2.get("obtainUserPrivilege"),
-                obtainOtherPrivilege_v2=vulnerability.cvssv2.get("obtainOtherPrivilege"),
-                userInteractionRequired_v2=vulnerability.cvssv2.get("userInteractionRequired"),
-                vectorString_v30=vulnerability.cvssv30.get("vectorString"),
-                attackVector_v30=vulnerability.cvssv30.get("attackVector"),
-                attackComplexity_v30=vulnerability.cvssv30.get("attackComplexity"),
-                privilegesRequired_v30=vulnerability.cvssv30.get("privilegesRequired"),
-                userInteraction_v30=vulnerability.cvssv30.get("userInteraction"),
+                confidentiality_impact_v2=vulnerability.cvssv2.get("confidentialityImpact"),
+                integrity_impact_v2=vulnerability.cvssv2.get("integrityImpact"),
+                availability_impact_v2=vulnerability.cvssv2.get("availabilityImpact"),
+                base_score_v2=vulnerability.cvssv2.get("baseScore"),
+                base_severity_v2=vulnerability.cvssv2.get("baseSeverity"),
+                exploitability_score_v2=vulnerability.cvssv2.get("exploitabilityScore"),
+                impact_score_v2=vulnerability.cvssv2.get("impactScore"),
+                ac_insuf_info_v2=vulnerability.cvssv2.get("acInsufInfo"),
+                obtain_all_privilege_v2=vulnerability.cvssv2.get("obtainAllPrivilege"),
+                obtain_user_privilege_v2=vulnerability.cvssv2.get("obtainUserPrivilege"),
+                obtain_other_privilege_v2=vulnerability.cvssv2.get("obtainOtherPrivilege"),
+                user_interaction_required_v2=vulnerability.cvssv2.get("userInteractionRequired"),
+                vector_string_v30=vulnerability.cvssv30.get("vectorString"),
+                attack_vector_v30=vulnerability.cvssv30.get("attackVector"),
+                attack_complexity_v30=vulnerability.cvssv30.get("attackComplexity"),
+                privileges_required_v30=vulnerability.cvssv30.get("privilegesRequired"),
+                user_interaction_v30=vulnerability.cvssv30.get("userInteraction"),
                 scope_v30=vulnerability.cvssv30.get("scope"),
-                confidentialityImpact_v30=vulnerability.cvssv30.get("confidentialityImpact"),
-                integrityImpact_v30=vulnerability.cvssv30.get("integrityImpact"),
-                availabilityImpact_v30=vulnerability.cvssv30.get("availabilityImpact"),
-                baseScore_v30=vulnerability.cvssv30.get("baseScore"),
-                baseSeverity_v30=vulnerability.cvssv30.get("baseSeverity"),
-                exploitabilityScore_v30=vulnerability.cvssv30.get("exploitabilityScore"),
-                impactScore_v30=vulnerability.cvssv30.get("impactScore"),
-                vectorString_v31=vulnerability.cvssv31.get("vectorString"),
-                attackVector_v31=vulnerability.cvssv31.get("attackVector"),
-                attackComplexity_v31=vulnerability.cvssv31.get("attackComplexity"),
-                privilegesRequired_v31=vulnerability.cvssv31.get("privilegesRequired"),
-                userInteraction_v31=vulnerability.cvssv31.get("userInteraction"),
+                confidentiality_impact_v30=vulnerability.cvssv30.get("confidentialityImpact"),
+                integrity_impact_v30=vulnerability.cvssv30.get("integrityImpact"),
+                availability_impact_v30=vulnerability.cvssv30.get("availabilityImpact"),
+                base_score_v30=vulnerability.cvssv30.get("baseScore"),
+                base_severity_v30=vulnerability.cvssv30.get("baseSeverity"),
+                exploitability_score_v30=vulnerability.cvssv30.get("exploitabilityScore"),
+                impact_score_v30=vulnerability.cvssv30.get("impactScore"),
+                vector_string_v31=vulnerability.cvssv31.get("vectorString"),
+                attack_vector_v31=vulnerability.cvssv31.get("attackVector"),
+                attack_complexity_v31=vulnerability.cvssv31.get("attackComplexity"),
+                privileges_required_v31=vulnerability.cvssv31.get("privilegesRequired"),
+                user_interaction_v31=vulnerability.cvssv31.get("userInteraction"),
                 scope_v31=vulnerability.cvssv31.get("scope"),
-                confidentialityImpact_v31=vulnerability.cvssv31.get("confidentialityImpact"),
-                integrityImpact_v31=vulnerability.cvssv31.get("integrityImpact"),
-                availabilityImpact_v31=vulnerability.cvssv31.get("availabilityImpact"),
-                baseScore_v31=vulnerability.cvssv31.get("baseScore"),
-                baseSeverity_v31=vulnerability.cvssv31.get("baseSeverity"),
-                exploitabilityScore_v31=vulnerability.cvssv31.get("exploitabilityScore"),
-                impactScore_v31=vulnerability.cvssv31.get("impactScore"),
-                vectorString_v40=vulnerability.cvssv40.get("vectorString"),
-                attackVector_v40=vulnerability.cvssv40.get("attackVector"),
-                attackComplexity_v40=vulnerability.cvssv40.get("attackComplexity"),
-                attackRequirements_v40=vulnerability.cvssv40.get("attackRequirements"),
-                privilegesRequired_v40=vulnerability.cvssv40.get("privilegesRequired"),
-                userInteraction_v40=vulnerability.cvssv40.get("userInteraction"),
-                vulnerableSystemConfidentiality_v40=vulnerability.cvssv40.get("vulnerableSystemConfidentiality"),
-                vulnerableSystemIntegrity_v40=vulnerability.cvssv40.get("vulnerableSystemIntegrity"),
-                vulnerableSystemAvailability_v40=vulnerability.cvssv40.get("vulnerableSystemAvailability"),
-                subsequentSystemConfidentiality_v40=vulnerability.cvssv40.get("subsequentSystemConfidentiality"),
-                subsequentSystemIntegrity_v40=vulnerability.cvssv40.get("subsequentSystemIntegrity"),
-                subsequentSystemAvailability_v40=vulnerability.cvssv40.get("subsequentSystemAvailability"),
-                baseScore_v40=vulnerability.cvssv40.get("baseScore"),
-                baseSeverity_v40=vulnerability.cvssv40.get("baseSeverity"),
+                confidentiality_impact_v31=vulnerability.cvssv31.get("confidentialityImpact"),
+                integrity_impact_v31=vulnerability.cvssv31.get("integrityImpact"),
+                availability_impact_v31=vulnerability.cvssv31.get("availabilityImpact"),
+                base_score_v31=vulnerability.cvssv31.get("baseScore"),
+                base_severity_v31=vulnerability.cvssv31.get("baseSeverity"),
+                exploitability_score_v31=vulnerability.cvssv31.get("exploitabilityScore"),
+                impact_score_v31=vulnerability.cvssv31.get("impactScore"),
+                vector_string_v40=vulnerability.cvssv40.get("vectorString"),
+                attack_vector_v40=vulnerability.cvssv40.get("attackVector"),
+                attack_complexity_v40=vulnerability.cvssv40.get("attackComplexity"),
+                attack_requirements_v40=vulnerability.cvssv40.get("attackRequirements"),
+                privileges_required_v40=vulnerability.cvssv40.get("privilegesRequired"),
+                user_interaction_v40=vulnerability.cvssv40.get("userInteraction"),
+                vulnerable_system_confidentiality_v40=vulnerability.cvssv40.get("vulnerableSystemConfidentiality"),
+                vulnerable_system_integrity_v40=vulnerability.cvssv40.get("vulnerableSystemIntegrity"),
+                vulnerable_system_availability_v40=vulnerability.cvssv40.get("vulnerableSystemAvailability"),
+                subsequent_system_confidentiality_v40=vulnerability.cvssv40.get("subsequentSystemConfidentiality"),
+                subsequent_system_integrity_v40=vulnerability.cvssv40.get("subsequentSystemIntegrity"),
+                subsequent_system_availability_v40=vulnerability.cvssv40.get("subsequentSystemAvailability"),
+                exploit_maturity_v40=vulnerability.cvssv40.get("exploitMaturity"),
+                base_score_v40=vulnerability.cvssv40.get("baseScore"),
+                base_severity_v40=vulnerability.cvssv40.get("baseSeverity"),
                 cpe_type=list(vulnerability.cpe_type),
                 ref_tags=list(vulnerability.ref_tag),
                 published=vulnerability.published,
-                lastModified=vulnerability.lastModified,
+                last_modified=vulnerability.lastModified,
                 result_impacts=vulnerability.result_impacts
             )
             client.create_relationship_between_cve_and_vulnerability(vulnerability.cve, vul_description)
@@ -223,42 +223,7 @@ def move_cve_data_to_neo4j(vulnerability_list: List[Vulnerability], neo4j_passwd
     logging.info(f"Created {cve_count_created} CVEs, updated {cve_count_updated} CVEs")
 
 
-def parse_cpe(full_cpe: str) -> Cpe:
-    """
-    Parses a CPE string into vendor, product, and version components.
-
-    :param full_cpe: CPE string (e.g., 'cpe:2.3:a:vendor:product:version:...').
-    :return: Tuple of (vendor, product, version).
-    :raises ValueError: If CPE string is malformed.
-    """
-    try:
-        parts = full_cpe.split(":")
-        if len(parts) < 6 or parts[0] != "cpe" or parts[1] != "2.3":
-            raise ValueError(f"Malformed CPE string: {full_cpe}")
-
-        # Pad optional parts with "*"
-        parts += ["*"] * (13 - len(parts))
-
-        return Cpe(
-            part=parts[2],
-            vendor=parts[3],
-            product=parts[4],
-            version=parts[5],
-            update=parts[6] or "*",
-            edition=parts[7] or "*",
-            language=parts[8] or "*",
-            sw_edition=parts[9] or "*",
-            target_sw=parts[10] or "*",
-            target_hw=parts[11] or "*",
-            other=parts[12] or "*",
-        )
-
-    except (IndexError, ValueError) as e:
-        logging.error(f"Failed to parse CPE {full_cpe}: {e}")
-        raise ValueError(f"Invalid CPE format: {full_cpe}")
-
-
-def check_ranges(cpe_match: Dict[str, Any], version: str, nvd_api_key: str) -> bool:
+def check_ranges(cpe_match: dict[str, Any], version: str, nvd_api_key: str) -> bool:
     """
     Checks if a software version falls within the specified version range.
 
@@ -269,7 +234,7 @@ def check_ranges(cpe_match: Dict[str, Any], version: str, nvd_api_key: str) -> b
     :return: True if version is within range; False otherwise.
     """
     logging.info(f"Checking CPE range: {cpe_match}")
-    if parse_cpe(cpe_match["criteria"]).version != "*":
+    if CpeIdentifier.from_string(cpe_match["criteria"]).version != "*":
         raise ValueError(f"Invalid CPE range containing version number: {cpe_match}")
 
     if "versionStartIncluding" in cpe_match or "versionStartExcluding" in cpe_match or \
@@ -277,48 +242,47 @@ def check_ranges(cpe_match: Dict[str, Any], version: str, nvd_api_key: str) -> b
         result = False
         current_version = Version(version)
         if "versionStartIncluding" in cpe_match:
-            condition = Version(cpe_match['versionStartIncluding'])
+            condition = Version(cpe_match["versionStartIncluding"])
             if current_version < condition:
                 return False
             result = True
         if "versionStartExcluding" in cpe_match:
-            condition = Version(cpe_match['versionStartExcluding'])
+            condition = Version(cpe_match["versionStartExcluding"])
             if current_version <= condition:
                 return False
             result = True
         if "versionEndIncluding" in cpe_match:
-            condition = Version(cpe_match['versionEndIncluding'])
+            condition = Version(cpe_match["versionEndIncluding"])
             if current_version > condition:
                 return False
             result = True
         if "versionEndExcluding" in cpe_match:
-            condition = Version(cpe_match['versionEndExcluding'])
+            condition = Version(cpe_match["versionEndExcluding"])
             if current_version >= condition:
                 return False
             result = True
         logging.info(f"Successful check CPE range: {cpe_match}")
         return result
 
-    else:
-        # CPE has * (ANY) as a version, but does not have any indication of start and end - matchCriteriaId should be used
-        url = "https://services.nvd.nist.gov/rest/json/cpematch/2.0"
-        params = {'matchCriteriaId': f"{cpe_match['matchCriteriaId']}"}
-        headers = {'apiKey': nvd_api_key} if nvd_api_key else None
-        response = requests.get(url, headers=headers, params=params)
+    # CPE has * (ANY) as a version, but does not have any indication of start and end - matchCriteriaId should be used
+    url = "https://services.nvd.nist.gov/rest/json/cpematch/2.0"
+    params = {"matchCriteriaId": f"{cpe_match['matchCriteriaId']}"}
+    headers = {"apiKey": nvd_api_key} if nvd_api_key else None
+    response = requests.get(url, headers=headers, params=params)
 
-        # the official documentation recommends to pause scripts for 6 seconds after each request
-        time.sleep(6)
-        if response.status_code == 200:
-            data = response.json()
-            for match_string in data["matchStrings"]:
-                for match in match_string["matchString"]["matches"]:
-                    if parse_cpe(match["cpeName"]).version == version:
-                        logging.info(f"Successful check of CPE range: {cpe_match} and version: {match['cpeName']}")
-                        return True
-        return False
+    # the official documentation recommends to pause scripts for 6 seconds after each request
+    time.sleep(6)
+    if response.status_code == 200:
+        data = response.json()
+        for match_string in data["matchStrings"]:
+            for match in match_string["matchString"]["matches"]:
+                if CpeIdentifier.from_string(match["cpeName"]).version == version:
+                    logging.info(f"Successful check of CPE range: {cpe_match} and version: {match['cpeName']}")
+                    return True
+    return False
 
 
-def check_configurations(client: CVEConnectorClient, cpe_configurations: List[Dict[str, Any]],
+def check_configurations(client: CVEConnectorClient, cpe_configurations: list[dict[str, Any]],
                          vul_description: str, flag: bool, nvd_api_key: str) -> bool:
     """
     Processes CPE configurations to determine if a vulnerability node should be created or updated.
@@ -332,7 +296,7 @@ def check_configurations(client: CVEConnectorClient, cpe_configurations: List[Di
     :return: Updated flag indicating if a vulnerability node was created.
     :raises ValueError: If configuration structure is invalid.
     """
-    vulnerability_created = flag
+    create_vulnerability = flag
     for configuration in cpe_configurations:
         if "operator" in configuration:
             if configuration["operator"] == "AND":
@@ -344,23 +308,21 @@ def check_configurations(client: CVEConnectorClient, cpe_configurations: List[Di
                         logging.error("Invalid recursion depth in AND configuration")
                         raise ValueError("Depth of recursion was more than 1")
                     for cpe_item in vuln_node.get("cpeMatch", []):
-                        if cpe_item.get("vulnerable"):
-                            vulnerability_created = process_nvd_cpe(client, cpe_item, vul_description,
-                                                                    vulnerability_created, nvd_api_key)
+                        create_vulnerability = process_nvd_cpe(client, cpe_item, vul_description,
+                                                                create_vulnerability, nvd_api_key)
                 else:
                     logging.warning(f"Expected two nodes in AND configuration, got {len(configuration.get('nodes', []))}")
         else:
             for node in configuration.get("nodes", []):
                 if node.get("operator", "") == "OR":
                     for cpe_match in node.get("cpeMatch", []):
-                        if cpe_match.get("vulnerable"):
-                            vulnerability_created = process_nvd_cpe(client, cpe_match, vul_description,
-                                                                    vulnerability_created, nvd_api_key)
-    return vulnerability_created
+                        create_vulnerability = process_nvd_cpe(client, cpe_match, vul_description,
+                                                                create_vulnerability, nvd_api_key)
+    return create_vulnerability
 
 
 def process_nvd_cpe(
-    client: CVEConnectorClient, cpe_match: Dict[str, Any], vul_description: str, flag: bool, nvd_api_key
+    client: CVEConnectorClient, cpe_match: dict[str, Any], vul_description: str, flag: bool, nvd_api_key
 ) -> bool:
     """
     Processes a CPE match to create relationships between vulnerabilities and software versions.
@@ -368,7 +330,7 @@ def process_nvd_cpe(
     """
     vulnerability_created = flag
     try:
-        cpe = parse_cpe(cpe_match["criteria"])
+        cpe = CpeIdentifier.from_string(cpe_match["criteria"])
         logging.info(
             f"{vul_description} Processing CPE match for vendor={cpe.vendor}, product={cpe.product}, version={cpe.version}"
         )
@@ -376,10 +338,9 @@ def process_nvd_cpe(
         if cpe.version.count(".") > 1:
             match = re.match(r"(?P<major>.*?)\.(?P<minor>.*?)\.(?P<build>.*)", cpe.version)
             shortened_cpe = f"{cpe.vendor}:{cpe.product}:{match.group(1)}.{match.group(2)}"
-            if client.software_version_exists(shortened_cpe):
-                if not vulnerability_created:
-                    vulnerability_created = True
-                    client.create_new_vulnerability(vul_description)
+            if not vulnerability_created:
+                vulnerability_created = True
+                client.create_new_vulnerability(vul_description)
                 client.create_relationship_between_vulnerability_and_software_version(vul_description, shortened_cpe)
 
         for possible_software_version in [
@@ -419,7 +380,7 @@ def process_nvd_cpe(
 
 
 def get_software_versions_from_neo4j(neo4j_passwd: str, bolt: str = "bolt://localhost:7687",
-                                     user: str = "neo4j") -> List[str]:
+                                     user: str = "neo4j") -> list[dict[str, Any]]:
     """
     Retrieves all software versions stored in the Neo4j database.
 
@@ -431,8 +392,9 @@ def get_software_versions_from_neo4j(neo4j_passwd: str, bolt: str = "bolt://loca
     client = CVEConnectorClient(password=neo4j_passwd, bolt=bolt, user=user)
     return client.get_all_software_versions()
 
+
 def update_timestamp_for_software_version(software_version: str, timestamp: str, neo4j_passwd: str,
-                                          bolt: str = "bolt://localhost:7687", user: str = "neo4j"):
+                                          bolt: str = "bolt://localhost:7687", user: str = "neo4j") -> None:
     """
     Creates or updates a timestamp for software version.
 

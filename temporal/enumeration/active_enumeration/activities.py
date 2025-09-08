@@ -1,10 +1,9 @@
-import asyncio
-import os
-from collections.abc import Sequence, Callable, Awaitable
-from typing import List, Any
-from temporalio import activity
-from temporal.lib import util
+from collections.abc import Awaitable, Callable, Sequence
+from typing import Any
+
+from config import RedisConfig
 from temporal.enumeration.active_enumeration import activities_impl
+from temporalio import activity
 
 
 class ActiveEnumerationActivities:
@@ -17,7 +16,7 @@ class ActiveEnumerationActivities:
         return dnsx_result_uuid
 
     @activity.defn
-    async def active_alterx(self, dnsx_output_uuid: str, redis_config: RedisConfig) -> str:
+    async def active_alterx(self, dnsx_output_uuid: str) -> str:
         alterx_result_uuid = await activities_impl.active_alterx(dnsx_output_uuid, self.redis_config)
         return alterx_result_uuid
 

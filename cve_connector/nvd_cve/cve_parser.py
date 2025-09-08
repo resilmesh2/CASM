@@ -10,14 +10,14 @@ each vulnerability. The resulting Vulnerability objects are then used as part of
 analysis and classification framework.
 """
 
-from typing import List, Dict, Any, Optional
 import logging
+from typing import Any
 
 from cve_connector.nvd_cve.categorization.classifier import classifier
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
 
-def parse_vulnerabilities(data: List[Dict[str, Any]]) -> List[Vulnerability]:
+def parse_vulnerabilities(data: list[dict[str, Any]]) -> list[Vulnerability]:
     """
     Parses a list of raw vulnerability data dictionaries into a list of Vulnerability objects.
 
@@ -31,7 +31,7 @@ def parse_vulnerabilities(data: List[Dict[str, Any]]) -> List[Vulnerability]:
       - Extracts publication and last modification dates.
       - Aggregates reference tags from the 'references' field.
       - Calls the classifier function to compute and assign the result impacts.
-    
+
     The function returns a list of fully populated Vulnerability objects.
 
     Parameters:
@@ -41,7 +41,7 @@ def parse_vulnerabilities(data: List[Dict[str, Any]]) -> List[Vulnerability]:
     Returns:
       List[Vulnerability]: A list of Vulnerability objects populated with the parsed data.
     """
-    vulnerabilities: List[Vulnerability] = []
+    vulnerabilities: list[Vulnerability] = []
     for item in data:
         vulnerability = Vulnerability()
         if not item.get("id") or not item.get("descriptions"):
@@ -55,7 +55,7 @@ def parse_vulnerabilities(data: List[Dict[str, Any]]) -> List[Vulnerability]:
                 for description in weakness.get("description", []):
                     vulnerability.cwe.add(description.get("value", ""))
 
-        def get_primary_metric(metric_list: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        def get_primary_metric(metric_list: list[dict[str, Any]]) -> dict[str, Any] | None:
             for metric in metric_list:
                 if metric.get("type") == "Primary":
                     return metric
@@ -134,6 +134,7 @@ def parse_vulnerabilities(data: List[Dict[str, Any]]) -> List[Vulnerability]:
                     "subsequentSystemConfidentiality": tmp["cvssData"]["subConfidentialityImpact"],
                     "subsequentSystemIntegrity": tmp["cvssData"]["subIntegrityImpact"],
                     "subsequentSystemAvailability": tmp["cvssData"]["subAvailabilityImpact"],
+                    "exploitMaturity": tmp["cvssData"]["exploitMaturity"],
                     "baseScore": tmp["cvssData"]["baseScore"],
                     "baseSeverity": tmp["cvssData"]["baseSeverity"],
                 })
@@ -145,7 +146,7 @@ def parse_vulnerabilities(data: List[Dict[str, Any]]) -> List[Vulnerability]:
                         if cpe.get("vulnerable"):
                             criteria = cpe.get("criteria", "")
                             if criteria:
-                                vulnerability.cpe_type.add(criteria.split(':')[2])
+                                vulnerability.cpe_type.add(criteria.split(":")[2])
             vulnerability.cpe_configurations = item["configurations"]
 
         vulnerability.published = item.get("published", "")

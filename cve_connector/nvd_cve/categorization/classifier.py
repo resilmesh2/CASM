@@ -18,30 +18,27 @@ Dependencies:
   - Vulnerability from cve_connector.nvd_cve.vulnerability.
 """
 
-from typing import List
+
 from cve_connector.nvd_cve.categorization.cia_loss import (
+    add_other_cia_impacts,
+    has_system_availability_loss,
     has_system_confidentiality_loss,
     has_system_integrity_loss,
-    has_system_availability_loss,
-    add_other_cia_impacts,
+    system_availability_changed,
     system_confidentiality_changed,
     system_integrity_changed,
-    system_availability_changed
 )
-from cve_connector.nvd_cve.categorization.code_execution import (
-    has_code_execution_as_root,
-    has_code_execution_as_user
-)
+from cve_connector.nvd_cve.categorization.code_execution import has_code_execution_as_root, has_code_execution_as_user
 from cve_connector.nvd_cve.categorization.gain_privileges import (
+    has_gain_application_privileges,
     has_gain_root_privileges,
     has_gain_user_privileges,
     has_privilege_escalation,
-    has_gain_application_privileges
 )
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
 
-def classifier(vulnerability: Vulnerability) -> List[str]:
+def classifier(vulnerability: Vulnerability) -> list[str]:
     """
     Classifies a vulnerability by sequentially evaluating its potential impacts.
 
@@ -54,7 +51,7 @@ def classifier(vulnerability: Vulnerability) -> List[str]:
     :param vulnerability: An instance of Vulnerability containing description, CVSS metrics, and CPE type.
     :return: A list of impact strings classifying the vulnerability.
     """
-    result_impacts: List[str] = test_root_level_impacts(vulnerability)
+    result_impacts: list[str] = test_root_level_impacts(vulnerability)
     if result_impacts:
         return result_impacts
     result_impacts = system_cia_loss(vulnerability)
@@ -63,11 +60,10 @@ def classifier(vulnerability: Vulnerability) -> List[str]:
     result_impacts = test_user_level_impacts(vulnerability)
     if result_impacts:
         return result_impacts
-    result_impacts = distinguish_system_application(vulnerability)
-    return result_impacts
+    return distinguish_system_application(vulnerability)
 
 
-def test_root_level_impacts(vulnerability: Vulnerability) -> List[str]:
+def test_root_level_impacts(vulnerability: Vulnerability) -> list[str]:
     """
     Tests whether the vulnerability exhibits any root-level impacts.
 
@@ -75,13 +71,13 @@ def test_root_level_impacts(vulnerability: Vulnerability) -> List[str]:
       - Arbitrary code execution as root/administrator/system.
       - Gain of root/system/administrator privileges.
       - Privilege escalation on the system.
-      
+
     The checks are performed sequentially, and the first matching impact is returned.
 
     :param vulnerability: An instance of Vulnerability.
     :return: A list of impact strings with one element if a root-level impact is detected; otherwise, an empty list.
     """
-    result_impacts: List[str] = []
+    result_impacts: list[str] = []
     if has_code_execution_as_root(vulnerability):
         result_impacts.append("Arbitrary code execution as root/administrator/system")
         return result_impacts
@@ -94,7 +90,7 @@ def test_root_level_impacts(vulnerability: Vulnerability) -> List[str]:
     return result_impacts
 
 
-def system_cia_loss(vulnerability: Vulnerability) -> List[str]:
+def system_cia_loss(vulnerability: Vulnerability) -> list[str]:
     """
     Determines if the vulnerability causes system CIA (confidentiality, integrity, availability) loss.
 
@@ -102,13 +98,13 @@ def system_cia_loss(vulnerability: Vulnerability) -> List[str]:
       - System confidentiality loss.
       - System integrity loss.
       - System availability loss.
-      
+
     It invokes add_other_cia_impacts to include any additional CIA-related impacts based on CVSS metrics.
 
     :param vulnerability: An instance of Vulnerability.
     :return: A list of impact strings representing detected system CIA losses.
     """
-    result_impacts: List[str] = []
+    result_impacts: list[str] = []
     if has_system_confidentiality_loss(vulnerability):
         result_impacts.append("System confidentiality loss")
     if has_system_integrity_loss(vulnerability):
@@ -119,7 +115,7 @@ def system_cia_loss(vulnerability: Vulnerability) -> List[str]:
     return result_impacts
 
 
-def test_user_level_impacts(vulnerability: Vulnerability) -> List[str]:
+def test_user_level_impacts(vulnerability: Vulnerability) -> list[str]:
     """
     Tests whether the vulnerability exhibits any user-level impacts.
 
@@ -127,13 +123,13 @@ def test_user_level_impacts(vulnerability: Vulnerability) -> List[str]:
       - Gain of user privileges on the system.
       - Arbitrary code execution as a user of the application.
       - Gain of privileges within an application context.
-      
+
     The check is sequential; once an impact is detected, it is returned immediately.
 
     :param vulnerability: An instance of Vulnerability.
     :return: A list of impact strings with one element if a user-level impact is detected; otherwise, an empty list.
     """
-    result_impacts: List[str] = []
+    result_impacts: list[str] = []
     if has_gain_user_privileges(vulnerability):
         result_impacts.append("Gain user privileges on system")
         return result_impacts
@@ -146,7 +142,7 @@ def test_user_level_impacts(vulnerability: Vulnerability) -> List[str]:
     return result_impacts
 
 
-def distinguish_system_application(vulnerability: Vulnerability) -> List[str]:
+def distinguish_system_application(vulnerability: Vulnerability) -> list[str]:
     """
     Distinguishes between system-level and application-level impacts when no clear CIA loss is detected.
 
@@ -158,7 +154,7 @@ def distinguish_system_application(vulnerability: Vulnerability) -> List[str]:
     :param vulnerability: An instance of Vulnerability.
     :return: A list of impact strings classifying the vulnerability as affecting system or application components.
     """
-    result_impacts: List[str] = []
+    result_impacts: list[str] = []
     if system_confidentiality_changed(vulnerability):
         result_impacts.append("System confidentiality loss")
     if system_integrity_changed(vulnerability):

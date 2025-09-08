@@ -1,9 +1,10 @@
 import asyncio
 import uuid
 
+from temporalio.client import Client
+
 from config import AppConfig
 from easyeasm_demo.workflow import CASMInput, EasyEasmWorkflow
-from temporalio.client import Client
 
 
 async def main() -> None:
@@ -17,7 +18,7 @@ async def main() -> None:
         EasyEasmWorkflow,
         id=scan_uuid,
         arg=input_.to_dict(),
-        task_queue=config.temporal.task_queue,
+        task_queue=config.temporal.casm_task_queue,
     )
 
 
