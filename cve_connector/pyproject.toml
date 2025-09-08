@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "cve_connector"
+version = "0.2.0"
+description = "cve connector"
+authors = ["CSIRT-MU, Adam Helc"]
+keywords = ["module", "cve", "connector"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+certifi = "2024.8.30"
+charset-normalizer = "3.3.2"
+idna = "3.10"
+neo4j = "5.25.0"
+pytz = "2024.2"
+requests = "2.32.3"
+setuptools = "75.1.0"
+structlog = "24.4.0"
+urllib3 = "2.2.3"
+packaging = "25.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

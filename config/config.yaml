@@ -13,8 +13,13 @@ redis:
   port: 6379
 
 isim:
-  url: "http://localhost:8000/"
+  url: "http://localhost:8000"
 
-nmap:
+nmap_basic:
   targets: ["localhost"]
   arguments: "-sV -A"
+
+nmap_topology:
+  targets: ["localhost"]
+  arguments: "-sn -n --traceroute"
+

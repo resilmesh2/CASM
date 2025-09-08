@@ -1,7 +1,7 @@
 import ipaddress
 from xml.etree.ElementTree import Element
 
-from temporal.nmap_scanner.dtos import Application, Device, Host, NmapResults, SoftwareVersion, Subnet
+from temporal.nmap.basic.dtos import Application, Device, Host, NmapResults, SoftwareVersion, Subnet
 
 
 def _get_ip_version(ip: str) -> int:
@@ -18,7 +18,7 @@ def extract_subnet(ip_str: str, prefix: int | None = None) -> str | None:
         prefix = prefix or _get_default_prefix(ip.version)
         network = ipaddress.ip_network(f"{ip}/{prefix}", strict=False)
         return str(network)
-    except Exception:
+    except ValueError:
         return None
 
 

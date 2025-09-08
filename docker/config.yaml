@@ -14,6 +14,11 @@ redis:
 
 isim:
   url: "http://isim:8000"
-nmap:
+
+nmap_basic:
   targets: ["metasploitable3"]
   arguments: "-sV -A"
+
+nmap_topology:
+  targets: ["metasploitable3"]
+  arguments: "-sn -n --traceroute"

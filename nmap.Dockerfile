@@ -1,4 +1,4 @@
-FROM python:3.12-bookworm as build
+FROM python:3.12-bookworm AS build
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ RUN curl -sSL https://install.python-poetry.org | python3 - && \
 COPY . ./
 RUN . /venv/bin/activate && ~/.local/bin/poetry install --with nmap
 
-FROM python:3.12-slim-bookworm as runtime
+FROM python:3.12-slim-bookworm AS runtime
 
 ENV VIRTUAL_ENV=/venv \
 	PATH=/venv/bin:/app/go/bin:/usr/local/go/bin:$PATH \
@@ -25,15 +25,10 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-RUN groupadd -g 1001 app && \
-    useradd -u 1001 -g app -s /bin/sh -d /app app
-
-COPY --chown=1001:1001 --from=build /app /app
-COPY --chown=1001:1001 --from=build /venv /venv
-RUN chown -R 1001:1001 /app
-
-USER 1001:1001
+COPY --from=build /app /app
+COPY --from=build /venv /venv
 
 EXPOSE 8000
 
-CMD ["/venv/bin/python", "-m", "temporal.nmap_scanner.worker"]
+ENTRYPOINT ["/venv/bin/python", "-m", "temporal.nmap.worker"]
+

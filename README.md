@@ -74,6 +74,18 @@ redis:
   host: localhost
   port: 6379
 
+isim:
+  url: "http://localhost:8000"
+
+nmap_basic:
+  targets: ["localhost"]
+  arguments: "-sV -A"
+
+nmap_topology:
+  targets: ["localhost"]
+  arguments: "-sn -n --traceroute"
+
+
 ```
 - temporal:
   - url: url of Temporal server GRPC service
@@ -86,11 +98,19 @@ redis:
 - redis:
   - host: url of Redis
   - port: port where Redis listens
+- isim:
+  - url: url of ISIM server
+- nmap_basic:
+  - targets: list of targets to scan
+  - arguments: arguments passed to nmap
+- nmap_topology:
+  - targets: list of targets to scan
+  - arguments: arguments passed to nmap
 
 When deploying CASM in an environment where endpoints for `temporal`, `neo4j`, and `redis` are not
 accessible using localhost, you should use names of containers instead of localhost. Names of containers
 can be found from list of containers using, e.g., `docker container ls -a`. If you encounter some problems
-with CASM, you can also try to enter configuration details in `easyeasm_demo/config.py`, which contains data classes
+with CASM, you can also try to enter configuration details in `config.py`, which contains data classes
 that store the configuration details.
 
 ## Triggering workflow
@@ -181,6 +201,37 @@ which is called in
 # CVE connector
 Instructions for running the CVE connector are listed in [README](cve_connector/README.md).
 The most important thing is to obtain NVD REST API key that should be used by the CVE connector.
+
+## Nmap and CVE connector DEMO
+For this demo, we have prepared a `metasploitable3` container in compose.yml, which you need to uncomment. 
+If you wish to use a different target, you can change nmap targets in [docker configuration file](#configuration).
+Then you can start the CASM application with the following command inside the project root directory: 
+
+```bash
+docker compose up -d
+```
+
+Then, build and start the ISIM application similarly and ensure the `external: true` is uncommented in the `casm_isim_test_network` network.
+When everything is up and running, you can run the nmap demo by running:
+
+```bash
+docker exec -it nmap-worker python -m temporal.nmap.topology.workflow && docker exec -it nmap-worker python -m temporal.nmap.basic.workflow
+```
+
+You can check the workflow progress in the Temporal server GUI http://localhost:8080/namespaces/default/workflows.
+When the nmap workflows finish successfully, you can check the populated Neo4j database on http://localhost:7474/browser/.
+
+Then either wait for the cve-connector scheduled workflow to trigger, or trigger it manually  by going here: 
+http://localhost:8080/namespaces/default/schedules, click on the cve-update-scheduled-workflow and in the right upper 
+corner select `Trigger`. 
+
+![img.png](assets/select_trigger.png)
+
+You can leave the first `Use Policy` option and click `Trigger`.
+
+
+Again, you can check the workflow progress in the Temporal server GUI http://localhost:8080/namespaces/default/workflows.
+When the cve-connector workflow finishes successfully, you can check the populated neo4j database on http://localhost:7474/browser/
 
 # Tests
 Tests are available in `test` folder. 
