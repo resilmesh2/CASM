@@ -11,25 +11,22 @@ from temporal.lib.util import get_unique_subdomains
 from temporalio import activity
 
 
-async def active_dnsx(domains: list[str], wordlist: str, redis_config: RedisConfig) -> str:
+async def active_dnsx(passive_scan_domains_uuid: str, wordlist: str, redis_config: RedisConfig) -> str:
     """
     Brute-force subdomains via dnsx wordlist approach.
     Store results in Redis.
     """
-    # Generate a unique scan_uuid
-    dnsx_uuid = str(uuid.uuid4())
+    redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
+    domains = redis_client.get(passive_scan_domains_uuid).splitlines()
 
-    # Run dnsx command
     command = ["dnsx", "-d", *domains, "-silent", "-w", wordlist, "-a", "-cname", "-aaaa"]
-    print("Running command: ", *command)
 
-    # Run the process without blocking the worker
-    std_out, std_err, status_code = util.run_command_with_output(command)
+    std_out, _std_err, _status_code = await util.run_command_with_output(command)
 
     dnsx_unique_result = get_unique_subdomains(std_out)
-    # Store results in Redis
-    redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
-    await redis_client.set(dnsx_uuid, dnsx_unique_result)
+
+    dnsx_uuid = f"dnsx-{str(uuid.uuid4())}"
+    redis_client.set(dnsx_uuid, dnsx_unique_result)
     redis_client.close()
 
     return dnsx_uuid
@@ -46,7 +43,6 @@ async def active_alterx(domains_uuid: str, redis_config: RedisConfig) -> str:
     input_domains = redis_client.get(domains_uuid)
 
     if not input_domains:
-        print(f"No input data found in Redis for domains_uuid: {domains_uuid}")
         redis_client.close()
         return ""
 
@@ -59,16 +55,17 @@ async def active_alterx(domains_uuid: str, redis_config: RedisConfig) -> str:
             await process.communicate()
 
         dnsx_command = ["dnsx", "-l", alterx_domains.name, "-silent", "-a", "-aaaa", "-cname"]
-        std_out, std_err, return_code = await util.run_command_with_output(dnsx_command)
+        std_out, _std_err, _return_code = await util.run_command_with_output(dnsx_command)
 
     # Read results and store back in Redis
 
-    alterx_uuid = str(uuid.uuid4())
-    await redis_client.set(alterx_uuid, std_out)
+    alterx_uuid = f"alterx-{str(uuid.uuid4())}"
+    redis_client.set(alterx_uuid, std_out)
 
     redis_client.close()
 
     return alterx_uuid
+
 
 @activity.defn
 async def active_httpx(alterx_domains_uuid: str, redis_config: RedisConfig) -> str:
@@ -76,28 +73,23 @@ async def active_httpx(alterx_domains_uuid: str, redis_config: RedisConfig) -> s
     Run httpx over a list of domains (active scanning).
     Store results in Redis.
     """
-    # Generate a unique scan_uuid
-    httpx_uuid = str(uuid.uuid4())
 
-    # Get input domains from Redis
     redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
     input_data = redis_client.get(alterx_domains_uuid)
 
     if not input_data:
-        print(f"No domains found in Redis for httpx: {alterx_domains_uuid}")
         redis_client.close()
         return ""
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt') as temp_file:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as temp_file:
         temp_file.write(input_data.decode("utf-8"))
         temp_input = temp_file.name
 
     # Run httpx command and capture JSON output directly
         command = ["/home/harwin/go/bin/httpx", "-l", temp_input, "-silent", "-td", "-j"]
-        stdout, stderr, return_code = await util.run_command_with_output(command)
+        stdout, _stderr, return_code = await util.run_command_with_output(command)
 
     if return_code != 0:
-        print(f"httpx failed with return code {return_code}: {stderr}")
         return ""
 
     # Define fields to keep
@@ -128,7 +120,8 @@ async def active_httpx(alterx_domains_uuid: str, redis_config: RedisConfig) -> s
 
     # Store results in Redis
     redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
-    await redis_client.set(httpx_uuid, filtered_json)
+    httpx_uuid = f"httpx-{str(uuid.uuid4())}"
+    redis_client.set(httpx_uuid, filtered_json)
 
     return httpx_uuid
 
@@ -143,8 +136,7 @@ def _filter_httpx_json_string(json_input: str, fields_to_keep: list[str]) -> str
                 # Extract only the fields we want to keep
                 filtered_obj = {field: json_obj.get(field) for field in fields_to_keep if field in json_obj}
                 results.append(filtered_obj)
-            except json.JSONDecodeError as e:
-                print(f"Error parsing JSON line: {e}")
+            except json.JSONDecodeError:
                 continue
 
     return json.dumps(results, indent=2)

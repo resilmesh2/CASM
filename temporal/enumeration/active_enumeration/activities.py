@@ -11,19 +11,16 @@ class ActiveEnumerationActivities:
         self.redis_config = redis_config
 
     @activity.defn
-    async def active_dnsx(self, domains: list[str], wordlist: str) -> str:
-        dnsx_result_uuid = await activities_impl.active_dnsx(domains, wordlist, self.redis_config)
-        return dnsx_result_uuid
+    async def active_dnsx(self, passive_scan_domains_uuid: str, wordlist: str) -> str:
+        return await activities_impl.active_dnsx(passive_scan_domains_uuid, wordlist, self.redis_config)
 
     @activity.defn
     async def active_alterx(self, dnsx_output_uuid: str) -> str:
-        alterx_result_uuid = await activities_impl.active_alterx(dnsx_output_uuid, self.redis_config)
-        return alterx_result_uuid
+        return await activities_impl.active_alterx(dnsx_output_uuid, self.redis_config)
 
     @activity.defn
     async def active_httpx(self, alterx_domains_uuid: str) -> str:
-        httpx_result_uuid = await activities_impl.active_httpx(alterx_domains_uuid, self.redis_config)
-        return httpx_result_uuid
+        return await activities_impl.active_httpx(alterx_domains_uuid, self.redis_config)
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
         return [self.active_dnsx, self.active_httpx, self.active_alterx]

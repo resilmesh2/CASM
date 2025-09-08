@@ -21,15 +21,13 @@ async def run_subfinder(domains: list[str], redis_config: RedisConfig) -> str:
     result = stdout.decode("utf-8")
 
     if stderr:
-        error = stderr.decode("utf-8")
-        print(f"Error during subfinder execution: {error}")
+        stderr.decode("utf-8")
 
     if not result:
-        print("No results from subfinder")
         return ""
 
     redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
-    await redis_client.set(subfinder_scan_uuid, result)
+    redis_client.set(subfinder_scan_uuid, result)
     redis_client.close()
 
     return subfinder_scan_uuid
@@ -40,7 +38,6 @@ async def run_amass(domains: list[str], redis_config: RedisConfig) -> str:
     amass_scan_uuid: str = uuid.uuid4().hex
 
     command = ["amass", "enum", "-d", *domains, "-passive"]
-    print("Running command: ", *command)
 
     process = await asyncio.create_subprocess_exec(
         *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
@@ -51,12 +48,11 @@ async def run_amass(domains: list[str], redis_config: RedisConfig) -> str:
     result = stdout.decode("utf-8")
 
     if stderr:
-        error = stderr.decode("utf-8")
-        print(f"Error during amass execution: {error}")
+        stderr.decode("utf-8")
 
     # Store results in Redis
     redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
-    await redis_client.set(amass_scan_uuid, result)
+    redis_client.set(amass_scan_uuid, result)
     redis_client.close()
 
     return amass_scan_uuid
