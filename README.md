@@ -1,61 +1,27 @@
 # Cyber Attack Surface Management (CASM)
 
-This demo contains full self-contained demonstrator of domain scanning tool. The demonstrator consists of the following components:
+This repository contains the CASM component that contains several workflows - external attack surface scanning using
+EasyEASM, internal attack surface scanning using Nmap, topology scanning using Nmap, and CVE connector, 
+in its current version.
+
+The environment consists of the following components:
 * Neo4J database for results
 * Temporal server as orchestrator
-* Custom Temporal worker carrying out the scan
-* Redis as an in memory database for worker to pass the scan results between tasks
+* Custom Temporal worker carrying out the workflows
+* Redis as an in memory database for EasyEASM worker to pass the scan results between tasks
 * PostgreSQL database utilized by scanning tool
+* Workers for individual workflows
+* Other containers providing functionality to workers
 
 The demonstrator can be deployed with Docker. There is a `compose.yml` file spawning all components.
 
-# How to run
-
-## Prerequisites
-
-CASM needs requires Neo4j database to be set up and running. It is recommended to run ISIM first (e.g., in Docker), then run CASM.
-
-## Running the app
-
-After running:
-```
-docker compose up -d
-```
-you can verify that the following is available:
-
-### Neo4J database
-Neo4J should be available at http://localhost:7474/browser/. The default credentials are `neo4j:supertestovaciheslo`. If you want to change the credentials you can do so in the `compose` file by chaging the `NEO4J_AUTH` variable. Please, do no forget to pass the new credentials to the Temporal worker configuration as well (see [Configuration](#configuration))
-
-### Temporalio server
-Temporalio server should be available at http://localhost:8080/. You can watch the progress of your workflows there, or look for errors
-if any problems occure. You can also create a scheduled scanning workflow there.
-
-### Worker
-Worker is a custom image build by this [project](Dockerfile). Worker has installed:
-- Python 3.12: workflow is implemented in Python 3.12
-- Go 1.23.1: necessary for scanning tools
-- [EasyEASM](https://github.com/g0ldencybersec/EasyEASM) - the main scanning tool triggered on worker by workflow with the following prerequisited installed in image as well:
-  - alterx@latest
-  - amass@master: fixed at V3 version (available also as V4)
-  - dnsx@latest
-  - httpx@v1.6.0: important! Different versions of httpx can lead to wildly different results and can break this demonstrator
-  - oam_subs@master
-  - subfinder@latest
-
-You can rebuild this worker by running:
-```
-  docker compose up -d --build
-```
-
 # Configuration
-Configuration files are located in the [config](config) and in [docker](docker) folders. Config in [config](config) serves for local deployment of the worker
-and for running the client to trigger on-demand workflow. 
+Configuration files are located in the [config](config) and in [docker](docker) folders. Config in [config](config) serves for local deployment of workers
+and for running clients to trigger on-demand workflows. 
 
 Configs in [docker](docker) folder are used by dockerized worker:
 - config.yaml: config for worker, same format as in the local deployment
 - amass_config.yaml: config file for worker, configures amass to know where is the postgresql located
-
-
 
 The configuration is rather simple, it contains the following:
 
@@ -113,7 +79,48 @@ can be found from list of containers using, e.g., `docker container ls -a`. If y
 with CASM, you can also try to enter configuration details in `config.py`, which contains data classes
 that store the configuration details.
 
-## Triggering workflow
+# How to Run
+
+## Prerequisites
+
+CASM requires Neo4j database to be set up and running. It is recommended to run ISIM first (e.g., in Docker), then run CASM.
+
+## Running the app
+
+After running:
+```
+docker compose up -d
+```
+you can verify that the following is available:
+
+### Neo4J database
+Neo4J should be available at http://localhost:7474/browser/. The default credentials are `neo4j:supertestovaciheslo`. If you want to change the credentials you can do so in the `compose` file by chaging the `NEO4J_AUTH` variable. Please, do no forget to pass the new credentials to the Temporal worker configuration as well (see [Configuration](#configuration))
+
+### Temporalio server
+Temporalio server should be available at http://localhost:8080/. You can watch the progress of your workflows there, or look for errors
+if any problems occure. You can also create a scheduled scanning workflow there.
+
+### Worker
+Worker is a custom image build by this [project](Dockerfile) for EasyEASM. Worker has installed:
+- Python 3.12: workflow is implemented in Python 3.12
+- Go 1.23.1: necessary for scanning tools
+- [EasyEASM](https://github.com/g0ldencybersec/EasyEASM) - the main scanning tool triggered on worker by workflow with the following prerequisited installed in image as well:
+  - alterx@latest
+  - amass@master: fixed at V3 version (available also as V4)
+  - dnsx@latest
+  - httpx@v1.6.0: important! Different versions of httpx can lead to wildly different results and can break this demonstrator
+  - oam_subs@master
+  - subfinder@latest
+
+You can rebuild this worker by running:
+```
+  docker compose up -d --build
+```
+
+### Other workers
+There should also be workers for Nmap and CVE connector available in your list of containers.
+
+## Triggering workflow (EasyEASM)
 
 > [!WARNING]
 > Be aware that the point of this project is to run scans against live domain names. This means that you should select your
@@ -176,7 +183,7 @@ This is an example of a NEO4J query fetching all IP addresses and their resoluti
 MATCH (ip:IP)-[:RESOLVES_TO]-(d:DomainName) RETURN ip,d
 ```
 
-# Setting up single workflow
+### Setting up single workflow
 You can create single workflow using Temporal GUI. Click on `Start Workflow` inside of the panel for workflows.
 Use arbitrary workflow ID, `easyeasm_demo` as the Task Queue,
 and `EasyEasmWorkflow` as the Workflow Type. You can use the following input:
@@ -192,7 +199,7 @@ The correct settings are visualized in the following figure.
 
 ![img.png](assets/workflow.png)
 
-# Setting up scheduled workflow
+### Setting up scheduled workflow
 You can create periodic scheduled scans via Temporal GUI. When you create such a workflow, it calls the same workflow, 
 which is called in  
 
