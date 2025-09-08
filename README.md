@@ -74,6 +74,18 @@ redis:
   host: localhost
   port: 6379
 
+isim:
+  url: "http://localhost:8000"
+
+nmap_basic:
+  targets: ["localhost"]
+  arguments: "-sV -A"
+
+nmap_topology:
+  targets: ["localhost"]
+  arguments: "-sn -n --traceroute"
+
+
 ```
 - temporal:
   - url: url of Temporal server GRPC service
@@ -86,6 +98,14 @@ redis:
 - redis:
   - host: url of Redis
   - port: port where Redis listens
+- isim:
+  - url: url of ISIM server
+- nmap_basic:
+  - targets: list of targets to scan
+  - arguments: arguments passed to nmap
+- nmap_topology:
+  - targets: list of targets to scan
+  - arguments: arguments passed to nmap
 
 When deploying CASM in an environment where endpoints for `temporal`, `neo4j`, and `redis` are not
 accessible using localhost, you should use names of containers instead of localhost. Names of containers
@@ -183,7 +203,8 @@ Instructions for running the CVE connector are listed in [README](cve_connector/
 The most important thing is to obtain NVD REST API key that should be used by the CVE connector.
 
 ## Nmap and CVE connector DEMO
-For this demo, we have prepared a `metasploitable3` container in compose.yml, which you need to uncomment.
+For this demo, we have prepared a `metasploitable3` container in compose.yml, which you need to uncomment. 
+If you wish to use a different target, you can change nmap targets in [docker configuration file](#configuration).
 Then you can start the CASM application with the following command inside the project root directory: 
 
 ```bash
