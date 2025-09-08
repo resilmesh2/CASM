@@ -110,7 +110,7 @@ nmap_topology:
 When deploying CASM in an environment where endpoints for `temporal`, `neo4j`, and `redis` are not
 accessible using localhost, you should use names of containers instead of localhost. Names of containers
 can be found from list of containers using, e.g., `docker container ls -a`. If you encounter some problems
-with CASM, you can also try to enter configuration details in `easyeasm_demo/config.py`, which contains data classes
+with CASM, you can also try to enter configuration details in `config.py`, which contains data classes
 that store the configuration details.
 
 ## Triggering workflow
