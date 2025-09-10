@@ -21,9 +21,9 @@ class ActiveEnumeratonWorkflow:
 
         # Permutation scan using the results from bruteforce and passive
         alterx_result_uuid = await workflow.execute_activity(
-            ActiveEnumerationActivities.active_alterx,
+            ActiveEnumerationActivities.active_alterx_with_dnsx,
             args=[dnsx_result_uuid],
-            start_to_close_timeout=timedelta(minutes=10),
+            start_to_close_timeout=timedelta(minutes=30),
         )
 
         return await workflow.execute_activity(
@@ -34,5 +34,5 @@ class ActiveEnumeratonWorkflow:
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
         config = AppConfig.get()
         active_enum_activities = ActiveEnumerationActivities(config.redis)
-        utility_activities = UtilityActivities()
+        utility_activities = UtilityActivities(config.redis)
         return [*active_enum_activities.get_activities(), utility_activities.get_unique_subdomains]
