@@ -23,9 +23,6 @@ async def run_subfinder(domains: list[str], redis_config: RedisConfig) -> str:
     if stderr:
         stderr.decode("utf-8")
 
-    if not result:
-        return ""
-
     redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
     redis_client.set(subfinder_scan_uuid, result)
     redis_client.close()
