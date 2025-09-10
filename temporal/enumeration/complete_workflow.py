@@ -43,7 +43,7 @@ class CompleteScanWorkflow:
         config = AppConfig.get()
         passive_enum_activities = PassiveEnumerationActivities(config.redis)
         active_enum_activities = ActiveEnumerationActivities(config.redis)
-        utility_activities = UtilityActivities()
+        utility_activities = UtilityActivities(config.redis)
         return [*passive_enum_activities.get_activities(), *active_enum_activities.get_activities(), utility_activities.get_unique_subdomains]
 
 
