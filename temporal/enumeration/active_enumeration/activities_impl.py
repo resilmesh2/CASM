@@ -33,7 +33,7 @@ class EasyEASMParsedResult:
         return asdict(self)
 
 
-async def active_dnsx(passive_scan_domains_uuid: str, wordlist: str, redis_config: RedisConfig) -> str:
+async def run_dnsx(passive_scan_domains_uuid: str, wordlist: str, redis_config: RedisConfig) -> str:
     """ Back
     Brute-force subdomains via dnsx wordlist approach.
     Store results in Redis.
@@ -58,7 +58,7 @@ async def active_dnsx(passive_scan_domains_uuid: str, wordlist: str, redis_confi
     return dnsx_uuid
 
 
-async def active_alterx_with_dnsx(domains_uuid: str, redis_config: RedisConfig) -> str:
+async def run_alterx_with_dnsx(domains_uuid: str, redis_config: RedisConfig) -> str:
     """
     Permutation scan + DNS resolution.
     Store results in Redis.
@@ -90,8 +90,7 @@ async def active_alterx_with_dnsx(domains_uuid: str, redis_config: RedisConfig) 
     return alterx_uuid
 
 
-@activity.defn
-async def active_httpx(alterx_domains_uuid: str, redis_config: RedisConfig) -> str:
+async def run_httpx(alterx_domains_uuid: str, redis_config: RedisConfig) -> str:
     """
     Run httpx over a list of domains (active scanning).
     Store raw JSON results in Redis.
@@ -119,7 +118,6 @@ async def active_httpx(alterx_domains_uuid: str, redis_config: RedisConfig) -> s
     return httpx_uuid
 
 
-@activity.defn
 async def parse_httpx_output(httpx_uuid: str, redis_config: RedisConfig) -> list[EasyEASMParsedResult]:
     """
     Parse httpx JSON output into Host and SoftwareVersion dataclasses.
@@ -151,8 +149,8 @@ async def parse_httpx_output(httpx_uuid: str, redis_config: RedisConfig) -> list
     return easm_output
 
 
-
 WAPPALYZERGO_FINGERPRINTS_URL = "https://raw.githubusercontent.com/projectdiscovery/wappalyzergo/refs/heads/main/fingerprints_data.json"
+
 
 def determine_software_versions(technologies: list[str]) -> list[dict[str, str]]:
     """Parse technology list into CPE 2.3 software versions."""
@@ -175,12 +173,12 @@ def determine_software_versions(technologies: list[str]) -> list[dict[str, str]]
                 cpe_version = version if version else "*"
                 cpe = f"cpe:2.3:a:{vendor}:{product}:{cpe_version}:*:*:*:*:*:*:*"
                 entry = {"name": tech, "version": cpe}
-            else:
-                entry = {"name": tech}
-            if entry not in results:
-                results.append(entry)
+
+                if entry not in results:
+                    results.append(entry)
 
     return results
+
 
 def _filter_httpx_json_string(json_input: str, fields_to_keep: list[str]) -> str:
     results = []

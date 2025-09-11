@@ -14,20 +14,20 @@ class ActiveEnumeratonWorkflow:
     async def run(self, passive_scan_domains_uuid: str, wordlist: str) -> str:
         # Active bruteforce
         dnsx_result_uuid = await workflow.execute_activity(
-            ActiveEnumerationActivities.active_dnsx,
+            ActiveEnumerationActivities.run_dnsx,
             args=[passive_scan_domains_uuid, wordlist],
             start_to_close_timeout=timedelta(minutes=5),
         )
 
         # Permutation scan using the results from bruteforce and passive
         alterx_result_uuid = await workflow.execute_activity(
-            ActiveEnumerationActivities.active_alterx_with_dnsx,
+            ActiveEnumerationActivities.run_alterx_with_dnsx,
             args=[dnsx_result_uuid],
             start_to_close_timeout=timedelta(minutes=30),
         )
 
         return await workflow.execute_activity(
-            ActiveEnumerationActivities.active_httpx, args=[alterx_result_uuid], start_to_close_timeout=timedelta(minutes=5)
+            ActiveEnumerationActivities.run_httpx, args=[alterx_result_uuid], start_to_close_timeout=timedelta(minutes=5)
         )
 
     @classmethod
