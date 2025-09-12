@@ -4,6 +4,7 @@ import uuid
 from redis import Redis
 
 from config import RedisConfig
+from temporal.lib.exceptions import NoDomainsFoundError
 
 
 async def run_subfinder(domains: list[str], redis_config: RedisConfig) -> str:
@@ -53,3 +54,22 @@ async def run_amass(domains: list[str], redis_config: RedisConfig) -> str:
     redis_client.close()
 
     return amass_scan_uuid
+
+
+async def get_unique_subdomains(self, *data_redis_uuids: str) -> str:
+    unique_subdomains = set()
+    redis_client = Redis(host=self.redis_config.host, port=self.redis_config.port, db=0)
+    for uuid_item in data_redis_uuids:
+        data = redis_client.get(uuid_item)
+        if data:
+            unique_subdomains.update(data.decode("utf-8").splitlines())
+
+    str_unique_subdomains = "\n".join(unique_subdomains)
+
+    if not str_unique_subdomains:
+        raise NoDomainsFoundError("subfinder and amass did not find any domains")
+
+    unique_subdomains_uuid = f"unique_subdomains-{str(uuid.uuid4())}"
+    redis_client.set(unique_subdomains_uuid, str_unique_subdomains)
+    redis_client.close()
+    return unique_subdomains_uuid
