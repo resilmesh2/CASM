@@ -3,6 +3,8 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from typing import Any
 
+from temporalio.common import RetryPolicy
+
 from config import AppConfig
 from temporal.enumeration.passive_enumeration.activities import PassiveEnumerationActivities
 from temporal.enumeration.ulitity_activities import UtilityActivities
@@ -39,6 +41,13 @@ class PassiveEnumerationWorkflow:
         return await workflow.execute_activity(
             UtilityActivities.get_unique_subdomains,
             args=[subfinder_results, amass_results],
+            retry_policy=RetryPolicy(
+                backoff_coefficient=2.0,
+                maximum_attempts=2,
+                initial_interval=timedelta(seconds=1),
+                maximum_interval=timedelta(seconds=2),
+                non_retryable_error_types=["ValueError", "NoDomainsFoundError"],
+            ),
             start_to_close_timeout=timedelta(seconds=60),
         )
 
