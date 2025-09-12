@@ -6,14 +6,16 @@ import urllib.request
 import uuid
 from dataclasses import asdict, dataclass
 from ipaddress import IPv4Interface, IPv6Interface
+from sys import stdlib_module_names
 from typing import Any
 
 from redis import Redis
+from temporalio.activity import logger
 
 from config import RedisConfig
 from temporal.lib import util
 from temporal.lib.util import get_unique_subdomains
-from temporalio import activity
+from temporal.lib import exceptions
 
 
 @dataclass
@@ -45,10 +47,11 @@ async def run_dnsx(passive_scan_domains_uuid: str, wordlist: str, redis_config: 
         domain_temp_file.write(domains)
 
         command = ["dnsx", "-d", domain_temp_file.name, "-silent", "-w", wordlist, "-a", "-cname", "-aaaa"]
-        std_out, _std_err, _status_code = await util.run_command_with_output(command)
+        std_out, std_err, return_code = await util.run_command_with_output(command)
 
-    if not std_out:
-        raise RuntimeError(f"Failed to get results from {command}")
+    if return_code != 0:
+        logger.error(f"dnsx run failed with status code {return_code} and error {std_err}", command=command)
+        raise exceptions.EnumerationToolError("dnsx run failed",)
 
     dnsx_unique_result = get_unique_subdomains(std_out)
     dnsx_uuid = f"dnsx-{str(uuid.uuid4())}"
@@ -77,11 +80,11 @@ async def run_alterx_with_dnsx(domains_uuid: str, redis_config: RedisConfig) -> 
             await process.communicate()
 
         dnsx_command = ["dnsx", "-l", alterx_domains.name, "-silent", "-a", "-aaaa", "-cname"]
-        std_out, _std_err, _return_code = await util.run_command_with_output(dnsx_command)
+        std_out, std_err, return_code = await util.run_command_with_output(dnsx_command)
 
-    # Read results and store back in Redis
-    if not std_out:
-        raise RuntimeError(f"Failed to get results from {dnsx_command}")
+    if return_code != 0:
+        logger.error(f"dnsx run failed with status code {return_code} and error {std_err}", command=dnsx_command)
+        raise exceptions.EnumerationToolError("dnsx run failed",)
 
     alterx_uuid = f"dnsx-with-alterx-{str(uuid.uuid4())}"
     redis_client.set(alterx_uuid, std_out)
@@ -104,15 +107,17 @@ async def run_httpx(alterx_domains_uuid: str, redis_config: RedisConfig) -> str:
 
         # Run httpx command and capture JSON output directly
         command = ["/home/harwin/go/bin/httpx", "-l", temp_input, "-silent", "-td", "-j"]
-        stdout, _stderr, return_code = await util.run_command_with_output(command)
+        stdlib_module_namesout, std_err, return_code = await util.run_command_with_output(command)
 
     if return_code != 0:
-        return ""
+        logger.error(f"httpx run failed with status code {return_code} and error {std_err}", command=command)
+        raise exceptions.EnumerationToolError("dnsx run failed",)
+
 
     # Store raw JSON results in Redis
     redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
     httpx_uuid = f"httpx-{str(uuid.uuid4())}"
-    redis_client.set(httpx_uuid, stdout)  # Store raw JSON output
+    redis_client.set(httpx_uuid, stdlib_module_namesout)  # Store raw JSON output
     redis_client.close()
 
     return httpx_uuid
