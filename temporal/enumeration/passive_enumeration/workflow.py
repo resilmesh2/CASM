@@ -7,7 +7,6 @@ from temporalio.common import RetryPolicy
 
 from config import AppConfig
 from temporal.enumeration.passive_enumeration.activities import PassiveEnumerationActivities
-from temporal.enumeration.ulitity_activities import UtilityActivities
 from temporalio import workflow
 
 
@@ -39,7 +38,7 @@ class PassiveEnumerationWorkflow:
 
         # Pass results into get_unique_hosts
         return await workflow.execute_activity(
-            UtilityActivities.get_unique_subdomains,
+            PassiveEnumerationActivities.get_unique_subdomains,
             args=[subfinder_results, amass_results],
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
@@ -54,6 +53,5 @@ class PassiveEnumerationWorkflow:
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
         config = AppConfig.get()
-        passive_enum_activities = PassiveEnumerationActivities(config.redis)
-        utility_activities = UtilityActivities(config.redis)
-        return [*passive_enum_activities.get_activities(), utility_activities.get_unique_subdomains]
+        activities = PassiveEnumerationActivities(config.redis)
+        return [*activities.get_activities()]
