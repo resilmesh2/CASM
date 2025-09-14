@@ -19,8 +19,8 @@ class PassiveEnumerationActivities:
         return await activities_impl.run_amass(domains, self.redis_config)
 
     @activity.defn
-    async def get_unique_subdomains(self, domains: list[str]) -> str:
-        return await activities_impl.get_unique_subdomains(domains, self.redis_config)
+    async def get_unique_subdomains(self, domains_uuids: list[str]) -> str:
+        return await activities_impl.get_unique_subdomains(self.redis_config, domains_uuids)
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
         return [self.run_amass, self.run_subfinder, self.get_unique_subdomains]

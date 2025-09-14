@@ -29,7 +29,7 @@ class ActiveEnumerationActivities:
     @activity.defn
     async def parse_result_and_send_to_api(self, active_httpx_result_uuid: str):
         parsed_httpx = await activities_impl.parse_httpx_output(active_httpx_result_uuid, self.redis_config)
-        payload = json.dumps(parsed_httpx)
+        payload = [item.to_dict() for item in parsed_httpx]
         headers = {"Content-Type": "application/json"}
 
         async with httpx.AsyncClient() as conn:

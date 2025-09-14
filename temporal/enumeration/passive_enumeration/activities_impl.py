@@ -56,9 +56,9 @@ async def run_amass(domains: list[str], redis_config: RedisConfig) -> str:
     return amass_scan_uuid
 
 
-async def get_unique_subdomains(self, *data_redis_uuids: str) -> str:
+async def get_unique_subdomains(redis_config: RedisConfig, data_redis_uuids: list[str]) -> str:
     unique_subdomains = set()
-    redis_client = Redis(host=self.redis_config.host, port=self.redis_config.port, db=0)
+    redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
     for uuid_item in data_redis_uuids:
         data = redis_client.get(uuid_item)
         if data:
