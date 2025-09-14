@@ -12,7 +12,6 @@ from temporal.enumeration.active_enumeration.activities import ActiveEnumeration
 from temporal.enumeration.active_enumeration.workflow import ActiveEnumeratonWorkflow
 from temporal.enumeration.passive_enumeration.activities import PassiveEnumerationActivities
 from temporal.enumeration.passive_enumeration.workflow import PassiveEnumerationWorkflow
-from temporal.enumeration.ulitity_activities import UtilityActivities
 from temporalio import workflow
 
 
@@ -42,9 +41,8 @@ class CompleteScanWorkflow:
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
         config = AppConfig.get()
         passive_enum_activities = PassiveEnumerationActivities(config.redis)
-        active_enum_activities = ActiveEnumerationActivities(config.redis)
-        utility_activities = UtilityActivities(config.redis)
-        return [*passive_enum_activities.get_activities(), *active_enum_activities.get_activities(), utility_activities.get_unique_subdomains]
+        active_enum_activities = ActiveEnumerationActivities(config.redis, config.isim)
+        return [*passive_enum_activities.get_activities(), *active_enum_activities.get_activities()]
 
 
 async def main() -> None:

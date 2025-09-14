@@ -33,13 +33,13 @@ class PassiveEnumerationWorkflow:
             )
 
         # Gather outputs from both tasks
-        subfinder_results = await subfinder_task
-        amass_results = await amass_task
+        subfinder_results_uuid = await subfinder_task
+        amass_results_uuid = await amass_task
 
         # Pass results into get_unique_hosts
         return await workflow.execute_activity(
             PassiveEnumerationActivities.get_unique_subdomains,
-            args=[subfinder_results, amass_results],
+            args=[[subfinder_results_uuid, amass_results_uuid]],
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=2,
