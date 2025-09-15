@@ -16,7 +16,7 @@ from temporalio import workflow
 
 
 @workflow.defn
-class CompleteScanWorkflow:
+class CompleteEasmWorkflow:
     @workflow.run
     async def run(self) -> str:
         config = AppConfig.get()
@@ -52,7 +52,7 @@ async def main() -> None:
     workflow_id = uuid.uuid4().hex
     # noinspection PyTypeChecker
     workflow_handle = await client.start_workflow(
-        CompleteScanWorkflow.run,
+        CompleteEasmWorkflow.run,
         args=(),
         id=workflow_id,
         task_queue=config.temporal.easyeasm_task_queue,
