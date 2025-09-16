@@ -9,7 +9,6 @@ from temporalio.client import Client
 from temporalio.common import WorkflowIDReusePolicy
 
 from config import AppConfig
-from temporal.lib.util import start_unique_workflow
 from temporal.nmap.basic.activities import NmapBasicActivities
 from temporalio import workflow
 
@@ -59,6 +58,7 @@ async def main() -> None:
     logger.info(
         "Workflow start requested.", workflow_id=workflow_description.id, run_id=workflow_description.run_id
     )
+
 
 if __name__ == "__main__":
     asyncio.run(main())
