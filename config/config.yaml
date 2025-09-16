@@ -1,5 +1,5 @@
 temporal:
-  url: localhost:7233
+  url: "localhost:7233"
   namespace: default
   task_queue: easyeasm_demo
 
@@ -16,10 +16,18 @@ isim:
   url: "http://localhost:8000"
 
 nmap_basic:
-  targets: ["localhost"]
+  targets:
+    - localhost
   arguments: "-sV -A"
 
 nmap_topology:
-  targets: ["localhost"]
+  targets:
+    - localhost
   arguments: "-sn -n --traceroute"
 
+easm_scanner:
+  domains:
+    - vulnweb.com
+  wordlist: "/home/marzival/repos/CASM/temporal/enumeration/subdomainwordlist.txt"
+  threads: 100
+  mode: fast  # fast or complete

@@ -16,9 +16,16 @@ isim:
   url: "http://isim:8000"
 
 nmap_basic:
-  targets: ["metasploitable3"]
+  targets:
+    - metasploitable3
   arguments: "-sV -A"
 
 nmap_topology:
-  targets: ["metasploitable3"]
+  targets:
+    - metasploitable3
   arguments: "-sn -n --traceroute"
+
+scanner:
+  domains:
+    - vulnweb.com
+  wordlist: "wordlist.txt"
