@@ -4,7 +4,3 @@ class EnumerationToolError(Exception):
 
 class NoDomainsFoundError(Exception):
     pass
-
-
-class InvalidInputError(Exception):
-    pass

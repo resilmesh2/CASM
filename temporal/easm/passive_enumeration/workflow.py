@@ -6,7 +6,7 @@ from typing import Any
 from temporalio.common import RetryPolicy
 
 from config import AppConfig
-from temporal.enumeration.passive_enumeration.activities import PassiveEnumerationActivities
+from temporal.easm.passive_enumeration.activities import PassiveEnumerationActivities
 from temporalio import workflow
 
 
@@ -21,14 +21,20 @@ class PassiveEnumerationWorkflow:
                 workflow.execute_activity(
                     PassiveEnumerationActivities.run_subfinder,
                     args=[domains],
-                    start_to_close_timeout=timedelta(seconds=120),
+                    start_to_close_timeout=timedelta(minutes=10),
+                    retry_policy=RetryPolicy(
+                        maximum_attempts=1,
+                    )
                 )
             )
             amass_task = tg.create_task(
                 workflow.execute_activity(
                     PassiveEnumerationActivities.run_amass,
                     args=[domains],
-                    start_to_close_timeout=timedelta(seconds=240),
+                    start_to_close_timeout=timedelta(minutes=10),
+                    retry_policy=RetryPolicy(
+                        maximum_attempts=1,
+                    )
                 )
             )
 

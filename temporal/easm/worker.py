@@ -5,9 +5,9 @@ from temporalio.worker import Worker
 from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxRestrictions
 
 from config import AppConfig
-from temporal.enumeration.active_enumeration.workflow import ActiveEnumeratonWorkflow
-from temporal.enumeration.complete_workflow import CompleteEasmWorkflow
-from temporal.enumeration.passive_enumeration.workflow import PassiveEnumerationWorkflow
+from temporal.easm.active_enumeration.workflow import ActiveEnumeratonWorkflow
+from temporal.easm.complete_workflow import CompleteEasmWorkflow
+from temporal.easm.passive_enumeration.workflow import PassiveEnumerationWorkflow
 
 
 async def main() -> None:

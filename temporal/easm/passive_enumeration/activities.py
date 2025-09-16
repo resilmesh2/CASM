@@ -2,7 +2,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
 from config import RedisConfig
-from temporal.enumeration.passive_enumeration import activities_impl
+from temporal.easm.passive_enumeration import activities_impl
 from temporalio import activity
 
 
