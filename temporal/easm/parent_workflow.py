@@ -32,14 +32,14 @@ class ParentEasmWorkflow:
         if config.easm_scanner.complete:
             domains_output_uuid: str = await workflow.execute_child_workflow(
                 ActiveEnumeratonWorkflow.run,
-                args=[domains_output_uuid, config.easm_scanner.wordlist, str(config.easm_scanner.threads)],
+                args=[domains_output_uuid, config.easm_scanner.wordlist_path, str(config.easm_scanner.threads)],
                 id=f"active-{workflow.info().workflow_id}",
                 task_queue=config.temporal.easyeasm_task_queue,
             )
 
         httpx_uuid = await workflow.execute_activity(
             EasmActivities.run_httpx,
-            args=[domains_output_uuid],
+            args=[domains_output_uuid, config.easm_scanner.httpx_path],
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=2,

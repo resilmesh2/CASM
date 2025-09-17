@@ -25,7 +25,10 @@ nmap_topology:
     - metasploitable3
   arguments: "-sn -n --traceroute"
 
-scanner:
+easm_scanner:
   domains:
     - vulnweb.com
-  wordlist: "wordlist.txt"
+  wordlist_path: "/app/temporal/easm/subdomainwordlist.txt"
+  threads: 100
+  mode: fast  # fast or complete
+  httpx_path: "/app/go/bin/httpx"

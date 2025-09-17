@@ -28,6 +28,7 @@ nmap_topology:
 easm_scanner:
   domains:
     - vulnweb.com
-  wordlist: "/home/marzival/repos/CASM/temporal/enumeration/subdomainwordlist.txt"
+  wordlist_path: "path/to/wordlist.txt"
   threads: 100
-  mode: fast  # fast or complete
+  mode: complete  # fast or complete
+  httpx_path: "path/to/httpx"

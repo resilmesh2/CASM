@@ -29,15 +29,15 @@ class EasyEASMParsedResult:
         return asdict(self)
 
 
-async def run_httpx(alterx_domains_uuid: str, redis_config: RedisConfig) -> str:
+async def run_httpx(domains_to_probe_uuid: str, httpx_path: str, redis_config: RedisConfig) -> str:
     redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
-    input_data = redis_client.get(alterx_domains_uuid).decode("utf-8")
+    input_data = redis_client.get(domains_to_probe_uuid).decode("utf-8")
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as temp_file:
         temp_file.write(input_data)
         temp_input = temp_file.name
 
-        command = ["/home/marzival/go/bin/httpx", "-l", temp_input, "-silent", "-td", "-j"]
+        command = [httpx_path, "-l", temp_input, "-silent", "-td", "-j"]
         std_out, std_err, return_code = await util.run_command_with_output(command)
 
     if return_code != 0:

@@ -14,8 +14,8 @@ class EasmActivities:
         self.redis_config = redis_config
 
     @activity.defn
-    async def run_httpx(self, alterx_domains_uuid: str) -> str:
-        return await activities_impl.run_httpx(alterx_domains_uuid, self.redis_config)
+    async def run_httpx(self, domains_to_probe_uuid: str, httpx_path: str) -> str:
+        return await activities_impl.run_httpx(domains_to_probe_uuid, httpx_path, self.redis_config)
 
     @activity.defn
     async def parse_result_and_send_to_api(self, active_httpx_result_uuid: str):
