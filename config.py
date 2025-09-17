@@ -53,9 +53,10 @@ class NmapTopologyConfig:
 @dataclass
 class EasmScannerConfig:
     domains: list[str]
-    wordlist: str
-    threads: int
-    mode: str = "fast"
+    mode: str
+    httpx_path: str
+    threads: int = 100
+    wordlist_path: str | None = None
     complete: bool = field(init=False, repr=False)  # hidden flag
 
     def __post_init__(self):
@@ -66,11 +67,11 @@ class EasmScannerConfig:
 
         # wordlist requirement only for complete mode
         if self.complete:
-            if not self.wordlist:
+            if not self.wordlist_path:
                 raise ValueError("wordlist is required when mode == 'complete'")
-            p = Path(self.wordlist)
+            p = Path(self.wordlist_path)
             if not p.exists() or not p.is_file():
-                raise ValueError(f"wordlist path does not exist or is not a file: {self.wordlist!r}")
+                raise ValueError(f"wordlist path does not exist or is not a file: {self.wordlist_path!r}")
 
 @dataclass
 class Config:
