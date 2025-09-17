@@ -1,5 +1,5 @@
 temporal:
-  url: "localhost:7233"
+  url: localhost:7233
   namespace: default
   task_queue: easyeasm_demo
 

@@ -18,7 +18,7 @@ async def main() -> None:
         EasyEasmWorkflow,
         id=scan_uuid,
         arg=input_.to_dict(),
-        task_queue=config.temporal.easyeasm_task_queue,
+        task_queue=config.temporal.casm_task_queue,
     )
 
 

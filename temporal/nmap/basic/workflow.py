@@ -9,6 +9,7 @@ from temporalio.client import Client
 from temporalio.common import WorkflowIDReusePolicy
 
 from config import AppConfig
+from temporal.lib.util import start_unique_workflow
 from temporal.nmap.basic.activities import NmapBasicActivities
 from temporalio import workflow
 

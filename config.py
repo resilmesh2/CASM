@@ -21,7 +21,7 @@ class Neo4jConfig:
 class TemporalConfig:
     url: str = TEMPORAL_URL
     namespace: str = TEMPORAL_NAMESPACE
-    easyeasm_task_queue: str = "easyeasm"
+    casm_task_queue: str = "easyeasm_demo"
     nmap_task_queue: str = "nmap"
     cve_connector_task_queue: str = "cve_connector"
 
