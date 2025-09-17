@@ -28,7 +28,8 @@ nmap_topology:
 easm_scanner:
   domains:
     - vulnweb.com
-  wordlist_path: "/app/temporal/easm/subdomainwordlist.txt"
-  threads: 100
   mode: fast  # fast or complete
   httpx_path: "/app/go/bin/httpx"
+  threads: 100   # required only for complete mode
+  wordlist_path: "/app/temporal/easm/subdomainwordlist.txt"  # required only for complete mode
+

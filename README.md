@@ -19,8 +19,8 @@ The demonstrator can be deployed with Docker. There is a `compose.yml` file spaw
 Configuration files are located in the [config](config) and in [docker](docker) folders. Config in [config](config) serves for local deployment of workers
 and for running clients to trigger on-demand workflows. 
 
-Configs in [docker](docker) folder are used by dockerized worker:
-- config.yaml: config for worker, same format as in the local deployment
+Configs in [docker](docker) folder are used by dockerized app where urls and paths are preconfigured to work within the docker environment.:
+- config.yaml: config for workers, same format as in the local deployment
 - amass_config.yaml: config file for worker, configures amass to know where is the postgresql located
 
 The configuration is rather simple, it contains the following:
@@ -51,6 +51,13 @@ nmap_topology:
   targets: ["localhost"]
   arguments: "-sn -n --traceroute"
 
+easm_scanner:
+  domains:
+    - vulnweb.com
+  wordlist_path: "path/to/wordlist.txt"
+  threads: 100
+  mode: fast  # fast or complete
+  httpx_path: "path/to/httpx"
 
 ```
 - temporal:
@@ -72,6 +79,12 @@ nmap_topology:
 - nmap_topology:
   - targets: list of targets to scan
   - arguments: arguments passed to nmap
+- easm_scanner:
+  - domains: list of domains to scan
+  - mode: fast or complete
+  - httpx_path: path to httpx binary
+  - wordlist_path (required only for `complete` mode): path to wordlist for dnsx, default is placed in `temporal/easm/subdomainwordlist.txt`
+  - threads (required only for `complete` mode): number of threads for dnsx bruteforce
 
 When deploying CASM in an environment where endpoints for `temporal`, `neo4j`, and `redis` are not
 accessible using localhost, you should use names of containers instead of localhost. Names of containers
@@ -126,8 +139,8 @@ There should also be workers for Nmap and CVE connector available in your list o
 > Be aware that the point of this project is to run scans against live domain names. This means that you should select your
 > targets **VERY** carefully. Generally, it is advised against running the workflow against random targets available on the Internet.
 > 
-> The workflow was tested against _hackerone.com_ domain name very cautiously. The target was selected because the
-> authors demonstrated EasyEASM against it at their presentation at [DefCon 31](https://www.youtube.com/watch?v=hx0dBo-zKE8).
+> The workflow was tested against _vulnweb.com_ domain name very cautiously. The target was selected because it 
+> hosts intentionally vulnerable web applications and is made for testing purposes.
 
 This project provides user with a prepared client that can connect to Temporal and trigger workflow on selected targets. If you want
 to run this client, you need to do the following:
@@ -144,33 +157,17 @@ If you would like to run the scan from docker container called `worker`, you jus
 sudo docker exec -u 0 -it <container_id> bash
 ```
 This command connects to the container as the root user because of `-u 0`. If you need to modify some files,
-you can install, e.g., nano using `apt update` and `apt install nano`.
+you can install, e.g., nano using `apt update` and `apt install micro`.
 
 ### Running the scan
-Client does not have its own separate configuration right now. To try it out, you can edit the source file directly [client.py](easyeasm_demo/client.py).
-```python
-async def main() -> None:
-    config = AppConfig.get()
-    temporal_client = await Client.connect(config.temporal.url, namespace=config.temporal.namespace)
-    domains = ["hackerone.com"]
-    mode = "fast"
-    scan_uuid = uuid.uuid4().hex
-    input_ = CASMInput(domains=domains, scan_uuid=scan_uuid, mode=mode)
-    await temporal_client.start_workflow(
-        EasyEasmWorkflow,
-        id=scan_uuid,
-        arg=input_.to_dict(),
-        task_queue=config.temporal.task_queue,
-    )
-```
-You can replace the `domains = ["hackerone.com"]` with your own target domains. It is not necessary to pass in `mode` and `scan_uuid`,
-if not provided, workflow will generate its own `scan_uuid` and use the default mode - `fast`.
-To trigger the workflow, run:
-```sh
-python -m easyeasm_demo.client
-```
+To change the scan parameters, you can modify the [config.yaml](docker/config.yaml).
 
-This command can be used not only on a local machine but also inside the worker container.
+You can replace the `domains` in config with your own target domains.
+
+To trigger the workflow, run the following command inside the container:
+```sh
+python -m temporal.easm.parent_workflow
+```
 
 ### Verifying results
 If you triggered a workflow and want to see if it succesfully finished, you can:
@@ -185,14 +182,8 @@ MATCH (ip:IP)-[:RESOLVES_TO]-(d:DomainName) RETURN ip,d
 
 ### Setting up single workflow
 You can create single workflow using Temporal GUI. Click on `Start Workflow` inside of the panel for workflows.
-Use arbitrary workflow ID, `easyeasm_demo` as the Task Queue,
-and `EasyEasmWorkflow` as the Workflow Type. You can use the following input:
-
-```json
-{
-  "domains": ["hackerone.com"],
-  "mode": "fast"
-}
+Use arbitrary workflow ID, `easm` as the Task Queue,
+and `ParentEasmWorkflow` as the Workflow Type. The workflow parameters are taken from [config.yaml](docker/config.yaml).
 ```
 
 The correct settings are visualized in the following figure.
