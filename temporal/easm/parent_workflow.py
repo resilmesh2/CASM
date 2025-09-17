@@ -18,7 +18,7 @@ from temporalio import workflow
 
 
 @workflow.defn
-class CompleteEasmWorkflow:
+class ParentEasmWorkflow:
     @workflow.run
     async def run(self) -> str:
         config = AppConfig.get()
@@ -60,7 +60,7 @@ class CompleteEasmWorkflow:
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
         config = AppConfig.get()
         passive_enum_activities = PassiveEnumerationActivities(config.redis)
-        active_enum_activities = ActiveEnumerationActivities(config.redis, config.isim)
+        active_enum_activities = ActiveEnumerationActivities(config.redis)
         activities = EasmActivities(config.redis, config.isim)
         return [*passive_enum_activities.get_activities(), *active_enum_activities.get_activities(), *activities.get_activities()]
 
@@ -72,7 +72,7 @@ async def main() -> None:
     workflow_id = uuid.uuid4().hex
     # noinspection PyTypeChecker
     workflow_handle = await client.start_workflow(
-        CompleteEasmWorkflow.run,
+        ParentEasmWorkflow.run,
         args=(),
         id=workflow_id,
         task_queue=config.temporal.easyeasm_task_queue,

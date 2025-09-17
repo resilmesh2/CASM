@@ -1,14 +1,13 @@
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
-from config import ISIMConfig, RedisConfig
+from config import RedisConfig
 from temporal.easm.active_enumeration import activities_impl
 from temporalio import activity
 
 
 class ActiveEnumerationActivities:
-    def __init__(self, redis_config: RedisConfig, isim_config: ISIMConfig) -> None:
-        self.isim_config = isim_config
+    def __init__(self, redis_config: RedisConfig) -> None:
         self.redis_config = redis_config
 
     @activity.defn

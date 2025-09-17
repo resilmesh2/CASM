@@ -6,19 +6,18 @@ from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxR
 
 from config import AppConfig
 from temporal.easm.active_enumeration.workflow import ActiveEnumeratonWorkflow
-from temporal.easm.complete_workflow import CompleteEasmWorkflow
+from temporal.easm.parent_workflow import ParentEasmWorkflow
 from temporal.easm.passive_enumeration.workflow import PassiveEnumerationWorkflow
 
 
 async def main() -> None:
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url)
-    workflows = [CompleteEasmWorkflow, PassiveEnumerationWorkflow, ActiveEnumeratonWorkflow]
-    activities = CompleteEasmWorkflow.get_activities()
+    workflows = [ParentEasmWorkflow, PassiveEnumerationWorkflow, ActiveEnumeratonWorkflow]
+    activities = ParentEasmWorkflow.get_activities()
     workflow_runner = SandboxedWorkflowRunner(
         restrictions=SandboxRestrictions.default.with_passthrough_modules(
-            "temporal.enumeration.active_enumeration",
-            "temporal.enumeration.active_enumeration",
+            "temporal.easm",
             "config"
         )
     )
