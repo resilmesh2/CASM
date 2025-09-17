@@ -14,13 +14,14 @@ RUN . /venv/bin/activate && ~/.local/bin/poetry install
 
 FROM golang:1.24.0-bookworm as go_build
 
-RUN go install github.com/g0ldencybersec/EasyEASM/easyeasm@latest
-RUN go install github.com/projectdiscovery/alterx/cmd/alterx@latest
-RUN go install github.com/owasp-amass/amass/v3/...@master
-RUN go install github.com/projectdiscovery/dnsx/cmd/dnsx@latest
-RUN go install github.com/projectdiscovery/httpx/cmd/httpx@v1.6.0
-RUN go install github.com/owasp-amass/oam-tools/cmd/oam_subs@master
-RUN go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+RUN go install github.com/g0ldencybersec/EasyEASM/easyeasm@latest && \
+    go install github.com/projectdiscovery/alterx/cmd/alterx@v0.0.4 && \
+    go install github.com/owasp-amass/amass/v3/...@master && \
+    go install github.com/projectdiscovery/dnsx/cmd/dnsx@latest && \
+    go install github.com/projectdiscovery/httpx/cmd/httpx@v1.6.0 && \
+    go install github.com/owasp-amass/oam-tools/cmd/oam_subs@master && \
+    go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@v2.6.8
+
 
 RUN mkdir -p /app/go/bin
 RUN cp /go/bin/* /app/go/bin
@@ -37,10 +38,10 @@ WORKDIR /app
 RUN groupadd -g 1001 app && \
     useradd -u 1001 -g app -s /bin/sh -d /app app
 
-COPY --chown=1001:1001 --from=build /app /app
-COPY --chown=1001:1001 --from=build /venv /venv
+COPY --from=build /app /app
+COPY --from=build /venv /venv
 COPY --from=go_build /usr/local/go /usr/local/go
-COPY --chown=1001:1001 --from=go_build /app/go /app/go
+COPY --from=go_build /app/go /app/go
 
 RUN mkdir -p .config/amass
 RUN chown -R 1001:1001 .config
@@ -49,4 +50,4 @@ USER 1001:1001
 
 EXPOSE 8000
 
-CMD ["/venv/bin/python", "-m", "easyeasm_demo.worker"]
+CMD ["/venv/bin/python", "-m", "temporal.easm.worker"]
