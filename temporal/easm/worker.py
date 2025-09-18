@@ -24,7 +24,7 @@ async def main() -> None:
 
     worker = Worker(
         client=client,
-        task_queue=config.temporal.easyeasm_task_queue,
+        task_queue=config.temporal.easm_task_queue,
         workflows=workflows,
         activities=activities,
         workflow_runner=workflow_runner,

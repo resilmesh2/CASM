@@ -1,7 +1,9 @@
 temporal:
-  url: localhost:7233
+  url: "localhost:7233"
   namespace: default
-  task_queue: easyeasm_demo
+  easm_task_queue: easm
+  nmap_task_queue: nmap
+  cve_connector_task_queue: cve_connector
 
 neo4j:
   password: supertestovaciheslo

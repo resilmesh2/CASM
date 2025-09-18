@@ -26,7 +26,7 @@ class ParentEasmWorkflow:
             PassiveEnumerationWorkflow.run,
             args=[config.easm_scanner.domains],
             id=f"passive-{workflow.info().workflow_id}",
-            task_queue=config.temporal.easyeasm_task_queue,
+            task_queue=config.temporal.easm_task_queue,
         )
 
         if config.easm_scanner.complete:
@@ -34,7 +34,7 @@ class ParentEasmWorkflow:
                 ActiveEnumeratonWorkflow.run,
                 args=[domains_output_uuid, config.easm_scanner.wordlist_path, str(config.easm_scanner.threads)],
                 id=f"active-{workflow.info().workflow_id}",
-                task_queue=config.temporal.easyeasm_task_queue,
+                task_queue=config.temporal.easm_task_queue,
             )
 
         httpx_uuid = await workflow.execute_activity(
@@ -75,7 +75,7 @@ async def main() -> None:
         ParentEasmWorkflow.run,
         args=(),
         id=workflow_id,
-        task_queue=config.temporal.easyeasm_task_queue,
+        task_queue=config.temporal.easm_task_queue,
         id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
     )
     workflow_description = await workflow_handle.describe()

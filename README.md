@@ -27,43 +27,49 @@ The configuration is rather simple, it contains the following:
 
 ```yaml
 temporal:
-  url: localhost:7233
+  url: "temporal:7233"
   namespace: default
-  task_queue: easyeasm_demo
+  easm_task_queue: easm
+  nmap_task_queue: nmap
+  cve_connector_task_queue: cve_connector
 
 neo4j:
   password: supertestovaciheslo
-  bolt: bolt://localhost:7687
+  bolt: bolt://neo4j:7687
   user: neo4j
 
 redis:
-  host: localhost
+  host: redis
   port: 6379
 
 isim:
-  url: "http://localhost:8000"
+  url: "http://isim:8000"
 
 nmap_basic:
-  targets: ["localhost"]
+  targets:
+    - metasploitable3
   arguments: "-sV -A"
 
 nmap_topology:
-  targets: ["localhost"]
+  targets:
+    - metasploitable3
   arguments: "-sn -n --traceroute"
 
 easm_scanner:
   domains:
     - vulnweb.com
-  wordlist_path: "path/to/wordlist.txt"
-  threads: 100
   mode: fast  # fast or complete
-  httpx_path: "path/to/httpx"
+  httpx_path: "/app/go/bin/httpx"
+  threads: 100   # required only for complete mode
+  wordlist_path: "/app/temporal/easm/subdomainwordlist.txt"  # required only for complete mode
+
+
 
 ```
 - temporal:
   - url: url of Temporal server GRPC service
   - namespace: namespace on Temporal server
-  - task_queue: task_queue used by Client and Worker
+  - task_queues: task_queues used by Workers and Workflows
 - neo4j:
   - password: password for Neo4j user
   - bolt: url of Neo4j instance
@@ -184,7 +190,6 @@ MATCH (ip:IP)-[:RESOLVES_TO]-(d:DomainName) RETURN ip,d
 You can create single workflow using Temporal GUI. Click on `Start Workflow` inside of the panel for workflows.
 Use arbitrary workflow ID, `easm` as the Task Queue,
 and `ParentEasmWorkflow` as the Workflow Type. The workflow parameters are taken from [config.yaml](docker/config.yaml).
-```
 
 The correct settings are visualized in the following figure.
 
