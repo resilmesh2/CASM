@@ -1,5 +1,12 @@
 import asyncio
 
+from validators import ValidationError, domain
+
+
+def validate_input_target(target: str) -> bool:
+    res = domain(target)
+    return not isinstance(res, ValidationError)
+
 
 async def run_command_with_output(
     command: list[str], cwd: str | None = None, input_data: str | None = None

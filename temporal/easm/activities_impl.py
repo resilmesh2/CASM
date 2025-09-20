@@ -52,7 +52,7 @@ async def run_httpx(domains_to_probe_uuid: str, httpx_path: str, redis_config: R
     return httpx_uuid
 
 
-async def parse_httpx_output(httpx_uuid: str, redis_config: RedisConfig) -> list[EasyEASMParsedResult]:
+def parse_httpx_output(httpx_uuid: str, redis_config: RedisConfig) -> list[EasyEASMParsedResult]:
     redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
     httpx_json = redis_client.get(httpx_uuid).decode("utf-8")
     redis_client.close()

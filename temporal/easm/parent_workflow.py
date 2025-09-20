@@ -8,7 +8,7 @@ from typing import Any
 from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
-from config import AppConfig
+from config import AppConfig, EasmScannerConfig
 from temporal.easm.active_enumeration.activities import ActiveEnumerationActivities
 from temporal.easm.active_enumeration.workflow import ActiveEnumeratonWorkflow
 from temporal.easm.activities import EasmActivities
@@ -20,26 +20,38 @@ from temporalio import workflow
 @workflow.defn
 class ParentEasmWorkflow:
     @workflow.run
-    async def run(self) -> str:
+    async def run(self, input_: dict[str, Any] | None = None) -> str:
         config = AppConfig.get()
+        easm_config: EasmScannerConfig = config.easm_scanner
+
+        if input_ is not None:
+            easm_config = await workflow.execute_activity(
+                EasmActivities.validate_input,
+                arg=input_,
+                retry_policy=RetryPolicy(
+                    maximum_attempts=1,
+                ),
+                start_to_close_timeout=timedelta(minutes=5),
+            )
+
         domains_output_uuid = await workflow.execute_child_workflow(
             PassiveEnumerationWorkflow.run,
-            args=[config.easm_scanner.domains],
+            args=[easm_config.domains],
             id=f"passive-{workflow.info().workflow_id}",
             task_queue=config.temporal.easm_task_queue,
         )
 
-        if config.easm_scanner.complete:
+        if easm_config.complete:
             domains_output_uuid: str = await workflow.execute_child_workflow(
                 ActiveEnumeratonWorkflow.run,
-                args=[domains_output_uuid, config.easm_scanner.wordlist_path, str(config.easm_scanner.threads)],
+                args=[domains_output_uuid, easm_config.wordlist_path, str(easm_config.threads)],
                 id=f"active-{workflow.info().workflow_id}",
                 task_queue=config.temporal.easm_task_queue,
             )
 
         httpx_uuid = await workflow.execute_activity(
             EasmActivities.run_httpx,
-            args=[domains_output_uuid, config.easm_scanner.httpx_path],
+            args=[domains_output_uuid, easm_config.httpx_path],
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=2,

@@ -8,6 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 TEMPORAL_URL = "temporal:7233"
 TEMPORAL_NAMESPACE = "default"
+HTTPX_PATH_DOCKER = "/app/go/bin/httpx"
 
 
 @dataclass
@@ -54,16 +55,17 @@ class NmapTopologyConfig:
 class EasmScannerConfig:
     domains: list[str]
     mode: str
-    httpx_path: str
+    httpx_path: str = HTTPX_PATH_DOCKER
     threads: int = 100
     wordlist_path: str | None = None
-    complete: bool = field(init=False, repr=False)  # hidden flag
+    complete: bool = False
 
     def __post_init__(self):
         if self.mode not in ("fast", "complete"):
             raise ValueError(f"invalid mode: {self.mode!r} (expected 'fast' or 'complete')")
 
-        self.complete = self.mode == "complete"
+        if self.mode == "complete":
+            self.complete = True
 
         # wordlist requirement only for complete mode
         if self.complete:
