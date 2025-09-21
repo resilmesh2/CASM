@@ -60,7 +60,7 @@ class EasmScannerConfig:
     wordlist_path: str | None = None
     complete: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.mode not in ("fast", "complete"):
             raise ValueError(f"invalid mode: {self.mode!r} (expected 'fast' or 'complete')")
 

@@ -171,7 +171,7 @@ class EasyEasmWorkflow:
                 maximum_attempts=5,
                 initial_interval=timedelta(seconds=1),
                 maximum_interval=timedelta(seconds=2),
-                # non_retryable_error_types=["ValueError"],
+                non_retryable_error_types=["ValueError"],
             ),
             start_to_close_timeout=timedelta(hours=6),
         )
@@ -187,7 +187,7 @@ class EasyEasmWorkflow:
                 maximum_attempts=5,
                 initial_interval=timedelta(seconds=1),
                 maximum_interval=timedelta(seconds=2),
-                # non_retryable_error_types=["ValueError"],
+                non_retryable_error_types=["ValueError"],
             ),
         )
 

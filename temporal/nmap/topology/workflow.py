@@ -6,10 +6,9 @@ from typing import Any
 
 from structlog import getLogger
 from temporalio.client import Client
-from temporalio.common import WorkflowIDReusePolicy
+from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
 from config import AppConfig
-from temporal.lib.util import start_unique_workflow
 from temporal.nmap.topology.activities import NmapTopologyActivities
 from temporalio import workflow
 
@@ -17,27 +16,60 @@ from temporalio import workflow
 @workflow.defn(name="NmapTopologyWorkflow")
 class NmapTopologyWorkflow:
     @workflow.run
-    async def run(self) -> None:
+    async def run(self, input_: dict[str, Any] | None = None) -> None:
+        config = AppConfig.get()
+        nmap_config = config.nmap_topology
+
+        if input_ is not None:
+            nmap_config = await workflow.execute_activity(
+                NmapTopologyActivities.nmap_topology_validate_input,
+                arg=input_,
+                retry_policy=RetryPolicy(maximum_attempts=1),
+                start_to_close_timeout=timedelta(minutes=5),
+            )
+
         nmap_results = await workflow.execute_activity(
             NmapTopologyActivities.run_nmap_traceroute_scan,
+            args=[nmap_config.targets],
+            retry_policy=RetryPolicy(
+                backoff_coefficient=2.0,
+                maximum_attempts=5,
+                initial_interval=timedelta(seconds=1),
+                maximum_interval=timedelta(seconds=2),
+                non_retryable_error_types=["ValueError", "NmapExecutionError"],
+            ),
             start_to_close_timeout=timedelta(minutes=60),
         )
 
         await workflow.execute_activity(
             NmapTopologyActivities.nmap_traceroute_neo4j,
             nmap_results,
+            retry_policy=RetryPolicy(
+                backoff_coefficient=2.0,
+                maximum_attempts=5,
+                initial_interval=timedelta(seconds=1),
+                maximum_interval=timedelta(seconds=2),
+                non_retryable_error_types=["ValueError"],
+            ),
             start_to_close_timeout=timedelta(minutes=60),
         )
 
         await workflow.execute_activity(
             NmapTopologyActivities.compute_criticalities,
+            retry_policy=RetryPolicy(
+                backoff_coefficient=2.0,
+                maximum_attempts=5,
+                initial_interval=timedelta(seconds=1),
+                maximum_interval=timedelta(seconds=2),
+                non_retryable_error_types=["ValueError"],
+            ),
             start_to_close_timeout=timedelta(minutes=60),
         )
 
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
         config = AppConfig.get()
-        activities = NmapTopologyActivities(config.nmap_topology, config.neo4j, config.isim)
+        activities = NmapTopologyActivities(config.isim)
         return [*activities.get_activities()]
 
 

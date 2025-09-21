@@ -1,10 +1,15 @@
 import asyncio
 
-from validators import ValidationError, domain
+from validators import ValidationError, domain, hostname
 
 
-def validate_input_target(target: str) -> bool:
+def validate_input_domain(target: str) -> bool:
     res = domain(target)
+    return not isinstance(res, ValidationError)
+
+
+def validate_input_hostname(target: str) -> bool:
+    res = hostname(target)
     return not isinstance(res, ValidationError)
 
 

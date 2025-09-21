@@ -5,7 +5,7 @@ import httpx
 
 from config import EasmScannerConfig, ISIMConfig, RedisConfig
 from temporal.easm import activities_impl
-from temporal.lib.util import validate_input_target
+from temporal.lib.util import validate_input_domain
 from temporalio import activity
 
 
@@ -17,7 +17,7 @@ class EasmActivities:
     @activity.defn
     async def validate_input(self, input_: dict[str, Any]) -> EasmScannerConfig:
         obj_input = EasmScannerConfig(**input_)
-        if not all(map(validate_input_target, obj_input.domains)):
+        if not all(map(validate_input_domain, obj_input.domains)):
             raise ValueError("Invalid targets!")
         return obj_input
 

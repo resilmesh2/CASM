@@ -6,10 +6,9 @@ from logging import getLogger
 from typing import Any
 
 from temporalio.client import Client
-from temporalio.common import WorkflowIDReusePolicy
+from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
 from config import AppConfig
-from temporal.lib.util import start_unique_workflow
 from temporal.nmap.basic.activities import NmapBasicActivities
 from temporalio import workflow
 
@@ -17,28 +16,61 @@ from temporalio import workflow
 @workflow.defn(name="NmapBasicWorkflow")
 class NmapBasicWorkflow:
     @workflow.run
-    async def run(self) -> None:
+    async def run(self, input_: dict[str, Any] | None = None) -> None:
+        config = AppConfig.get()
+        nmap_config = config.nmap_basic
+
+        if input_ is not None:
+            nmap_config = await workflow.execute_activity(
+                NmapBasicActivities.nmap_basic_validate_input,
+                arg=input_,
+                retry_policy=RetryPolicy(maximum_attempts=1),
+                start_to_close_timeout=timedelta(minutes=5),
+            )
+
         nmap_results = await workflow.execute_activity(
-            NmapBasicActivities.run_nmap_scan,
+            NmapBasicActivities.run_basic_nmap_scan,
+            args=[nmap_config.targets, nmap_config.arguments],
+            retry_policy=RetryPolicy(
+                backoff_coefficient=2.0,
+                maximum_attempts=5,
+                initial_interval=timedelta(seconds=1),
+                maximum_interval=timedelta(seconds=2),
+                non_retryable_error_types=["ValueError", "NmapExecutionError"],
+            ),
             start_to_close_timeout=timedelta(minutes=5),
         )
 
         parsed_nmap_results = await workflow.execute_activity(
             NmapBasicActivities.parse_nmap_xml,
-            nmap_results,
+            args=[nmap_results, nmap_config.tag],
+            retry_policy=RetryPolicy(
+                backoff_coefficient=2.0,
+                maximum_attempts=5,
+                initial_interval=timedelta(seconds=1),
+                maximum_interval=timedelta(seconds=2),
+                non_retryable_error_types=["ValueError"],
+            ),
             start_to_close_timeout=timedelta(minutes=5),
         )
 
         await workflow.execute_activity(
             NmapBasicActivities.send_result_to_api,
             parsed_nmap_results,
+            retry_policy=RetryPolicy(
+                backoff_coefficient=2.0,
+                maximum_attempts=5,
+                initial_interval=timedelta(seconds=1),
+                maximum_interval=timedelta(seconds=2),
+                non_retryable_error_types=["ValueError"],
+            ),
             start_to_close_timeout=timedelta(minutes=5),
         )
 
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
         config = AppConfig.get()
-        activities = NmapBasicActivities(config.nmap_basic, config.isim)
+        activities = NmapBasicActivities(config.isim)
         return [*activities.get_activities()]
 
 
