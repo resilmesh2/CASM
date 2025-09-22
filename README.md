@@ -165,7 +165,7 @@ sudo docker exec -u 0 -it <container_id> bash
 This command connects to the container as the root user because of `-u 0`. If you need to modify some files,
 you can install, e.g., nano using `apt update` and `apt install micro`.
 
-### Running the scan
+### Running the easm scan
 To change the scan parameters, you can modify the [config.yaml](docker/config.yaml).
 
 You can replace the `domains` in config with your own target domains.
@@ -197,20 +197,21 @@ custom configuration in the input field of the workflow. The input should be in 
 the `easm_scanner` section from [config.yaml](docker/config.yaml).
 
 For example, to run an EASM scan with different domains:
+#### Fast Mode (recommended)
+```json
+{
+  "domains": ["example.org", "test.com"],
+  "mode": "fast"
+}
+```
+
+#### Complete Mode
 ```json
 {
   "domains": ["example.org", "test.com"],
   "mode": "complete",
   "threads": 50,
   "wordlist_path": "/app/temporal/easm/subdomainwordlist.txt"
-}
-```
-
-Or for `fast` mode:
-```json
-{
-  "domains": ["example.org", "test.com"],
-  "mode": "fast"
 }
 ```
 
