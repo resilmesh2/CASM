@@ -186,14 +186,39 @@ This is an example of a NEO4J query fetching all IP addresses and their resoluti
 MATCH (ip:IP)-[:RESOLVES_TO]-(d:DomainName) RETURN ip,d
 ```
 
-### Setting up single workflow
-You can create single workflow using Temporal GUI. Click on `Start Workflow` inside of the panel for workflows.
+### Setting up a single workflow
+You can create a single workflow using Temporal GUI. Click on `Start Workflow` inside of the panel for workflows.
 Use arbitrary workflow ID, `easm` as the Task Queue,
-and `ParentEasmWorkflow` as the Workflow Type. The workflow parameters are taken from [config.yaml](docker/config.yaml).
+and `ParentEasmWorkflow` as the Workflow Type.
+
+By default, the workflow parameters are taken from [config.yaml](docker/config.yaml). However, if you want to run a 
+workflow with a different configuration than what was configured when the temporal worker started, you can provide a 
+custom configuration in the input field of the workflow. The input should be in JSON format matching the structure of 
+the `easm_scanner` section from [config.yaml](docker/config.yaml).
+
+For example, to run an EASM scan with different domains:
+```json
+{
+  "domains": ["example.org", "test.com"],
+  "mode": "complete",
+  "threads": 50,
+  "wordlist_path": "/app/temporal/easm/subdomainwordlist.txt"
+}
+```
+
+Or for `fast` mode:
+```json
+{
+  "domains": ["example.org", "test.com"],
+  "mode": "fast"
+}
+```
 
 The correct settings are visualized in the following figure.
 
 ![img.png](assets/workflow.png)
+
+The same applies to other workflows as well (e.g., `NmapBasicWorkflow` and `NmapTopologyWorkflow`).
 
 ### Setting up scheduled workflow
 You can create periodic scheduled scans via Temporal GUI. When you create such a workflow, it calls the same workflow, 
