@@ -202,7 +202,7 @@ services:
     depends_on:
       temporal:
         condition: service_healthy
-#      - neo4j
+#      neo4j:
     networks:
       - casm_isim_test_network
     environment:

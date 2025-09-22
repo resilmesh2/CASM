@@ -10,7 +10,7 @@ from easyeasm_demo.workflow import CASMInput, EasyEasmWorkflow
 async def main() -> None:
     config = AppConfig.get()
     temporal_client = await Client.connect(config.temporal.url, namespace=config.temporal.namespace)
-    domains = ["hackerone.com"]
+    domains = ["vulnweb.com"]
     mode = "fast"
     scan_uuid = uuid.uuid4().hex
     input_ = CASMInput(domains=domains, scan_uuid=scan_uuid, mode=mode)
@@ -18,7 +18,7 @@ async def main() -> None:
         EasyEasmWorkflow,
         id=scan_uuid,
         arg=input_.to_dict(),
-        task_queue=config.temporal.casm_task_queue,
+        task_queue=config.temporal.easm_task_queue,
     )
 
 

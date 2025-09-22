@@ -1,7 +1,9 @@
 temporal:
   url: "temporal:7233"
   namespace: default
-  task_queue: easyeasm_demo
+  easm_task_queue: easm
+  nmap_task_queue: nmap
+  cve_connector_task_queue: cve_connector
 
 neo4j:
   password: supertestovaciheslo
@@ -16,9 +18,20 @@ isim:
   url: "http://isim:8000"
 
 nmap_basic:
-  targets: ["metasploitable3"]
+  targets:
+    - metasploitable3
   arguments: "-sV -A"
 
 nmap_topology:
-  targets: ["metasploitable3"]
+  targets:
+    - metasploitable3
   arguments: "-sn -n --traceroute"
+
+easm_scanner:
+  domains:
+    - vulnweb.com
+  mode: fast  # fast or complete
+  httpx_path: "/app/go/bin/httpx"
+  threads: 100   # required only for complete mode
+  wordlist_path: "/app/temporal/easm/subdomainwordlist.txt"  # required only for complete mode
+

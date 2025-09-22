@@ -19,44 +19,57 @@ The demonstrator can be deployed with Docker. There is a `compose.yml` file spaw
 Configuration files are located in the [config](config) and in [docker](docker) folders. Config in [config](config) serves for local deployment of workers
 and for running clients to trigger on-demand workflows. 
 
-Configs in [docker](docker) folder are used by dockerized worker:
-- config.yaml: config for worker, same format as in the local deployment
+Configs in [docker](docker) folder are used by dockerized app where urls and paths are preconfigured to work within the docker environment.:
+- config.yaml: config for workers, same format as in the local deployment
 - amass_config.yaml: config file for worker, configures amass to know where is the postgresql located
 
 The configuration is rather simple, it contains the following:
 
 ```yaml
 temporal:
-  url: localhost:7233
+  url: "temporal:7233"
   namespace: default
-  task_queue: easyeasm_demo
+  easm_task_queue: easm
+  nmap_task_queue: nmap
+  cve_connector_task_queue: cve_connector
 
 neo4j:
   password: supertestovaciheslo
-  bolt: bolt://localhost:7687
+  bolt: bolt://neo4j:7687
   user: neo4j
 
 redis:
-  host: localhost
+  host: redis
   port: 6379
 
 isim:
-  url: "http://localhost:8000"
+  url: "http://isim:8000"
 
 nmap_basic:
-  targets: ["localhost"]
+  targets:
+    - metasploitable3
   arguments: "-sV -A"
 
 nmap_topology:
-  targets: ["localhost"]
+  targets:
+    - metasploitable3
   arguments: "-sn -n --traceroute"
+
+easm_scanner:
+  domains:
+    - vulnweb.com
+  mode: fast  # fast or complete
+  httpx_path: "/app/go/bin/httpx"
+  threads: 100   # required only for complete mode
+  wordlist_path: "/app/temporal/easm/subdomainwordlist.txt"  # required only for complete mode
+
 
 
 ```
 - temporal:
   - url: url of Temporal server GRPC service
   - namespace: namespace on Temporal server
-  - task_queue: task_queue used by Client and Worker
+  - task_queues: task_queues used by Workers and Workflows
 - neo4j:
   - password: password for Neo4j user
   - bolt: url of Neo4j instance
@@ -72,6 +85,12 @@ nmap_topology:
 - nmap_topology:
   - targets: list of targets to scan
   - arguments: arguments passed to nmap
+- easm_scanner:
+  - domains: list of domains to scan
+  - mode: fast or complete
+  - httpx_path: path to httpx binary
+  - wordlist_path (required only for `complete` mode): path to wordlist for dnsx, default is placed in `temporal/easm/subdomainwordlist.txt`
+  - threads (required only for `complete` mode): number of threads for dnsx bruteforce
 
 When deploying CASM in an environment where endpoints for `temporal`, `neo4j`, and `redis` are not
 accessible using localhost, you should use names of containers instead of localhost. Names of containers
@@ -126,8 +145,8 @@ There should also be workers for Nmap and CVE connector available in your list o
 > Be aware that the point of this project is to run scans against live domain names. This means that you should select your
 > targets **VERY** carefully. Generally, it is advised against running the workflow against random targets available on the Internet.
 > 
-> The workflow was tested against _hackerone.com_ domain name very cautiously. The target was selected because the
-> authors demonstrated EasyEASM against it at their presentation at [DefCon 31](https://www.youtube.com/watch?v=hx0dBo-zKE8).
+> The workflow was tested against _vulnweb.com_ domain name very cautiously. The target was selected because it 
+> hosts intentionally vulnerable web applications and is made for testing purposes.
 
 This project provides user with a prepared client that can connect to Temporal and trigger workflow on selected targets. If you want
 to run this client, you need to do the following:
@@ -144,33 +163,17 @@ If you would like to run the scan from docker container called `worker`, you jus
 sudo docker exec -u 0 -it <container_id> bash
 ```
 This command connects to the container as the root user because of `-u 0`. If you need to modify some files,
-you can install, e.g., nano using `apt update` and `apt install nano`.
+you can install, e.g., nano using `apt update` and `apt install micro`.
 
-### Running the scan
-Client does not have its own separate configuration right now. To try it out, you can edit the source file directly [client.py](easyeasm_demo/client.py).
-```python
-async def main() -> None:
-    config = AppConfig.get()
-    temporal_client = await Client.connect(config.temporal.url, namespace=config.temporal.namespace)
-    domains = ["hackerone.com"]
-    mode = "fast"
-    scan_uuid = uuid.uuid4().hex
-    input_ = CASMInput(domains=domains, scan_uuid=scan_uuid, mode=mode)
-    await temporal_client.start_workflow(
-        EasyEasmWorkflow,
-        id=scan_uuid,
-        arg=input_.to_dict(),
-        task_queue=config.temporal.task_queue,
-    )
-```
-You can replace the `domains = ["hackerone.com"]` with your own target domains. It is not necessary to pass in `mode` and `scan_uuid`,
-if not provided, workflow will generate its own `scan_uuid` and use the default mode - `fast`.
-To trigger the workflow, run:
+### Running the easm scan
+To change the scan parameters, you can modify the [config.yaml](docker/config.yaml).
+
+You can replace the `domains` in config with your own target domains.
+
+To trigger the workflow, run the following command inside the container:
 ```sh
-python -m easyeasm_demo.client
+python -m temporal.easm.parent_workflow
 ```
-
-This command can be used not only on a local machine but also inside the worker container.
 
 ### Verifying results
 If you triggered a workflow and want to see if it succesfully finished, you can:
@@ -183,21 +186,40 @@ This is an example of a NEO4J query fetching all IP addresses and their resoluti
 MATCH (ip:IP)-[:RESOLVES_TO]-(d:DomainName) RETURN ip,d
 ```
 
-### Setting up single workflow
-You can create single workflow using Temporal GUI. Click on `Start Workflow` inside of the panel for workflows.
-Use arbitrary workflow ID, `easyeasm_demo` as the Task Queue,
-and `EasyEasmWorkflow` as the Workflow Type. You can use the following input:
+### Setting up a single workflow
+You can create a single workflow using Temporal GUI. Click on `Start Workflow` inside of the panel for workflows.
+Use arbitrary workflow ID, `easm` as the Task Queue,
+and `ParentEasmWorkflow` as the Workflow Type.
 
+By default, the workflow parameters are taken from [config.yaml](docker/config.yaml). However, if you want to run a 
+workflow with a different configuration than what was configured when the temporal worker started, you can provide a 
+custom configuration in the input field of the workflow. The input should be in JSON format matching the structure of 
+the `easm_scanner` section from [config.yaml](docker/config.yaml).
+
+For example, to run an EASM scan with different domains:
+#### Fast Mode (recommended)
 ```json
 {
-  "domains": ["hackerone.com"],
+  "domains": ["example.org", "test.com"],
   "mode": "fast"
+}
+```
+
+#### Complete Mode
+```json
+{
+  "domains": ["example.org", "test.com"],
+  "mode": "complete",
+  "threads": 50,
+  "wordlist_path": "/app/temporal/easm/subdomainwordlist.txt"
 }
 ```
 
 The correct settings are visualized in the following figure.
 
 ![img.png](assets/workflow.png)
+
+The same applies to other workflows as well (e.g., `NmapBasicWorkflow` and `NmapTopologyWorkflow`).
 
 ### Setting up scheduled workflow
 You can create periodic scheduled scans via Temporal GUI. When you create such a workflow, it calls the same workflow, 

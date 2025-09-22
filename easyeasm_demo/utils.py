@@ -69,7 +69,7 @@ class EasyEASMParsedResult:
     service: str
     ip: IPv4Interface | IPv6Interface | None = None
     domain_name: str | None = None
-    software_versions: list[dict[str, str]] | None = None
+    software_versions: list[str] | None = None
 
     def __post_init__(self) -> None:
         if self.ip is None and self.domain_name is None:

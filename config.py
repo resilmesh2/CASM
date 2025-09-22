@@ -8,12 +8,13 @@ BASE_DIR = Path(__file__).resolve().parent
 
 TEMPORAL_URL = "temporal:7233"
 TEMPORAL_NAMESPACE = "default"
+HTTPX_PATH_DOCKER = "/app/go/bin/httpx"
 
 
 @dataclass
 class Neo4jConfig:
     password: str = "supertestovaciheslo"
-    bolt: str = "bolt://localhost:7687"
+    bolt: str = "bolt://neo4j:7687"
     user: str = "neo4j"
 
 
@@ -21,7 +22,7 @@ class Neo4jConfig:
 class TemporalConfig:
     url: str = TEMPORAL_URL
     namespace: str = TEMPORAL_NAMESPACE
-    casm_task_queue: str = "easyeasm_demo"
+    easm_task_queue: str = "easm"
     nmap_task_queue: str = "nmap"
     cve_connector_task_queue: str = "cve_connector"
 
@@ -51,6 +52,30 @@ class NmapTopologyConfig:
     arguments: str
 
 @dataclass
+class EasmScannerConfig:
+    domains: list[str]
+    mode: str
+    httpx_path: str = HTTPX_PATH_DOCKER
+    threads: int = 100
+    wordlist_path: str | None = None
+    complete: bool = False
+
+    def __post_init__(self) -> None:
+        if self.mode not in ("fast", "complete"):
+            raise ValueError(f"invalid mode: {self.mode!r} (expected 'fast' or 'complete')")
+
+        if self.mode == "complete":
+            self.complete = True
+
+        # wordlist requirement only for complete mode
+        if self.complete:
+            if not self.wordlist_path:
+                raise ValueError("wordlist is required when mode == 'complete'")
+            p = Path(self.wordlist_path)
+            if not p.exists() or not p.is_file():
+                raise ValueError(f"wordlist path does not exist or is not a file: {self.wordlist_path!r}")
+
+@dataclass
 class Config:
     temporal: TemporalConfig
     neo4j: Neo4jConfig
@@ -58,6 +83,7 @@ class Config:
     nmap_basic: NmapBasicConfig
     nmap_topology: NmapTopologyConfig
     isim: ISIMConfig
+    easm_scanner: EasmScannerConfig
 
 
 class AppConfig:
