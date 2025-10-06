@@ -9,7 +9,7 @@ class SLPEnrichmentActivities:
         self.isim_config = isim_config
 
     @activity.defn
-    async def get_asset_info(self) -> list[str]:
+    async def get_asset_info(self) -> list[dict[str, Any]]:
         response = httpx.get(f"{self.isim_config.url}/asset_info")
         response_json = response.json()
         return response_json
@@ -21,6 +21,9 @@ class SLPEnrichmentActivities:
         domains_ips_from_database = {}
         for asset_info in response_json:
             ip_address = asset_info["ip"]
+            if ip_address == "127.0.0.1":
+                # cannot obtain external information about it
+                continue
             ip_addresses_in_database.append(ip_address)
             if ip_address not in domains_ips_from_database:
                 domains_ips_from_database[ip_address] = []
@@ -48,9 +51,13 @@ class SLPEnrichmentActivities:
                     tmp_dictionary["domain"] = ""
                 if "subnet" in record:
                     tmp_dictionary["subnet"] = record["subnet"]
+                else:
+                    tmp_dictionary["subnet"] = "0.0.0.0/0"
                 if "sp_risk_score" in record:
                     tmp_dictionary["sp_risk_score"] = record["sp_risk_score"]
-                tmp_dictionary["tag"] = ["SLP"]
+                else:
+                    tmp_dictionary["sp_risk_score"] = "null"
+                tmp_dictionary["tag"] = "SLP"
                 domains_ips_for_storing.append(tmp_dictionary)
 
         for record in domains_ips_for_storing:
@@ -66,6 +73,9 @@ class SLPEnrichmentActivities:
         for ip_address in domains_ips_from_database:
             domains_ips_from_database[ip_address] = [i for i in domains_ips_from_database[ip_address] if not i["found"]]
         for ip_address in domains_ips_from_database:
+            if ip_address == "127.0.0.1":
+                # cannot obtain external information about it
+                continue
             for ip_item in domains_ips_from_database[ip_address]:
                 for subnet in ip_item["subnets"]:
                     tmp_dictionary = {"ip": ip_address, "domain": ip_item["domain_name"],

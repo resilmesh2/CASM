@@ -4,6 +4,7 @@ temporal:
   easm_task_queue: easm
   nmap_task_queue: nmap
   cve_connector_task_queue: cve_connector
+  slp_enrichment_task_queue: slp_enrichment
 
 neo4j:
   password: supertestovaciheslo
@@ -34,3 +35,6 @@ easm_scanner:
   httpx_path: "path/to/httpx"
   threads: 100  # required only for complete mode
   wordlist_path: "path/to/wordlist.txt"  # required only for complete mode
+
+slp_enrichment:
+  x_api_key: ""
