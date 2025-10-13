@@ -80,7 +80,7 @@ services:
       - temporal
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000, http://localhost:4201, http://localhost:3000, http://localhost:5000
     image: temporalio/ui:${TEMPORAL_UI_VERSION:-2.31.2}
     ports:
       - 8080:8080
@@ -163,14 +163,41 @@ services:
 #      - casm_isim_test_network
 
   redis:
-    image: docker.io/bitnami/redis:7.0
+    image: redis:7.0-alpine
     environment:
-      # ALLOW_EMPTY_PASSWORD is recommended only for development.
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - "127.0.0.1:6379:6379"
     networks:
       - casm_isim_test_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  component-scheduler-worker:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      container_name: component-scheduler-worker
+      command: ["/venv/bin/python", "/app/component_worker.py"]
+      restart: unless-stopped
+      volumes:
+        - ./docker/config.yaml:/app/config/config.yaml
+        - ./risk_config.yaml:/app/risk_config.yaml
+        - ./component_config.yaml:/app/component_config.yaml
+      depends_on:
+        temporal:
+          condition: service_healthy
+      networks:
+        - casm_isim_test_network
+      environment:
+        - TEMPORAL_URL=temporal:7233
+        - TEMPORAL_NAMESPACE=default
+        - NEO4J_USER=neo4j
+        - NEO4J_PASSWORD=supertestovaciheslo
+        - NEO4J_BOLT=bolt://neo4j:7687
 
   nmap-worker:
     build:
