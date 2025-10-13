@@ -25,6 +25,7 @@ class TemporalConfig:
     easm_task_queue: str = "easm"
     nmap_task_queue: str = "nmap"
     cve_connector_task_queue: str = "cve_connector"
+    slp_enrichment_task_queue: str = "slp_enrichment"
 
 
 @dataclass
@@ -75,6 +76,12 @@ class EasmScannerConfig:
             if not p.exists() or not p.is_file():
                 raise ValueError(f"wordlist path does not exist or is not a file: {self.wordlist_path!r}")
 
+
+@dataclass
+class SLPEnrichmentConfig:
+    x_api_key: str = ''
+
+
 @dataclass
 class Config:
     temporal: TemporalConfig
@@ -84,6 +91,7 @@ class Config:
     nmap_topology: NmapTopologyConfig
     isim: ISIMConfig
     easm_scanner: EasmScannerConfig
+    slp_enrichment: SLPEnrichmentConfig
 
 
 class AppConfig:

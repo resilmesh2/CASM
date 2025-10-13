@@ -227,6 +227,18 @@ which is called in
 
 ![img.png](assets/schedule.png)
 
+## Triggering a workflow (SLP Enrichment)
+
+This workflow can be triggered by executing:
+
+```shell
+sudo docker exec -it <slp_worker_container_id> python -m temporal.slp_enrichment.workflow
+```
+
+After executing the command, you can find a new workflow in Temporal UI. Results from a successful workflow
+can be found in the Neo4j database. The new information can be found among IP addresses, domain names, 
+and subnets.
+
 # CVE connector
 Instructions for running the CVE connector are listed in [README](cve_connector/README.md).
 The most important thing is to obtain NVD REST API key that should be used by the CVE connector.

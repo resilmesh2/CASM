@@ -185,7 +185,6 @@ services:
     networks:
       - casm_isim_test_network
     environment:
-      - NVD_KEY
       - TEMPORAL_HOST=temporal
       - TEMPORAL_PORT=7233
       - NEO4J_USER=neo4j
@@ -212,6 +211,22 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=supertestovaciheslo
       - NEO4J_BOLT=bolt://neo4j:7687
+
+  slp-enrichment-worker:
+    build:
+      dockerfile: slp_enrichment.Dockerfile
+    container_name: slp-enrichment
+    restart: unless-stopped
+    volumes:
+      - ./docker/config.yaml:/app/config/config.yaml
+    depends_on:
+      temporal:
+        condition: service_healthy
+    networks:
+      - casm_isim_test_network
+    environment:
+      - TEMPORAL_HOST=temporal
+      - TEMPORAL_PORT=7233
 
 volumes:
   neo4j_easyeasm_data:
