@@ -9,28 +9,43 @@ class SLPEnrichmentActivities:
         self.isim_config = isim_config
 
     @activity.defn
-    async def get_asset_info(self) -> list[dict[str, Any]]:
-        response = httpx.get(f"{self.isim_config.url}/asset_info")
-        response_json = response.json()
-        return response_json
+    async def get_asset_info(self) -> list[list[dict[str, Any] | None]]:
+        unprocessed_addresses = []
+        last_item_found = False
+        offset = 0
+        limit = 100
+
+        while len(unprocessed_addresses) < 100 and not last_item_found:
+            params = {'limit': limit, 'offset': offset}
+            response = httpx.get(f"{self.isim_config.url}/ips", params=params)
+            response_json = response.json()
+            if len(response_json) < limit:
+                last_item_found = True
+            unprocessed_addresses += [item for item in response_json if not ('tag' in item[0] and 'SLP' in item[0]['tag'])][:100-len(unprocessed_addresses)]
+            offset += limit
+        return unprocessed_addresses
 
     @activity.defn
-    async def get_data_from_slp(self, response_json: list[dict[str, Any]], x_api_key: str) -> list[dict[str, Any]]:
+    async def get_data_from_slp(self, response_json: list[list[dict[str, Any] | None]], x_api_key: str) -> list[dict[str, Any]]:
         domains_ips_for_storing = []
         ip_addresses_in_database = []
         domains_ips_from_database = {}
+
         for asset_info in response_json:
-            ip_address = asset_info["ip"]
+            ip_address = asset_info[0]["address"]
             if ip_address == "127.0.0.1":
-                # cannot obtain external information about it
+                # cannot obtain external information about localhost
                 continue
             ip_addresses_in_database.append(ip_address)
             if ip_address not in domains_ips_from_database:
                 domains_ips_from_database[ip_address] = []
-            for domain_name in asset_info["domain_names"]:
-                domains_ips_from_database[ip_address].append({"domain_name": domain_name, "found": False,
-                                                              "subnets": asset_info["subnets"] if asset_info[
-                                                                  "subnets"] else ["0.0.0.0/0"]})
+            if asset_info[2] and "domain_name" in asset_info[2]:
+                domain_name = asset_info[2]["domain_name"]
+            else:
+                domain_name = ""
+            domains_ips_from_database[ip_address].append({"domain_name": domain_name, "found": False,
+                                                          "subnet": asset_info[1]["range"] if asset_info[1]
+                                                          else ["0.0.0.0/0"]})
 
         headers = {'Content-Type': 'application/json',
                    'X-API-KEY': x_api_key}
@@ -77,11 +92,10 @@ class SLPEnrichmentActivities:
                 # cannot obtain external information about it
                 continue
             for ip_item in domains_ips_from_database[ip_address]:
-                for subnet in ip_item["subnets"]:
-                    tmp_dictionary = {"ip": ip_address, "domain": ip_item["domain_name"],
-                                      "tag": "SLP_no", "sp_risk_score": "null", "subnet": subnet}
-                    if tmp_dictionary not in domains_ips_for_storing:
-                        domains_ips_for_storing.append(tmp_dictionary)
+                tmp_dictionary = {"ip": ip_address, "domain": ip_item["domain_name"],
+                                  "tag": "SLP_no", "sp_risk_score": "null", "subnet": ip_item["subnet"]}
+                if tmp_dictionary not in domains_ips_for_storing:
+                    domains_ips_for_storing.append(tmp_dictionary)
 
         return domains_ips_for_storing
 

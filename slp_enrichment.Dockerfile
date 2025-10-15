@@ -24,4 +24,4 @@ WORKDIR /app
 COPY --from=build /app /app
 COPY --from=build /venv /venv
 
-ENTRYPOINT ["/venv/bin/python", "-m", "temporal.slp_enrichment.worker"]
+CMD ["/venv/bin/python", "-m", "temporal.slp_enrichment.worker_schedule"]
