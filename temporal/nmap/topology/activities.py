@@ -30,11 +30,6 @@ class NmapTopologyActivities:
             response = await client.post(f"{self.isim_config.url}/traceroute", json=nmap_output)
             return response.text
 
-    @activity.defn
-    async def compute_criticalities(self) -> None:
-        async with httpx.AsyncClient() as client:
-            await client.post(f"{self.isim_config.url}/nodes/betweenness_centrality")
-            await client.post(f"{self.isim_config.url}/nodes/degree_centrality")
-
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
-        return [self.run_nmap_traceroute_scan, self.nmap_traceroute_neo4j, self.compute_criticalities, self.nmap_topology_validate_input]
+        return [self.run_nmap_traceroute_scan, self.nmap_traceroute_neo4j,
+                self.nmap_topology_validate_input]
