@@ -4,14 +4,14 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from typing import Any
 
+import structlog
 from structlog import getLogger
 from temporalio.client import Client
-from temporalio.common import WorkflowIDReusePolicy, RetryPolicy
-from temporal.slp_enrichment.activities import SLPEnrichmentActivities
+from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
 from config import AppConfig
+from temporal.slp_enrichment.activities import SLPEnrichmentActivities
 from temporalio import workflow
-import structlog
 
 logger = structlog.get_logger()
 
@@ -82,9 +82,7 @@ async def main() -> None:
         id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
     )
     workflow_description = await workflow_handle.describe()
-    logger.info(
-        "Workflow start requested.", workflow_id=workflow_description.id, run_id=workflow_description.run_id
-    )
+    logger.info("Workflow start requested.", workflow_id=workflow_description.id, run_id=workflow_description.run_id)
 
 
 if __name__ == "__main__":

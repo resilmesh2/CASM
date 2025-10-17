@@ -16,10 +16,7 @@ async def main() -> None:
     workflows = [ParentEasmWorkflow, PassiveEnumerationWorkflow, ActiveEnumeratonWorkflow]
     activities = ParentEasmWorkflow.get_activities()
     workflow_runner = SandboxedWorkflowRunner(
-        restrictions=SandboxRestrictions.default.with_passthrough_modules(
-            "temporal.easm",
-            "config"
-        )
+        restrictions=SandboxRestrictions.default.with_passthrough_modules("temporal.easm", "config")
     )
 
     worker = Worker(
