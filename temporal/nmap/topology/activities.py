@@ -2,11 +2,11 @@ from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
 import httpx
+from temporalio import activity
 
 from config import ISIMConfig, NmapTopologyConfig
 from temporal.lib import util
 from temporal.nmap.topology.scanner import topology_scan_neo
-from temporalio import activity
 
 
 class NmapTopologyActivities:
@@ -44,7 +44,7 @@ class NmapTopologyActivities:
     @activity.defn
     async def nmap_traceroute_neo4j(self, nmap_output: dict[str, Any]) -> str:
         """
-        Post traceroute results to the ISIM topology endpoint.
+        Post-traceroute results to the ISIM topology endpoint.
 
         :param nmap_output: Output from run_nmap_traceroute_scan to be posted.
         :return: The response body returned by the ISIM API.
@@ -55,11 +55,6 @@ class NmapTopologyActivities:
 
     @activity.defn
     async def compute_criticalities(self) -> None:
-        """
-        Trigger computation of graph centrality metrics in ISIM (betweenness and degree).
-
-        :return: None
-        """
         async with httpx.AsyncClient() as client:
             await client.post(f"{self.isim_config.url}/nodes/betweenness_centrality")
             await client.post(f"{self.isim_config.url}/nodes/degree_centrality")
@@ -68,6 +63,5 @@ class NmapTopologyActivities:
         return [
             self.run_nmap_traceroute_scan,
             self.nmap_traceroute_neo4j,
-            self.compute_criticalities,
             self.nmap_topology_validate_input,
         ]
