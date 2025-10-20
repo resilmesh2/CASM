@@ -1,6 +1,9 @@
 import asyncio
 from datetime import timedelta
-from temporalio.client import Client, Schedule, ScheduleActionStartWorkflow, ScheduleIntervalSpec, ScheduleSpec
+from temporalio.client import (Client, Schedule, ScheduleActionStartWorkflow, ScheduleIntervalSpec,
+                               ScheduleSpec, ScheduleAlreadyRunningError)
+from temporalio.exceptions import TemporalError
+from logging import getLogger
 from temporal.slp_enrichment.workflow import SLPEnrichmentWorkflow
 from config import AppConfig
 from temporalio.worker import Worker
@@ -10,6 +13,7 @@ from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxR
 async def main():
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url)
+    logger = getLogger()
     workflows = [SLPEnrichmentWorkflow]
     activities = SLPEnrichmentWorkflow.get_activities()
     workflow_runner = SandboxedWorkflowRunner(
@@ -27,21 +31,34 @@ async def main():
         workflow_runner=workflow_runner,
     )
 
-    await asyncio.gather(worker.run(),
-                         client.create_schedule(
-                             "slp-enrichment-schedule-id",
-                             Schedule(
-                                 action=ScheduleActionStartWorkflow(
-                                     SLPEnrichmentWorkflow.run,
-                                     id="slp-enrichment-workflow-id",
-                                     task_queue="slp_enrichment",
+    workflow_id = "slp-enrichment-workflow-id"
+    schedule_id = "slp-enrichment-schedule-id"
+    try:
+        async for schedule_item in await client.list_schedules():
+            if schedule_item.id == schedule_id:
+                raise ScheduleAlreadyRunningError()
+        await asyncio.gather(worker.run(),
+                             client.create_schedule(
+                                 schedule_id,
+                                 Schedule(
+                                     action=ScheduleActionStartWorkflow(
+                                         SLPEnrichmentWorkflow.run,
+                                         id=workflow_id,
+                                         task_queue="slp_enrichment",
+                                     ),
+                                     spec=ScheduleSpec(
+                                         intervals=[ScheduleIntervalSpec(every=timedelta(minutes=60))]
+                                     ),
                                  ),
-                                 spec=ScheduleSpec(
-                                     intervals=[ScheduleIntervalSpec(every=timedelta(minutes=60))]
-                                 ),
-                             ),
-                         )
-                         )
+                             )
+                             )
+        logger.info(f"Schedule: {schedule_id} and workflow created.")
+    except ScheduleAlreadyRunningError:
+        try:
+            logger.info(f"Schedule {schedule_id} already running.")
+            await worker.run()
+        except TemporalError:
+            logger.info("Schedule and workflow already running.")
 
 if __name__ == "__main__":
     asyncio.run(main())

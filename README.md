@@ -6,7 +6,6 @@ in its current version.
 
 The environment consists of the following components:
 * Neo4J database for results
-* Temporal server as orchestrator
 * Custom Temporal worker carrying out the workflows
 * Redis as an in memory database for EasyEASM worker to pass the scan results between tasks
 * PostgreSQL database utilized by scanning tool
@@ -14,6 +13,8 @@ The environment consists of the following components:
 * Other containers providing functionality to workers
 
 The demonstrator can be deployed with Docker. There is a `compose.yml` file spawning all components.
+This component has a dependency on two other components - workflow orchestrator that orchestrates the workflows
+and ISIM that contains a Neo4j database. 
 
 # Configuration
 Configuration files are located in the [config](config) and in [docker](docker) folders. Config in [config](config) serves for local deployment of workers
@@ -67,7 +68,7 @@ easm_scanner:
 
 ```
 - temporal:
-  - url: url of Temporal server GRPC service
+  - url: url of Temporal server GRPC service from the [workflow orchestrator repository](https://github.com/resilmesh2/Workflow-Orchestrator/)
   - namespace: namespace on Temporal server
   - task_queues: task_queues used by Workers and Workflows
 - neo4j:
@@ -102,7 +103,9 @@ that store the configuration details.
 
 ## Prerequisites
 
-CASM requires Neo4j database to be set up and running. It is recommended to run ISIM first (e.g., in Docker), then run CASM.
+CASM requires Neo4j database to be set up and running. It is recommended to run [ISIM](https://github.com/resilmesh2/ISIM) first (e.g., in Docker).
+Another prerequisite is the [workflow orchestrator](https://github.com/resilmesh2/Workflow-Orchestrator/) that must be up using its compose.yml file. Afterwards, CASM can 
+be deployed using Docker.
 
 ## Running the app
 
@@ -116,8 +119,10 @@ you can verify that the following is available:
 Neo4J should be available at http://localhost:7474/browser/. The default credentials are `neo4j:supertestovaciheslo`. If you want to change the credentials you can do so in the `compose` file by chaging the `NEO4J_AUTH` variable. Please, do no forget to pass the new credentials to the Temporal worker configuration as well (see [Configuration](#configuration))
 
 ### Temporalio server
-Temporalio server should be available at http://localhost:8080/. You can watch the progress of your workflows there, or look for errors
-if any problems occure. You can also create a scheduled scanning workflow there.
+Temporalio server from the [workflow orchestrator](https://github.com/resilmesh2/Workflow-Orchestrator/)
+should be available at http://localhost:8080/. You can watch the progress 
+of your workflows there, or look for errors if any problems occur. 
+You can also create a scheduled scanning workflow there.
 
 ### Worker
 Worker is a custom image build by this [project](Dockerfile) for EasyEASM. Worker has installed:
