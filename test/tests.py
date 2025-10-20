@@ -26,8 +26,7 @@ class TestMethods(unittest.IsolatedAsyncioTestCase):
 
         # Call a method for storing the data
         activities = EasyEasmActivities(RedisConfig(config.redis.host), Neo4jConfig(config.neo4j.password))
-        await activities.store_result_to_neo4j(scan_uuid, ["example.com", "www.example.com",
-                                                            "scanme.nmap.org"])
+        await activities.store_result_to_neo4j(scan_uuid, ["example.com", "www.example.com", "scanme.nmap.org"])
 
         # Check the content of the Neo4j database
         neo4j_client = GraphDatabase.driver(
@@ -79,4 +78,9 @@ class TestMethods(unittest.IsolatedAsyncioTestCase):
         assert ip_result == 3
         assert domain_result == 3
         assert ip_list_result == [{"ip": "23.192.228.80"}, {"ip": "2.17.147.80"}, {"ip": "45.33.32.156"}]
-        assert sv_list_result == [{"sv": {"name": "Azure"}}, {"sv": {"name": "Azure CDN"}}, {"sv": {"name": "Apache HTTP Server:2.4.7", "version": "apache:http_server:2.4.7"}}, {"sv": {"name": "Ubuntu", "version": "canonical:ubuntu_linux:*"}}]
+        assert sv_list_result == [
+            {"sv": {"name": "Azure"}},
+            {"sv": {"name": "Azure CDN"}},
+            {"sv": {"name": "Apache HTTP Server:2.4.7", "version": "apache:http_server:2.4.7"}},
+            {"sv": {"name": "Ubuntu", "version": "canonical:ubuntu_linux:*"}},
+        ]

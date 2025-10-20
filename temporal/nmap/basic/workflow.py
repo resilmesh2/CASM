@@ -5,18 +5,28 @@ from datetime import timedelta
 from logging import getLogger
 from typing import Any
 
+from temporalio import workflow
 from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
 from config import AppConfig
 from temporal.nmap.basic.activities import NmapBasicActivities
-from temporalio import workflow
 
 
 @workflow.defn(name="NmapBasicWorkflow")
 class NmapBasicWorkflow:
+    """
+    Workflow that runs a basic nmap scan, parses the XML, and publishes results to ISIM.
+    """
+
     @workflow.run
     async def run(self, input_: dict[str, Any] | None = None) -> None:
+        """
+        Execute the basic nmap workflow end-to-end.
+
+        :param input_: Optional mapping compatible with NmapBasicConfig to override defaults.
+        :return: None
+        """
         config = AppConfig.get()
         nmap_config = config.nmap_basic
 
@@ -69,12 +79,25 @@ class NmapBasicWorkflow:
 
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
+        """
+        Collect all activity callables used by the basic nmap workflow.
+
+        :return: A flat sequence of activity functions to be registered with a worker.
+        """
         config = AppConfig.get()
         activities = NmapBasicActivities(config.isim)
         return [*activities.get_activities()]
 
 
 async def main() -> None:
+    """
+    Convenience entry point to start the NmapBasicWorkflow from the CLI.
+
+    Connects to the Temporal server, starts a workflow run on the configured task
+    queue, and logs basic information about the request.
+
+    :return: None
+    """
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url)
     logger = getLogger()
@@ -88,9 +111,7 @@ async def main() -> None:
         id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
     )
     workflow_description = await workflow_handle.describe()
-    logger.info(
-        "Workflow start requested.", workflow_id=workflow_description.id, run_id=workflow_description.run_id
-    )
+    logger.info("Workflow start requested.", workflow_id=workflow_description.id, run_id=workflow_description.run_id)
 
 
 if __name__ == "__main__":

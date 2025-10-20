@@ -18,7 +18,6 @@ Dependencies:
   - Vulnerability from cve_connector.nvd_cve.vulnerability.
 """
 
-
 from cve_connector.nvd_cve.categorization.cia_loss import (
     add_other_cia_impacts,
     has_system_availability_loss,
@@ -162,31 +161,31 @@ def distinguish_system_application(vulnerability: Vulnerability) -> list[str]:
     if system_availability_changed(vulnerability):
         result_impacts.append("System availability loss")
     if not result_impacts:
-        if len(vulnerability.cvssv40.keys()) != 0 and \
-           vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") != "NONE":
+        if (
+            len(vulnerability.cvssv40.keys()) != 0
+            and vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") != "NONE"
+        ):
             result_impacts.append("Application integrity loss")
-        if len(vulnerability.cvssv40.keys()) != 0 and \
-           vulnerability.cvssv40.get("vulnerableSystemAvailability", "") != "NONE":
+        if (
+            len(vulnerability.cvssv40.keys()) != 0
+            and vulnerability.cvssv40.get("vulnerableSystemAvailability", "") != "NONE"
+        ):
             result_impacts.append("Application availability loss")
-        if len(vulnerability.cvssv40.keys()) != 0 and \
-           vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") != "NONE":
+        if (
+            len(vulnerability.cvssv40.keys()) != 0
+            and vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") != "NONE"
+        ):
             result_impacts.append("Application confidentiality loss")
-        if len(vulnerability.cvssv31.keys()) != 0 and \
-           vulnerability.cvssv31.get("integrityImpact", "") != "NONE":
+        if len(vulnerability.cvssv31.keys()) != 0 and vulnerability.cvssv31.get("integrityImpact", "") != "NONE":
             result_impacts.append("Application integrity loss")
-        if len(vulnerability.cvssv31.keys()) != 0 and \
-           vulnerability.cvssv31.get("availabilityImpact", "") != "NONE":
+        if len(vulnerability.cvssv31.keys()) != 0 and vulnerability.cvssv31.get("availabilityImpact", "") != "NONE":
             result_impacts.append("Application availability loss")
-        if len(vulnerability.cvssv31.keys()) != 0 and \
-           vulnerability.cvssv31.get("confidentialityImpact", "") != "NONE":
+        if len(vulnerability.cvssv31.keys()) != 0 and vulnerability.cvssv31.get("confidentialityImpact", "") != "NONE":
             result_impacts.append("Application confidentiality loss")
-        if len(vulnerability.cvssv30.keys()) != 0 and \
-           vulnerability.cvssv30.get("integrityImpact", "") != "NONE":
+        if len(vulnerability.cvssv30.keys()) != 0 and vulnerability.cvssv30.get("integrityImpact", "") != "NONE":
             result_impacts.append("Application integrity loss")
-        if len(vulnerability.cvssv30.keys()) != 0 and \
-           vulnerability.cvssv30.get("availabilityImpact", "") != "NONE":
+        if len(vulnerability.cvssv30.keys()) != 0 and vulnerability.cvssv30.get("availabilityImpact", "") != "NONE":
             result_impacts.append("Application availability loss")
-        if len(vulnerability.cvssv30.keys()) != 0 and \
-           vulnerability.cvssv30.get("confidentialityImpact", "") != "NONE":
+        if len(vulnerability.cvssv30.keys()) != 0 and vulnerability.cvssv30.get("confidentialityImpact", "") != "NONE":
             result_impacts.append("Application confidentiality loss")
     return result_impacts

@@ -5,18 +5,31 @@ from datetime import timedelta
 from typing import Any
 
 from structlog import getLogger
+from temporalio import workflow
 from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
 from config import AppConfig
 from temporal.nmap.topology.activities import NmapTopologyActivities
-from temporalio import workflow
 
 
 @workflow.defn(name="NmapTopologyWorkflow")
 class NmapTopologyWorkflow:
+    """
+    Workflow that performs network topology discovery using nmap traceroute and stores results via ISIM.
+
+    It validates optional input, runs the traceroute scan activity, posts results to the ISIM API,
+    and triggers criticality computations (centrality metrics).
+    """
+
     @workflow.run
     async def run(self, input_: dict[str, Any] | None = None) -> None:
+        """
+        Execute the topology workflow end-to-end.
+
+        :param input_: Optional mapping compatible with NmapTopologyConfig to override defaults.
+        :return: None
+        """
         config = AppConfig.get()
         nmap_config = config.nmap_topology
 
@@ -56,12 +69,25 @@ class NmapTopologyWorkflow:
 
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
+        """
+        Collect all activity callables used by the topology workflow.
+
+        :return: A flat sequence of activity functions to be registered with a worker.
+        """
         config = AppConfig.get()
         activities = NmapTopologyActivities(config.isim)
         return [*activities.get_activities()]
 
 
 async def main() -> None:
+    """
+    Convenience entry point to start the NmapTopologyWorkflow from the CLI.
+
+    Connects to the Temporal server, starts a workflow run on the configured task
+    queue, and logs basic information about the request.
+
+    :return: None
+    """
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url)
     logger = getLogger()
@@ -75,9 +101,7 @@ async def main() -> None:
         id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
     )
     workflow_description = await workflow_handle.describe()
-    logger.info(
-        "Workflow start requested.", workflow_id=workflow_description.id, run_id=workflow_description.run_id
-    )
+    logger.info("Workflow start requested.", workflow_id=workflow_description.id, run_id=workflow_description.run_id)
 
 
 if __name__ == "__main__":

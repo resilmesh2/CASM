@@ -1,6 +1,9 @@
-from typing import Any, Sequence, Callable, Awaitable
+from collections.abc import Awaitable, Callable, Sequence
+from typing import Any
+
 import httpx
 from temporalio import activity
+
 from config import ISIMConfig
 
 
@@ -16,17 +19,21 @@ class SLPEnrichmentActivities:
         limit = 100
 
         while len(unprocessed_addresses) < 100 and not last_item_found:
-            params = {'limit': limit, 'offset': offset}
+            params = {"limit": limit, "offset": offset}
             response = httpx.get(f"{self.isim_config.url}/ips", params=params)
             response_json = response.json()
             if len(response_json) < limit:
                 last_item_found = True
-            unprocessed_addresses += [item for item in response_json if not ('tag' in item[0] and 'SLP' in item[0]['tag'])][:100-len(unprocessed_addresses)]
+            unprocessed_addresses += [
+                item for item in response_json if not ("tag" in item[0] and "SLP" in item[0]["tag"])
+            ][: 100 - len(unprocessed_addresses)]
             offset += limit
         return unprocessed_addresses
 
     @activity.defn
-    async def get_data_from_slp(self, response_json: list[list[dict[str, Any] | None]], x_api_key: str) -> list[dict[str, Any]]:
+    async def get_data_from_slp(
+        self, response_json: list[list[dict[str, Any] | None]], x_api_key: str
+    ) -> list[dict[str, Any]]:
         domains_ips_for_storing = []
         ip_addresses_in_database = []
         domains_ips_from_database = {}
@@ -39,20 +46,24 @@ class SLPEnrichmentActivities:
             ip_addresses_in_database.append(ip_address)
             if ip_address not in domains_ips_from_database:
                 domains_ips_from_database[ip_address] = []
-            if asset_info[2] and "domain_name" in asset_info[2]:
-                domain_name = asset_info[2]["domain_name"]
-            else:
-                domain_name = ""
-            domains_ips_from_database[ip_address].append({"domain_name": domain_name, "found": False,
-                                                          "subnet": asset_info[1]["range"] if asset_info[1]
-                                                          else ["0.0.0.0/0"]})
+            domain_name = asset_info[2]["domain_name"] if asset_info[2] and "domain_name" in asset_info[2] else ""
+            domains_ips_from_database[ip_address].append(
+                {
+                    "domain_name": domain_name,
+                    "found": False,
+                    "subnet": asset_info[1]["range"] if asset_info[1] else ["0.0.0.0/0"],
+                }
+            )
 
-        headers = {'Content-Type': 'application/json',
-                   'X-API-KEY': x_api_key}
+        headers = {"Content-Type": "application/json", "X-API-KEY": x_api_key}
         data = {"ips": ip_addresses_in_database}
 
-        response = httpx.post("https://api.silentpush.com/api/v1/merge-api/explore/bulk/ip2asn/ipv4", json=data,
-                              headers=headers, timeout=None)
+        response = httpx.post(
+            "https://api.silentpush.com/api/v1/merge-api/explore/bulk/ip2asn/ipv4",
+            json=data,
+            headers=headers,
+            timeout=None,
+        )
         response_json = response.json()
 
         if response_json["status_code"] == 200 and not response_json["error"]:
@@ -92,8 +103,13 @@ class SLPEnrichmentActivities:
                 # cannot obtain external information about it
                 continue
             for ip_item in domains_ips_from_database[ip_address]:
-                tmp_dictionary = {"ip": ip_address, "domain": ip_item["domain_name"],
-                                  "tag": "SLP_no", "sp_risk_score": "null", "subnet": ip_item["subnet"]}
+                tmp_dictionary = {
+                    "ip": ip_address,
+                    "domain": ip_item["domain_name"],
+                    "tag": "SLP_no",
+                    "sp_risk_score": "null",
+                    "subnet": ip_item["subnet"],
+                }
                 if tmp_dictionary not in domains_ips_for_storing:
                     domains_ips_for_storing.append(tmp_dictionary)
 

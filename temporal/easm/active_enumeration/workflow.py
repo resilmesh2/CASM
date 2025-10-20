@@ -2,17 +2,32 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from typing import Any
 
+from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 from config import AppConfig
 from temporal.easm.active_enumeration.activities import ActiveEnumerationActivities
-from temporalio import workflow
 
 
 @workflow.defn
 class ActiveEnumeratonWorkflow:
+    """
+    Workflow that performs active subdomain enumeration steps.
+
+    It orchestrates dnsx bruteforce, alterx permutations, and dnsx resolution to
+    produce a set of resolvable subdomains for further probing.
+    """
+
     @workflow.run
     async def run(self, passive_scan_domains_uuid: str, wordlist: str, threads: str) -> str:
+        """
+        Run active enumeration by chaining dnsx bruteforce, alterx, and dnsx resolver.
+
+        :param passive_scan_domains_uuid: Redis key for domains found during passive enumeration.
+        :param wordlist: Path to wordlist used in dnsx bruteforce phase.
+        :param threads: Number of threads to use for dnsx bruteforce.
+        :return: Redis key with the final set of resolvable subdomains.
+        """
         # Active bruteforce
         dnsx_result_uuid = await workflow.execute_activity(
             ActiveEnumerationActivities.run_dnsx_bruteforce,

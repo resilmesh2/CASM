@@ -1,5 +1,3 @@
-
-
 def cve_is_about_system(cpe_type: set[str]) -> bool:
     """
     Determines whether a CVE targets a system component.

@@ -18,9 +18,7 @@ async def main() -> None:
         activities += workflow.get_activities()
     workflow_runner = SandboxedWorkflowRunner(
         restrictions=SandboxRestrictions.default.with_passthrough_modules(
-            "temporal.nmap.basic",
-            "temporal.nmap.topology",
-            "config"
+            "temporal.nmap.basic", "temporal.nmap.topology", "config"
         )
     )
 
