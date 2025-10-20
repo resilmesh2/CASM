@@ -22,7 +22,6 @@ Dependencies:
   - Vulnerability from cve_connector.nvd_cve.vulnerability.
 """
 
-
 from cve_connector.nvd_cve.categorization.utils import cve_is_about_system, test_incidence
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
@@ -79,18 +78,26 @@ def has_system_confidentiality_loss(vulnerability: Vulnerability) -> bool:
     if not cve_is_about_system(vulnerability.cpe_type):
         return False
     if len(vulnerability.cvssv40.keys()) != 0:
-        if vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+        if vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "LOW" and test_incidence(
+            vulnerability.description, sufficient_condition
+        ):
             return True
         return vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "HIGH"
     if len(vulnerability.cvssv31.keys()) != 0:
-        if vulnerability.cvssv31.get("confidentialityImpact", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+        if vulnerability.cvssv31.get("confidentialityImpact", "") == "LOW" and test_incidence(
+            vulnerability.description, sufficient_condition
+        ):
             return True
         return vulnerability.cvssv31.get("confidentialityImpact", "") == "HIGH"
     if len(vulnerability.cvssv30.keys()) != 0:
-        if vulnerability.cvssv30.get("confidentialityImpact", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+        if vulnerability.cvssv30.get("confidentialityImpact", "") == "LOW" and test_incidence(
+            vulnerability.description, sufficient_condition
+        ):
             return True
         return vulnerability.cvssv30.get("confidentialityImpact", "") == "HIGH"
-    if vulnerability.cvssv2.get("confidentialityImpact", "") == "PARTIAL" and test_incidence(vulnerability.description, sufficient_condition):
+    if vulnerability.cvssv2.get("confidentialityImpact", "") == "PARTIAL" and test_incidence(
+        vulnerability.description, sufficient_condition
+    ):
         return True
     return vulnerability.cvssv2.get("confidentialityImpact", "") == "COMPLETE"
 
@@ -140,21 +147,29 @@ def has_system_integrity_loss(vulnerability: Vulnerability) -> bool:
         "change the device's settings",
         "configuration changes",
         "modification of system states",
-        "host arbitrary files"
+        "host arbitrary files",
     ]
     if len(vulnerability.cvssv40.keys()) != 0:
-        if vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+        if vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "LOW" and test_incidence(
+            vulnerability.description, sufficient_condition
+        ):
             return True
         return vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "HIGH"
     if len(vulnerability.cvssv31.keys()) != 0:
-        if vulnerability.cvssv31.get("integrityImpact", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+        if vulnerability.cvssv31.get("integrityImpact", "") == "LOW" and test_incidence(
+            vulnerability.description, sufficient_condition
+        ):
             return True
         return vulnerability.cvssv31.get("integrityImpact", "") == "HIGH"
     if len(vulnerability.cvssv30.keys()) != 0:
-        if vulnerability.cvssv30.get("integrityImpact", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+        if vulnerability.cvssv30.get("integrityImpact", "") == "LOW" and test_incidence(
+            vulnerability.description, sufficient_condition
+        ):
             return True
         return vulnerability.cvssv30.get("integrityImpact", "") == "HIGH"
-    if vulnerability.cvssv2.get("integrityImpact", "") == "PARTIAL" and test_incidence(vulnerability.description, sufficient_condition):
+    if vulnerability.cvssv2.get("integrityImpact", "") == "PARTIAL" and test_incidence(
+        vulnerability.description, sufficient_condition
+    ):
         return True
     return vulnerability.cvssv2.get("integrityImpact", "") == "COMPLETE"
 
@@ -175,12 +190,7 @@ def has_system_availability_loss(vulnerability: Vulnerability) -> bool:
     """
     if not cve_is_about_system(vulnerability.cpe_type):
         return False
-    system_tokens: list[str] = [
-        "device crash",
-        "device reload",
-        "system crash",
-        "cpu consumption"
-    ]
+    system_tokens: list[str] = ["device crash", "device reload", "system crash", "cpu consumption"]
     for token in system_tokens:
         if token in vulnerability.description:
             return True
@@ -193,27 +203,35 @@ def has_system_availability_loss(vulnerability: Vulnerability) -> bool:
         "cause the device to hang or unexpectedly reload",
         "denial of service (use-after-free) via a crafted application",
         "cause an affected device to reload",
-        "cause an affected system to stop"
+        "cause an affected system to stop",
     ]
     if len(vulnerability.cvssv40.keys()) != 0:
-        if vulnerability.cvssv40.get("vulnerableSystemAvailability", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+        if vulnerability.cvssv40.get("vulnerableSystemAvailability", "") == "LOW" and test_incidence(
+            vulnerability.description, sufficient_condition
+        ):
             return True
         if has_system_integrity_loss(vulnerability):
             return vulnerability.cvssv40.get("vulnerableSystemAvailability", "") != "NONE"
         return vulnerability.cvssv40.get("vulnerableSystemAvailability", "") == "HIGH"
     if len(vulnerability.cvssv31.keys()) != 0:
-        if vulnerability.cvssv31.get("availabilityImpact", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+        if vulnerability.cvssv31.get("availabilityImpact", "") == "LOW" and test_incidence(
+            vulnerability.description, sufficient_condition
+        ):
             return True
         if has_system_integrity_loss(vulnerability):
             return vulnerability.cvssv31.get("availabilityImpact", "") != "NONE"
         return vulnerability.cvssv31.get("availabilityImpact", "") == "HIGH"
     if len(vulnerability.cvssv30.keys()) != 0:
-        if vulnerability.cvssv30.get("availabilityImpact", "") == "LOW" and test_incidence(vulnerability.description, sufficient_condition):
+        if vulnerability.cvssv30.get("availabilityImpact", "") == "LOW" and test_incidence(
+            vulnerability.description, sufficient_condition
+        ):
             return True
         if has_system_integrity_loss(vulnerability):
             return vulnerability.cvssv30.get("availabilityImpact", "") != "NONE"
         return vulnerability.cvssv30.get("availabilityImpact", "") == "HIGH"
-    if vulnerability.cvssv2.get("availabilityImpact", "") == "PARTIAL" and test_incidence(vulnerability.description, sufficient_condition):
+    if vulnerability.cvssv2.get("availabilityImpact", "") == "PARTIAL" and test_incidence(
+        vulnerability.description, sufficient_condition
+    ):
         return True
     if has_system_integrity_loss(vulnerability):
         return vulnerability.cvssv2.get("availabilityImpact", "") != "NONE"
@@ -236,23 +254,47 @@ def system_confidentiality_changed(vulnerability: Vulnerability) -> bool:
     if not cve_is_about_system(vulnerability.cpe_type):
         return False
     if len(vulnerability.cvssv40.keys()) != 0:
-        if "in the remote system" in vulnerability.description and vulnerability.cvssv40["vulnerableSystemConfidentiality"] == "HIGH":
+        if (
+            "in the remote system" in vulnerability.description
+            and vulnerability.cvssv40["vulnerableSystemConfidentiality"] == "HIGH"
+        ):
             return True
-        if cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv40["vulnerableSystemConfidentiality"] == "HIGH":
+        if (
+            cve_is_about_system(vulnerability.cpe_type)
+            and vulnerability.cvssv40["vulnerableSystemConfidentiality"] == "HIGH"
+        ):
             return True
     if len(vulnerability.cvssv31.keys()) != 0:
-        if "in the remote system" in vulnerability.description and vulnerability.cvssv31.get("confidentialityImpact", "") == "HIGH":
+        if (
+            "in the remote system" in vulnerability.description
+            and vulnerability.cvssv31.get("confidentialityImpact", "") == "HIGH"
+        ):
             return True
-        if cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv31.get("confidentialityImpact", "") == "HIGH":
+        if (
+            cve_is_about_system(vulnerability.cpe_type)
+            and vulnerability.cvssv31.get("confidentialityImpact", "") == "HIGH"
+        ):
             return True
     if len(vulnerability.cvssv30.keys()) != 0:
-        if "in the remote system" in vulnerability.description and vulnerability.cvssv30.get("confidentialityImpact", "") == "HIGH":
+        if (
+            "in the remote system" in vulnerability.description
+            and vulnerability.cvssv30.get("confidentialityImpact", "") == "HIGH"
+        ):
             return True
-        if cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv30.get("confidentialityImpact", "") == "HIGH":
+        if (
+            cve_is_about_system(vulnerability.cpe_type)
+            and vulnerability.cvssv30.get("confidentialityImpact", "") == "HIGH"
+        ):
             return True
-    if "in the remote system" in vulnerability.description and vulnerability.cvssv2.get("confidentialityImpact", "") == "PARTIAL":
+    if (
+        "in the remote system" in vulnerability.description
+        and vulnerability.cvssv2.get("confidentialityImpact", "") == "PARTIAL"
+    ):
         return True
-    return cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv2.get("confidentialityImpact", "") == "PARTIAL"
+    return (
+        cve_is_about_system(vulnerability.cpe_type)
+        and vulnerability.cvssv2.get("confidentialityImpact", "") == "PARTIAL"
+    )
 
 
 def system_integrity_changed(vulnerability: Vulnerability) -> bool:
@@ -271,21 +313,33 @@ def system_integrity_changed(vulnerability: Vulnerability) -> bool:
     if not cve_is_about_system(vulnerability.cpe_type):
         return False
     if len(vulnerability.cvssv40.keys()) != 0:
-        if "in the remote system" in vulnerability.description and vulnerability.cvssv40["vulnerableSystemIntegrity"] == "HIGH":
+        if (
+            "in the remote system" in vulnerability.description
+            and vulnerability.cvssv40["vulnerableSystemIntegrity"] == "HIGH"
+        ):
             return True
         if cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv40["vulnerableSystemIntegrity"] == "HIGH":
             return True
     if len(vulnerability.cvssv31.keys()) != 0:
-        if "in the remote system" in vulnerability.description and vulnerability.cvssv31.get("integrityImpact", "") == "HIGH":
+        if (
+            "in the remote system" in vulnerability.description
+            and vulnerability.cvssv31.get("integrityImpact", "") == "HIGH"
+        ):
             return True
         if cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv31.get("integrityImpact", "") == "HIGH":
             return True
     if len(vulnerability.cvssv30.keys()) != 0:
-        if "in the remote system" in vulnerability.description and vulnerability.cvssv30.get("integrityImpact", "") == "HIGH":
+        if (
+            "in the remote system" in vulnerability.description
+            and vulnerability.cvssv30.get("integrityImpact", "") == "HIGH"
+        ):
             return True
         if cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv30.get("integrityImpact", "") == "HIGH":
             return True
-    if "in the remote system" in vulnerability.description and vulnerability.cvssv2.get("integrityImpact", "") == "PARTIAL":
+    if (
+        "in the remote system" in vulnerability.description
+        and vulnerability.cvssv2.get("integrityImpact", "") == "PARTIAL"
+    ):
         return True
     return cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv2.get("integrityImpact", "") == "PARTIAL"
 
@@ -306,23 +360,46 @@ def system_availability_changed(vulnerability: Vulnerability) -> bool:
     if not cve_is_about_system(vulnerability.cpe_type):
         return False
     if len(vulnerability.cvssv40.keys()) != 0:
-        if "in the remote system" in vulnerability.description and vulnerability.cvssv40["vulnerableSystemAvailability"] == "HIGH":
+        if (
+            "in the remote system" in vulnerability.description
+            and vulnerability.cvssv40["vulnerableSystemAvailability"] == "HIGH"
+        ):
             return True
-        if cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv40["vulnerableSystemAvailability"] == "HIGH":
+        if (
+            cve_is_about_system(vulnerability.cpe_type)
+            and vulnerability.cvssv40["vulnerableSystemAvailability"] == "HIGH"
+        ):
             return True
     if len(vulnerability.cvssv31.keys()) != 0:
-        if "in the remote system" in vulnerability.description and vulnerability.cvssv31.get("availabilityImpact", "") == "HIGH":
+        if (
+            "in the remote system" in vulnerability.description
+            and vulnerability.cvssv31.get("availabilityImpact", "") == "HIGH"
+        ):
             return True
-        if cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv31.get("availabilityImpact", "") == "HIGH":
+        if (
+            cve_is_about_system(vulnerability.cpe_type)
+            and vulnerability.cvssv31.get("availabilityImpact", "") == "HIGH"
+        ):
             return True
     if len(vulnerability.cvssv30.keys()) != 0:
-        if "in the remote system" in vulnerability.description and vulnerability.cvssv30.get("availabilityImpact", "") == "HIGH":
+        if (
+            "in the remote system" in vulnerability.description
+            and vulnerability.cvssv30.get("availabilityImpact", "") == "HIGH"
+        ):
             return True
-        if cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv30.get("availabilityImpact", "") == "HIGH":
+        if (
+            cve_is_about_system(vulnerability.cpe_type)
+            and vulnerability.cvssv30.get("availabilityImpact", "") == "HIGH"
+        ):
             return True
-    if "in the remote system" in vulnerability.description and vulnerability.cvssv2.get("availabilityImpact", "") == "PARTIAL":
+    if (
+        "in the remote system" in vulnerability.description
+        and vulnerability.cvssv2.get("availabilityImpact", "") == "PARTIAL"
+    ):
         return True
-    return cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv2.get("availabilityImpact", "") == "PARTIAL"
+    return (
+        cve_is_about_system(vulnerability.cpe_type) and vulnerability.cvssv2.get("availabilityImpact", "") == "PARTIAL"
+    )
 
 
 def add_other_cia_impacts(result_impacts: list[str], vulnerability: Vulnerability) -> None:
@@ -339,99 +416,111 @@ def add_other_cia_impacts(result_impacts: list[str], vulnerability: Vulnerabilit
     :param vulnerability: An instance of Vulnerability containing CVSS metrics and description.
     :return: None. The function modifies result_impacts in place.
     """
-    if "System integrity loss" in result_impacts and \
-            "System confidentiality loss" not in result_impacts:
+    if "System integrity loss" in result_impacts and "System confidentiality loss" not in result_impacts:
         if len(vulnerability.cvssv40.keys()) != 0:
-            if (vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System confidentiality loss")
         elif len(vulnerability.cvssv31.keys()) != 0:
-            if (vulnerability.cvssv31.get("confidentialityImpact", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv31.get("confidentialityImpact", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System confidentiality loss")
         elif len(vulnerability.cvssv30.keys()) != 0:
-            if (vulnerability.cvssv30.get("confidentialityImpact", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv30.get("confidentialityImpact", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System confidentiality loss")
         elif vulnerability.cvssv2.get("confidentialityImpact", "") == "PARTIAL":
             result_impacts.append("System confidentiality loss")
-    if "System integrity loss" in result_impacts and \
-            "System availability loss" not in result_impacts:
+    if "System integrity loss" in result_impacts and "System availability loss" not in result_impacts:
         if len(vulnerability.cvssv40.keys()) != 0:
-            if (vulnerability.cvssv40.get("vulnerableSystemAvailability", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv40.get("vulnerableSystemAvailability", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System availability loss")
         elif len(vulnerability.cvssv31.keys()) != 0:
-            if (vulnerability.cvssv31.get("availabilityImpact", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv31.get("availabilityImpact", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System availability loss")
         elif len(vulnerability.cvssv30.keys()) != 0:
-            if (vulnerability.cvssv30.get("availabilityImpact", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv30.get("availabilityImpact", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System availability loss")
         elif vulnerability.cvssv2.get("availabilityImpact", "") == "PARTIAL":
             result_impacts.append("System availability loss")
-    if "System confidentiality loss" in result_impacts and \
-            "System integrity loss" not in result_impacts:
+    if "System confidentiality loss" in result_impacts and "System integrity loss" not in result_impacts:
         if len(vulnerability.cvssv40.keys()) != 0:
-            if (vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System integrity loss")
         elif len(vulnerability.cvssv31.keys()) != 0:
-            if (vulnerability.cvssv31.get("integrityImpact", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv31.get("integrityImpact", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System integrity loss")
         elif len(vulnerability.cvssv30.keys()) != 0:
-            if (vulnerability.cvssv30.get("integrityImpact", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv30.get("integrityImpact", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System integrity loss")
         elif vulnerability.cvssv2.get("integrityImpact", "") == "PARTIAL":
             result_impacts.append("System integrity loss")
-    if "System confidentiality loss" in result_impacts and \
-            "System availability loss" not in result_impacts:
+    if "System confidentiality loss" in result_impacts and "System availability loss" not in result_impacts:
         if len(vulnerability.cvssv40.keys()) != 0:
-            if (vulnerability.cvssv40.get("vulnerableSystemAvailability", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv40.get("vulnerableSystemAvailability", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System availability loss")
         elif len(vulnerability.cvssv31.keys()) != 0:
-            if (vulnerability.cvssv31.get("availabilityImpact", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv31.get("availabilityImpact", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System availability loss")
         elif len(vulnerability.cvssv30.keys()) != 0:
-            if (vulnerability.cvssv30.get("availabilityImpact", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv30.get("availabilityImpact", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System availability loss")
         elif vulnerability.cvssv2.get("availabilityImpact", "") == "PARTIAL":
             result_impacts.append("System availability loss")
-    if "System availability loss" in result_impacts and \
-            "System confidentiality loss" not in result_impacts:
+    if "System availability loss" in result_impacts and "System confidentiality loss" not in result_impacts:
         if len(vulnerability.cvssv40.keys()) != 0:
-            if (vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System confidentiality loss")
         elif len(vulnerability.cvssv31.keys()) != 0:
-            if (vulnerability.cvssv31.get("confidentialityImpact", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv31.get("confidentialityImpact", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System confidentiality loss")
         elif len(vulnerability.cvssv30.keys()) != 0:
-            if (vulnerability.cvssv30.get("confidentialityImpact", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv30.get("confidentialityImpact", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System confidentiality loss")
         elif vulnerability.cvssv2.get("confidentialityImpact", "") == "PARTIAL":
             result_impacts.append("System confidentiality loss")
-    if "System availability loss" in result_impacts and \
-            "System integrity loss" not in result_impacts:
+    if "System availability loss" in result_impacts and "System integrity loss" not in result_impacts:
         if len(vulnerability.cvssv40.keys()) != 0:
-            if (vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System integrity loss")
         elif len(vulnerability.cvssv31.keys()) != 0:
-            if (vulnerability.cvssv31.get("integrityImpact", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv31.get("integrityImpact", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System integrity loss")
         elif len(vulnerability.cvssv30.keys()) != 0:
-            if (vulnerability.cvssv30.get("integrityImpact", "") == "LOW" and
-                    cve_is_about_system(vulnerability.cpe_type)):
+            if vulnerability.cvssv30.get("integrityImpact", "") == "LOW" and cve_is_about_system(
+                vulnerability.cpe_type
+            ):
                 result_impacts.append("System integrity loss")
         elif vulnerability.cvssv2.get("integrityImpact", "") == "PARTIAL":
             result_impacts.append("System integrity loss")

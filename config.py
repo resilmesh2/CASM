@@ -43,14 +43,17 @@ class NmapBasicConfig:
     org_unit_name: str = "Internal IT"
     tag: list[str] = field(default_factory=list)
 
+
 @dataclass
 class ISIMConfig:
     url: str
+
 
 @dataclass
 class NmapTopologyConfig:
     targets: list[str]
     arguments: str
+
 
 @dataclass
 class EasmScannerConfig:
@@ -79,7 +82,7 @@ class EasmScannerConfig:
 
 @dataclass
 class SLPEnrichmentConfig:
-    x_api_key: str = ''
+    x_api_key: str = ""
 
 
 @dataclass

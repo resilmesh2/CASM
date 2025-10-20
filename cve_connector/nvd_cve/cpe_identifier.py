@@ -43,7 +43,7 @@ class CpeIdentifier:
                 sw_edition=parts[9] or "*",
                 target_sw=parts[10] or "*",
                 target_hw=parts[11] or "*",
-                other=parts[12] or "*"
+                other=parts[12] or "*",
             )
 
         # Legacy CPE 2.2 format: "cpe:/part:vendor:product:version"
@@ -51,10 +51,7 @@ class CpeIdentifier:
             legacy_parts = parts[1][1:].split(":")
             legacy_parts += ["*"] * (4 - len(legacy_parts))
             return CpeIdentifier(
-                part=legacy_parts[0],
-                vendor=legacy_parts[1],
-                product=legacy_parts[2],
-                version=legacy_parts[3]
+                part=legacy_parts[0], vendor=legacy_parts[1], product=legacy_parts[2], version=legacy_parts[3]
             )
 
         raise ValueError(f"Unrecognized CPE format: {cpe_str}")

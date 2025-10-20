@@ -2,11 +2,11 @@ from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
 import httpx
+from temporalio import activity
 
 from config import EasmScannerConfig, ISIMConfig, RedisConfig
 from temporal.easm import activities_impl
 from temporal.lib.util import validate_input_domain
-from temporalio import activity
 
 
 class EasmActivities:

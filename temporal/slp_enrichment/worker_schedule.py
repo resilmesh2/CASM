@@ -1,9 +1,16 @@
 import asyncio
 from datetime import timedelta
-from temporalio.client import (Client, Schedule, ScheduleActionStartWorkflow, ScheduleIntervalSpec,
-                               ScheduleSpec, ScheduleAlreadyRunningError)
-from temporalio.exceptions import TemporalError
 from logging import getLogger
+
+from temporalio.client import (
+    Client,
+    Schedule,
+    ScheduleActionStartWorkflow,
+    ScheduleAlreadyRunningError,
+    ScheduleIntervalSpec,
+    ScheduleSpec,
+)
+from temporalio.exceptions import TemporalError
 from temporalio.worker import Worker
 from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxRestrictions
 
@@ -35,21 +42,20 @@ async def main() -> None:
         async for schedule_item in await client.list_schedules():
             if schedule_item.id == schedule_id:
                 raise ScheduleAlreadyRunningError()
-        await asyncio.gather(worker.run(),
-                             client.create_schedule(
-                                 schedule_id,
-                                 Schedule(
-                                     action=ScheduleActionStartWorkflow(
-                                         SLPEnrichmentWorkflow.run,
-                                         id=workflow_id,
-                                         task_queue="slp_enrichment",
-                                     ),
-                                     spec=ScheduleSpec(
-                                         intervals=[ScheduleIntervalSpec(every=timedelta(minutes=60))]
-                                     ),
-                                 ),
-                             )
-                             )
+        await asyncio.gather(
+            worker.run(),
+            client.create_schedule(
+                schedule_id,
+                Schedule(
+                    action=ScheduleActionStartWorkflow(
+                        SLPEnrichmentWorkflow.run,
+                        id=workflow_id,
+                        task_queue="slp_enrichment",
+                    ),
+                    spec=ScheduleSpec(intervals=[ScheduleIntervalSpec(every=timedelta(minutes=60))]),
+                ),
+            ),
+        )
         logger.info(f"Schedule: {schedule_id} and workflow created.")
     except ScheduleAlreadyRunningError:
         try:
@@ -57,6 +63,7 @@ async def main() -> None:
             await worker.run()
         except TemporalError:
             logger.info("Schedule and workflow already running.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

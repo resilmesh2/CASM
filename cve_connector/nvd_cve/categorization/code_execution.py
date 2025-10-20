@@ -17,7 +17,6 @@ Dependencies:
   - Vulnerability from cve_connector.nvd_cve.vulnerability.
 """
 
-
 from cve_connector.nvd_cve.categorization.utils import cve_is_about_system, test_incidence
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
@@ -66,7 +65,7 @@ def has_code_execution_as_root(vulnerability: Vulnerability) -> bool:
         "run commands as root",
         "load malicious firmware",
         "succeed in uploading malicious Firmware",
-        "executed under the SYSTEM account"
+        "executed under the SYSTEM account",
     ]
     for phrase in necessary_condition:
         if phrase in vulnerability.description:
@@ -74,25 +73,33 @@ def has_code_execution_as_root(vulnerability: Vulnerability) -> bool:
     if not cve_is_about_system(vulnerability.cpe_type):
         return False
     if has_code_execution_as_user(vulnerability):
-        if len(vulnerability.cvssv40.keys()) != 0 and \
-           vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "HIGH" and \
-           vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "HIGH" and \
-           vulnerability.cvssv40.get("vulnerableSystemAvailability", "") == "HIGH":
+        if (
+            len(vulnerability.cvssv40.keys()) != 0
+            and vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "HIGH"
+            and vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "HIGH"
+            and vulnerability.cvssv40.get("vulnerableSystemAvailability", "") == "HIGH"
+        ):
             return True
-        if len(vulnerability.cvssv31.keys()) != 0 and \
-           vulnerability.cvssv31.get("confidentialityImpact", "") == "HIGH" and \
-           vulnerability.cvssv31.get("integrityImpact", "") == "HIGH" and \
-           vulnerability.cvssv31.get("availabilityImpact", "") == "HIGH":
+        if (
+            len(vulnerability.cvssv31.keys()) != 0
+            and vulnerability.cvssv31.get("confidentialityImpact", "") == "HIGH"
+            and vulnerability.cvssv31.get("integrityImpact", "") == "HIGH"
+            and vulnerability.cvssv31.get("availabilityImpact", "") == "HIGH"
+        ):
             return True
-        if len(vulnerability.cvssv30.keys()) != 0 and \
-           vulnerability.cvssv30.get("confidentialityImpact", "") == "HIGH" and \
-           vulnerability.cvssv30.get("integrityImpact", "") == "HIGH" and \
-           vulnerability.cvssv30.get("availabilityImpact", "") == "HIGH":
+        if (
+            len(vulnerability.cvssv30.keys()) != 0
+            and vulnerability.cvssv30.get("confidentialityImpact", "") == "HIGH"
+            and vulnerability.cvssv30.get("integrityImpact", "") == "HIGH"
+            and vulnerability.cvssv30.get("availabilityImpact", "") == "HIGH"
+        ):
             return True
-        if len(vulnerability.cvssv2.keys()) != 0 and \
-           vulnerability.cvssv2.get("confidentialityImpact", "") == "COMPLETE" and \
-           vulnerability.cvssv2.get("integrityImpact", "") == "COMPLETE" and \
-           vulnerability.cvssv2.get("availabilityImpact", "") == "COMPLETE":
+        if (
+            len(vulnerability.cvssv2.keys()) != 0
+            and vulnerability.cvssv2.get("confidentialityImpact", "") == "COMPLETE"
+            and vulnerability.cvssv2.get("integrityImpact", "") == "COMPLETE"
+            and vulnerability.cvssv2.get("availabilityImpact", "") == "COMPLETE"
+        ):
             return True
     return False
 
@@ -149,27 +156,27 @@ def has_code_execution_as_user(vulnerability: Vulnerability) -> bool:
         if phrase in vulnerability.description:
             return True
     if "sql injection" in vulnerability.description and "blind sql injection" not in vulnerability.description:
-        if len(vulnerability.cvssv40.keys()) != 0 and \
-           vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "HIGH" and \
-           vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "HIGH":
+        if (
+            len(vulnerability.cvssv40.keys()) != 0
+            and vulnerability.cvssv40.get("vulnerableSystemIntegrity", "") == "HIGH"
+            and vulnerability.cvssv40.get("vulnerableSystemConfidentiality", "") == "HIGH"
+        ):
             return True
-        if len(vulnerability.cvssv31.keys()) != 0 and \
-           vulnerability.cvssv31.get("integrityImpact", "") == "HIGH" and \
-           vulnerability.cvssv31.get("confidentialityImpact", "") == "HIGH":
+        if (
+            len(vulnerability.cvssv31.keys()) != 0
+            and vulnerability.cvssv31.get("integrityImpact", "") == "HIGH"
+            and vulnerability.cvssv31.get("confidentialityImpact", "") == "HIGH"
+        ):
             return True
-        if len(vulnerability.cvssv30.keys()) != 0 and \
-           vulnerability.cvssv30.get("integrityImpact", "") == "HIGH" and \
-           vulnerability.cvssv30.get("confidentialityImpact", "") == "HIGH":
+        if (
+            len(vulnerability.cvssv30.keys()) != 0
+            and vulnerability.cvssv30.get("integrityImpact", "") == "HIGH"
+            and vulnerability.cvssv30.get("confidentialityImpact", "") == "HIGH"
+        ):
             return True
-    required_verbs: list[str] = [
-        " execut",
-        " run ",
-        " inject"
-    ]
-    required_nouns: list[str] = [
-        " code ",
-        " command",
-        "arbitrary script",
-        " code."
-    ]
-    return bool(test_incidence(vulnerability.description, required_nouns) and test_incidence(vulnerability.description, required_verbs))
+    required_verbs: list[str] = [" execut", " run ", " inject"]
+    required_nouns: list[str] = [" code ", " command", "arbitrary script", " code."]
+    return bool(
+        test_incidence(vulnerability.description, required_nouns)
+        and test_incidence(vulnerability.description, required_verbs)
+    )

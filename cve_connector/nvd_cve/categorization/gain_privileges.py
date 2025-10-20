@@ -19,7 +19,6 @@ Dependencies:
   - Vulnerability from cve_connector.nvd_cve.vulnerability.
 """
 
-
 from cve_connector.nvd_cve.categorization.utils import cve_is_about_application, cve_is_about_system, test_incidence
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
@@ -185,12 +184,11 @@ def test_privileges(description: str) -> bool:
         "steal a user's credentials",
         "dictionary attacks",
         "perform operations on device with administrative privileges",
-        "include user credentials"
+        "include user credentials",
     ]
     if "gain" in description and "privilege" in description:
         return True
-    if "bypass authentication" in description and \
-            "during an admin login attempt" in description:
+    if "bypass authentication" in description and "during an admin login attempt" in description:
         return True
     return test_incidence(description, condition)
 
@@ -239,11 +237,9 @@ def has_root_privileges_description(description: str) -> bool:
         "gain complete control of the system",
         "SYSTEM",
         "elevate privileges to the root user",
-        "obtain full control"
+        "obtain full control",
     ]
-    if "default" in description and \
-            "password" in description and \
-            "for the root" in description:
+    if "default" in description and "password" in description and "for the root" in description:
         return True
     return test_incidence(description, condition)
 
@@ -272,11 +268,13 @@ def has_gain_root_privileges(vulnerability: Vulnerability) -> bool:
         return True
     if has_root_privileges_description(vulnerability.description):
         return True
-    return len(vulnerability.cvssv2.keys()) != 0 and \
-        vulnerability.cvssv2.get("confidentialityImpact", "") == "COMPLETE" and \
-        vulnerability.cvssv2.get("integrityImpact", "") == "COMPLETE" and \
-        vulnerability.cvssv2.get("availabilityImpact", "") == "COMPLETE" and \
-        test_privileges(vulnerability.description)
+    return (
+        len(vulnerability.cvssv2.keys()) != 0
+        and vulnerability.cvssv2.get("confidentialityImpact", "") == "COMPLETE"
+        and vulnerability.cvssv2.get("integrityImpact", "") == "COMPLETE"
+        and vulnerability.cvssv2.get("availabilityImpact", "") == "COMPLETE"
+        and test_privileges(vulnerability.description)
+    )
 
 
 def has_privilege_escalation(vulnerability: Vulnerability) -> bool:
@@ -297,11 +295,13 @@ def has_privilege_escalation(vulnerability: Vulnerability) -> bool:
         return True
     if has_root_privileges_description(vulnerability.description):
         return True
-    return len(vulnerability.cvssv2.keys()) != 0 and \
-        vulnerability.cvssv2.get("confidentialityImpact", "") == "COMPLETE" and \
-        vulnerability.cvssv2.get("integrityImpact", "") == "COMPLETE" and \
-        vulnerability.cvssv2.get("availabilityImpact", "") == "COMPLETE" and \
-        test_privileges(vulnerability.description)
+    return (
+        len(vulnerability.cvssv2.keys()) != 0
+        and vulnerability.cvssv2.get("confidentialityImpact", "") == "COMPLETE"
+        and vulnerability.cvssv2.get("integrityImpact", "") == "COMPLETE"
+        and vulnerability.cvssv2.get("availabilityImpact", "") == "COMPLETE"
+        and test_privileges(vulnerability.description)
+    )
 
 
 def has_gain_application_privileges(description: str) -> bool:
@@ -341,10 +341,9 @@ def has_gain_user_privileges(vulnerability: Vulnerability) -> bool:
         "log in to the affected device using default credentials",
         "log in to an affected system as the admin user",
         "log in to the device with the privileges of a limited user",
-        "devices have a hardcoded-key vulnerability"
+        "devices have a hardcoded-key vulnerability",
     ]
     for phrase in system_tokens:
         if phrase in vulnerability.description:
             return True
-    return not cve_is_about_application(vulnerability.cpe_type) and \
-        test_privileges(vulnerability.description)
+    return not cve_is_about_application(vulnerability.cpe_type) and test_privileges(vulnerability.description)

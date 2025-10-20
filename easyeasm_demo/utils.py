@@ -9,7 +9,9 @@ from validators import ValidationError, domain
 
 logger = getLogger()
 
-WAPPALYZERGO_FINGERPRINTS_URL = "https://raw.githubusercontent.com/projectdiscovery/wappalyzergo/refs/heads/main/fingerprints_data.json"
+WAPPALYZERGO_FINGERPRINTS_URL = (
+    "https://raw.githubusercontent.com/projectdiscovery/wappalyzergo/refs/heads/main/fingerprints_data.json"
+)
 
 
 def validate_input_target(target: str) -> bool:
@@ -32,8 +34,8 @@ def determine_software_versions(raw_technologies: str) -> list[dict[str, str]]:
             technology = " ".join(technologies[i:j])
 
             if ":" in technologies[j - 1]:
-                numerical_version = technology[technology.rfind(":") + 1:]
-                technology = technology[:technology.rfind(":")]
+                numerical_version = technology[technology.rfind(":") + 1 :]
+                technology = technology[: technology.rfind(":")]
 
             if technology in fingerprints_data["apps"]:
                 if "cpe" in fingerprints_data["apps"][technology]:
@@ -41,15 +43,14 @@ def determine_software_versions(raw_technologies: str) -> list[dict[str, str]]:
                     if numerical_version:
                         potential_version = {
                             "name": technology + ":" + numerical_version,
-                            "version": ":".join([*cpe_parts[0:2], numerical_version])
+                            "version": ":".join([*cpe_parts[0:2], numerical_version]),
                         }
                     else:
-                        potential_version = {
-                            "name": technology,
-                            "version": ":".join(cpe_parts)
-                        }
+                        potential_version = {"name": technology, "version": ":".join(cpe_parts)}
                 else:
-                    potential_version = {"name": technology + ":" + numerical_version} if numerical_version else {"name": technology}
+                    potential_version = (
+                        {"name": technology + ":" + numerical_version} if numerical_version else {"name": technology}
+                    )
                 if potential_version not in software_versions:
                     software_versions.append(potential_version)
 

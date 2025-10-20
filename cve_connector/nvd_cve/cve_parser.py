@@ -64,80 +64,88 @@ def parse_vulnerabilities(data: list[dict[str, Any]]) -> list[Vulnerability]:
         if "cvssMetricV2" in item.get("metrics", {}):
             tmp = get_primary_metric(item["metrics"]["cvssMetricV2"])
             if tmp:
-                vulnerability.cvssv2.update({
-                    "vectorString": tmp["cvssData"]["vectorString"],
-                    "accessVector": tmp["cvssData"]["accessVector"],
-                    "accessComplexity": tmp["cvssData"]["accessComplexity"],
-                    "authentication": tmp["cvssData"]["authentication"],
-                    "confidentialityImpact": tmp["cvssData"]["confidentialityImpact"],
-                    "integrityImpact": tmp["cvssData"]["integrityImpact"],
-                    "availabilityImpact": tmp["cvssData"]["availabilityImpact"],
-                    "baseScore": tmp["cvssData"]["baseScore"],
-                    "baseSeverity": tmp["baseSeverity"],
-                    "exploitabilityScore": tmp["exploitabilityScore"],
-                    "impactScore": tmp["impactScore"],
-                    "acInsufInfo": tmp.get("acInsufInfo"),
-                    "obtainAllPrivilege": tmp.get("obtainAllPrivilege"),
-                    "obtainUserPrivilege": tmp.get("obtainUserPrivilege"),
-                    "obtainOtherPrivilege": tmp.get("obtainOtherPrivilege"),
-                    "userInteractionRequired": tmp.get("userInteractionRequired"),
-                })
+                vulnerability.cvssv2.update(
+                    {
+                        "vectorString": tmp["cvssData"]["vectorString"],
+                        "accessVector": tmp["cvssData"]["accessVector"],
+                        "accessComplexity": tmp["cvssData"]["accessComplexity"],
+                        "authentication": tmp["cvssData"]["authentication"],
+                        "confidentialityImpact": tmp["cvssData"]["confidentialityImpact"],
+                        "integrityImpact": tmp["cvssData"]["integrityImpact"],
+                        "availabilityImpact": tmp["cvssData"]["availabilityImpact"],
+                        "baseScore": tmp["cvssData"]["baseScore"],
+                        "baseSeverity": tmp["baseSeverity"],
+                        "exploitabilityScore": tmp["exploitabilityScore"],
+                        "impactScore": tmp["impactScore"],
+                        "acInsufInfo": tmp.get("acInsufInfo"),
+                        "obtainAllPrivilege": tmp.get("obtainAllPrivilege"),
+                        "obtainUserPrivilege": tmp.get("obtainUserPrivilege"),
+                        "obtainOtherPrivilege": tmp.get("obtainOtherPrivilege"),
+                        "userInteractionRequired": tmp.get("userInteractionRequired"),
+                    }
+                )
         if "cvssMetricV30" in item.get("metrics", {}):
             tmp = get_primary_metric(item["metrics"]["cvssMetricV30"])
             if tmp:
-                vulnerability.cvssv30.update({
-                    "vectorString": tmp["cvssData"]["vectorString"],
-                    "attackVector": tmp["cvssData"]["attackVector"],
-                    "attackComplexity": tmp["cvssData"]["attackComplexity"],
-                    "privilegesRequired": tmp["cvssData"]["privilegesRequired"],
-                    "userInteraction": tmp["cvssData"]["userInteraction"],
-                    "scope": tmp["cvssData"]["scope"],
-                    "confidentialityImpact": tmp["cvssData"]["confidentialityImpact"],
-                    "integrityImpact": tmp["cvssData"]["integrityImpact"],
-                    "availabilityImpact": tmp["cvssData"]["availabilityImpact"],
-                    "baseScore": tmp["cvssData"]["baseScore"],
-                    "baseSeverity": tmp["cvssData"]["baseSeverity"],
-                    "exploitabilityScore": tmp["exploitabilityScore"],
-                    "impactScore": tmp["impactScore"],
-                })
+                vulnerability.cvssv30.update(
+                    {
+                        "vectorString": tmp["cvssData"]["vectorString"],
+                        "attackVector": tmp["cvssData"]["attackVector"],
+                        "attackComplexity": tmp["cvssData"]["attackComplexity"],
+                        "privilegesRequired": tmp["cvssData"]["privilegesRequired"],
+                        "userInteraction": tmp["cvssData"]["userInteraction"],
+                        "scope": tmp["cvssData"]["scope"],
+                        "confidentialityImpact": tmp["cvssData"]["confidentialityImpact"],
+                        "integrityImpact": tmp["cvssData"]["integrityImpact"],
+                        "availabilityImpact": tmp["cvssData"]["availabilityImpact"],
+                        "baseScore": tmp["cvssData"]["baseScore"],
+                        "baseSeverity": tmp["cvssData"]["baseSeverity"],
+                        "exploitabilityScore": tmp["exploitabilityScore"],
+                        "impactScore": tmp["impactScore"],
+                    }
+                )
         if "cvssMetricV31" in item.get("metrics", {}):
             tmp = get_primary_metric(item["metrics"]["cvssMetricV31"])
             if tmp:
-                vulnerability.cvssv31.update({
-                    "vectorString": tmp["cvssData"]["vectorString"],
-                    "attackVector": tmp["cvssData"]["attackVector"],
-                    "attackComplexity": tmp["cvssData"]["attackComplexity"],
-                    "privilegesRequired": tmp["cvssData"]["privilegesRequired"],
-                    "userInteraction": tmp["cvssData"]["userInteraction"],
-                    "scope": tmp["cvssData"]["scope"],
-                    "confidentialityImpact": tmp["cvssData"]["confidentialityImpact"],
-                    "integrityImpact": tmp["cvssData"]["integrityImpact"],
-                    "availabilityImpact": tmp["cvssData"]["availabilityImpact"],
-                    "baseScore": tmp["cvssData"]["baseScore"],
-                    "baseSeverity": tmp["cvssData"]["baseSeverity"],
-                    "exploitabilityScore": tmp["exploitabilityScore"],
-                    "impactScore": tmp["impactScore"],
-                })
+                vulnerability.cvssv31.update(
+                    {
+                        "vectorString": tmp["cvssData"]["vectorString"],
+                        "attackVector": tmp["cvssData"]["attackVector"],
+                        "attackComplexity": tmp["cvssData"]["attackComplexity"],
+                        "privilegesRequired": tmp["cvssData"]["privilegesRequired"],
+                        "userInteraction": tmp["cvssData"]["userInteraction"],
+                        "scope": tmp["cvssData"]["scope"],
+                        "confidentialityImpact": tmp["cvssData"]["confidentialityImpact"],
+                        "integrityImpact": tmp["cvssData"]["integrityImpact"],
+                        "availabilityImpact": tmp["cvssData"]["availabilityImpact"],
+                        "baseScore": tmp["cvssData"]["baseScore"],
+                        "baseSeverity": tmp["cvssData"]["baseSeverity"],
+                        "exploitabilityScore": tmp["exploitabilityScore"],
+                        "impactScore": tmp["impactScore"],
+                    }
+                )
         if "cvssMetricV40" in item.get("metrics", {}):
             tmp = get_primary_metric(item["metrics"]["cvssMetricV40"])
             if tmp:
-                vulnerability.cvssv40.update({
-                    "vectorString": tmp["cvssData"]["vectorString"],
-                    "attackVector": tmp["cvssData"]["attackVector"],
-                    "attackComplexity": tmp["cvssData"]["attackComplexity"],
-                    "attackRequirements": tmp["cvssData"]["attackRequirements"],
-                    "privilegesRequired": tmp["cvssData"]["privilegesRequired"],
-                    "userInteraction": tmp["cvssData"]["userInteraction"],
-                    "vulnerableSystemConfidentiality": tmp["cvssData"]["vulnConfidentialityImpact"],
-                    "vulnerableSystemIntegrity": tmp["cvssData"]["vulnIntegrityImpact"],
-                    "vulnerableSystemAvailability": tmp["cvssData"]["vulnAvailabilityImpact"],
-                    "subsequentSystemConfidentiality": tmp["cvssData"]["subConfidentialityImpact"],
-                    "subsequentSystemIntegrity": tmp["cvssData"]["subIntegrityImpact"],
-                    "subsequentSystemAvailability": tmp["cvssData"]["subAvailabilityImpact"],
-                    "exploitMaturity": tmp["cvssData"]["exploitMaturity"],
-                    "baseScore": tmp["cvssData"]["baseScore"],
-                    "baseSeverity": tmp["cvssData"]["baseSeverity"],
-                })
+                vulnerability.cvssv40.update(
+                    {
+                        "vectorString": tmp["cvssData"]["vectorString"],
+                        "attackVector": tmp["cvssData"]["attackVector"],
+                        "attackComplexity": tmp["cvssData"]["attackComplexity"],
+                        "attackRequirements": tmp["cvssData"]["attackRequirements"],
+                        "privilegesRequired": tmp["cvssData"]["privilegesRequired"],
+                        "userInteraction": tmp["cvssData"]["userInteraction"],
+                        "vulnerableSystemConfidentiality": tmp["cvssData"]["vulnConfidentialityImpact"],
+                        "vulnerableSystemIntegrity": tmp["cvssData"]["vulnIntegrityImpact"],
+                        "vulnerableSystemAvailability": tmp["cvssData"]["vulnAvailabilityImpact"],
+                        "subsequentSystemConfidentiality": tmp["cvssData"]["subConfidentialityImpact"],
+                        "subsequentSystemIntegrity": tmp["cvssData"]["subIntegrityImpact"],
+                        "subsequentSystemAvailability": tmp["cvssData"]["subAvailabilityImpact"],
+                        "exploitMaturity": tmp["cvssData"]["exploitMaturity"],
+                        "baseScore": tmp["cvssData"]["baseScore"],
+                        "baseSeverity": tmp["cvssData"]["baseSeverity"],
+                    }
+                )
 
         if "configurations" in item:
             for cpe_item in item.get("configurations", []):
