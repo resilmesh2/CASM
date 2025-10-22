@@ -25,8 +25,10 @@ import time
 from datetime import datetime, timedelta
 
 from temporalio import activity, workflow
-from temporalio.client import Client, Schedule, ScheduleActionStartWorkflow, ScheduleIntervalSpec, ScheduleSpec
+from temporalio.client import (Client, Schedule, ScheduleActionStartWorkflow, ScheduleIntervalSpec, ScheduleSpec,
+                               ScheduleAlreadyRunningError)
 from temporalio.common import RetryPolicy
+from temporalio.exceptions import TemporalError
 from temporalio.worker import UnsandboxedWorkflowRunner, Worker
 
 from cve_connector.cve_config import CveConnectorConfig
@@ -292,10 +294,10 @@ async def main() -> None:
 
     schedule_id = "cve-update-scheduled-workflow"
     try:
-        await client.get_schedule(schedule_id)
-        logging.info(f"Schedule '{schedule_id}' already exists, skipping creation")
-    except Exception:
-        await asyncio.sleep(retry_interval)
+        async for schedule_item in await client.list_schedules():
+            if schedule_item.id == schedule_id:
+                raise ScheduleAlreadyRunningError()
+
         schedule = Schedule(
             action=ScheduleActionStartWorkflow(
                 CveUpdateWorkflow.run,
@@ -304,11 +306,12 @@ async def main() -> None:
             ),
             spec=ScheduleSpec(intervals=[ScheduleIntervalSpec(every=timedelta(hours=2))]),
         )
-        try:
-            await client.create_schedule(schedule_id, schedule)
-            logging.info(f"Schedule '{schedule_id}' created (runs every 2 hours)")
-        except Exception as e:
-            logging.warning(f"Could not create schedule '{schedule_id}': {e}")
+        await client.create_schedule(schedule_id, schedule)
+        logging.info(f"Schedule: {schedule_id} created.")
+    except ScheduleAlreadyRunningError:
+        logging.info(f"Schedule {schedule_id} already running.")
+    except TemporalError as e:
+        logging.info(f"Temporal error: {e}. Schedule creation failed.")
 
     db_client = CveDatabaseUpdater()
     activities = CveUpdateActivities(db_client)
