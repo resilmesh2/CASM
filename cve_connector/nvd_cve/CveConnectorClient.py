@@ -691,35 +691,6 @@ class CVEConnectorClient(AbstractClient):
             result_impacts=result_impacts,
         )
 
-    def get_cve_patch(self, cve_id: str) -> bool | None:
-        """
-        Retrieves the 'patched' property for a CVE.
-
-        :param cve_id: CVE identifier.
-        :return: Boolean value of 'patched' if it exists, None if CVE or property is missing.
-        """
-        with self._driver.session() as session:
-            record = session.run("MATCH (node:CVE) WHERE node.cve_id = $cve_id RETURN node.patched", cve_id=cve_id)
-            data = record.single()
-            if data is None:
-                return None
-            return data["node.patched"]
-
-    def get_cve(self, cve_id: str):
-        """
-        Retrieves a CVE node from the database.
-
-        :param cve_id: CVE identifier.
-        :return: Neo4j query result containing CVE details.
-        """
-        with self._driver.session() as session:
-            return session.run(
-                "MATCH (cve:CVE) "
-                "WHERE cve.cve_id = $cve_id "
-                "RETURN {description: cve.description, cve_id: cve.cve_id, published_date: cve.published_date} AS cve",
-                cve_id=cve_id,
-            )
-
     def get_versions_of_product(self, vendor_and_product: str) -> list[str]:
         """
         Retrieves software versions for a given vendor and product.
@@ -734,7 +705,6 @@ class CVEConnectorClient(AbstractClient):
                 "RETURN {version: s.version} AS software",
                 product_string=product_string,
             ).data()
-            # logging.info(f"Retrieved software versions for {product_string}:, {result}")
 
     def update_timestamp_of_software_version(self, version: str, cve_timestamp: str) -> None:
         """

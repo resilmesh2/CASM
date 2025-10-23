@@ -22,30 +22,3 @@ class AbstractClient:
 
     def _close(self) -> None:
         self._driver.close()
-
-    def init_db(self) -> None:
-        """
-        Create initial structure
-        """
-        # DO NOT ADD 'CREATE CONSTRAINT ON (s:SoftwareVersion) ASSERT s.version IS UNIQUE'
-        # - conflicting constraint, we need enterprise version for this
-        constraints = [
-            "CREATE CONSTRAINT ON (n:Contact) ASSERT n.name IS UNIQUE",
-            "CREATE CONSTRAINT ON (n:DetectionSystem) ASSERT n.name IS UNIQUE",
-            "CREATE CONSTRAINT ON (p:IP) ASSERT p.address IS UNIQUE",
-            "CREATE CONSTRAINT ON (o:OrganizationUnit) ASSERT o.name IS UNIQUE",
-            "CREATE CONSTRAINT ON (n:Subnet) ASSERT n.range IS UNIQUE",
-            "CREATE CONSTRAINT ON (c:CVE) ASSERT c.CVE_id IS UNIQUE",
-            "CREATE CONSTRAINT ON (v:Vulnerability) ASSERT v.description IS UNIQUE",
-            "CREATE CONSTRAINT ON (n:Mission) ASSERT n.name IS UNIQUE",
-            "CREATE CONSTRAINT ON (n:Component) ASSERT n.name IS UNIQUE",
-            "CREATE CONSTRAINT ON (n:Host) ASSERT n.hostname IS UNIQUE",
-        ]
-
-        # this required enterprise edition
-        # 'CREATE CONSTRAINT ON (n:DomainName) ASSERT (n.domain_name, n.tag) IS NODE KEY',
-        # 'CREATE CONSTRAINT ON (s:NetworkService) ASSERT (s.service, s.tag) IS NODE KEY',
-        # 'CREATE CONSTRAINT ON (s:SoftwareVersion) ASSERT (s.version, s.tag) IS NODE KEY',
-
-        for constraint in constraints:
-            self._run_query(constraint)
