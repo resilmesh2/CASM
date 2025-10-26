@@ -109,7 +109,10 @@ services:
       - casm_isim_test_network
 
   worker:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      network: host
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
@@ -179,6 +182,7 @@ services:
   component-scheduler-worker:
       build:
         context: .
+        network: host
         dockerfile: Dockerfile
       container_name: component-scheduler-worker
       command: ["/venv/bin/python", "/app/component_worker.py"]
@@ -202,6 +206,7 @@ services:
   nmap-worker:
     build:
       dockerfile: nmap.Dockerfile
+      network: host
     container_name: nmap-worker
     restart: unless-stopped
     volumes:
@@ -222,6 +227,7 @@ services:
   cve-connector-worker:
     build:
       dockerfile: cve-connector.Dockerfile
+      network: host
     container_name: cve-connector
     restart: unless-stopped
     volumes:
