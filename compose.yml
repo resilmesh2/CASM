@@ -180,28 +180,29 @@ services:
       retries: 5
 
   component-scheduler-worker:
-      build:
-        context: .
-        network: host
-        dockerfile: Dockerfile
-      container_name: component-scheduler-worker
-      command: ["/venv/bin/python", "/app/component_worker.py"]
-      restart: unless-stopped
-      volumes:
-        - ./docker/config.yaml:/app/config/config.yaml
-        - ./risk_config.yaml:/app/risk_config.yaml
-        - ./component_config.yaml:/app/component_config.yaml
-      depends_on:
-        temporal:
-          condition: service_healthy
-      networks:
-        - casm_isim_test_network
-      environment:
-        - TEMPORAL_URL=temporal:7233
-        - TEMPORAL_NAMESPACE=default
-        - NEO4J_USER=neo4j
-        - NEO4J_PASSWORD=supertestovaciheslo
-        - NEO4J_BOLT=bolt://neo4j:7687
+    build:
+      context: .
+      network: host
+      dockerfile: Dockerfile
+    container_name: component-scheduler-worker
+    command: ["/venv/bin/python", "/app/component_worker.py"]
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+      - ../ISIM/config:/config:ro  # Mount ISIM's config as read-only
+    depends_on:
+      temporal:
+        condition: service_healthy
+    networks:
+      - casm_isim_test_network
+    environment:
+      - TEMPORAL_HOST=temporal
+      - TEMPORAL_PORT=7233
+      - TEMPORAL_NAMESPACE=default
+      - RISK_API_URL=http://neo4j_automation:5000
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=supertestovaciheslo
 
   nmap-worker:
     build:
@@ -252,4 +253,5 @@ volumes:
 
 networks:
   casm_isim_test_network:
+    external: true
     name: casm_isim_test_network

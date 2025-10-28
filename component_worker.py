@@ -9,6 +9,8 @@ from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 from temporalio.worker import Worker, UnsandboxedWorkflowRunner
 import yaml
 
+from component_calculation import ComponentCalculationWorkflow, RiskFormulaCalculationWorkflow
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -42,9 +44,9 @@ def save_component_config(config):
             yaml.dump(config, file, default_flow_style=False)
         return True
     except Exception as e:
-        logger.error(f"Failed to save config: {e}")
+        logger.debug(f"Could not save config (non-fatal): {e}")
         return False
-
+    
 @activity.defn
 async def calculate_component_score(component_data: dict) -> dict:
     """Calculate score for a single component by calling the risk API"""
@@ -105,32 +107,26 @@ async def calculate_component_score(component_data: dict) -> dict:
             'timestamp': datetime.now().isoformat()
         }
 
-@workflow.defn
-class RiskFormulaCalculationWorkflow:
-    """Runs a saved risk formula automation via the API."""
-    @workflow.run
-    async def run(self, data: dict) -> dict:
-        automation_id = data.get("automation_id")
-        if not automation_id:
-            workflow.logger.error("RiskFormulaCalculationWorkflow missing automation_id")
-            return {"success": False, "error": "automation_id required"}
-
+@activity.defn
+async def execute_risk_formula(automation_id: str) -> dict:
+    """Execute a risk formula automation via the API"""
+    import httpx
+    
+    try:
         url = f"{RISK_API_URL}/api/automations/execute/{automation_id}"
-        workflow.logger.info(f"Executing risk formula automation '{automation_id}' at {url}")
-
-        try:
-            # Call the API asynchronously
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(url, timeout=300.0)
-                resp.raise_for_status()
-                payload = resp.json()
-
-            workflow.logger.info(f"Risk formula automation '{automation_id}' finished OK")
-            return {"success": True, "automation_id": automation_id, "result": payload}
-
-        except Exception as e:
-            workflow.logger.error(f"Risk formula automation '{automation_id}' failed: {e}")
-            return {"success": False, "automation_id": automation_id, "error": str(e)}
+        logger.info(f"Calling risk formula API: {url}")
+        
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(url, timeout=300.0)
+            resp.raise_for_status()
+            payload = resp.json()
+        
+        logger.info(f"Risk formula '{automation_id}' executed successfully")
+        return {"success": True, "automation_id": automation_id, "result": payload}
+        
+    except Exception as e:
+        logger.error(f"Risk formula '{automation_id}' failed: {e}")
+        return {"success": False, "automation_id": automation_id, "error": str(e)}
 
 def ensure_base_risk_automation():
     """
@@ -139,12 +135,17 @@ def ensure_base_risk_automation():
     Combines criticality + cvss_score + threatScore into 'Risk Score'.
     """
     try:
-        # This uses the same config file you already use for component automations.
-        # If your risk formulas live in a different file, point to that loader/saver instead.
-        cfg = load_component_config()
-
-        # Store under a separate top-level to avoid clashing with components, if you want.
-        # If your risk_api expects 'active_automations' (it does), mirror that shape here.
+        # Load the MAIN risk assessment config, not component config
+        RISK_CONFIG_PATH = "/config/risk_assessment_config.yaml"
+        
+        try:
+            with open(RISK_CONFIG_PATH, 'r') as file:
+                cfg = yaml.safe_load(file)
+                if cfg is None:
+                    cfg = {}
+        except FileNotFoundError:
+            cfg = {}
+        
         if "active_automations" not in cfg:
             cfg["active_automations"] = {}
 
@@ -154,7 +155,12 @@ def ensure_base_risk_automation():
                 "id": "base-risk",
                 "formula_name": "Base Risk",
                 "calculation_method": "weighted_avg",
-                "custom_formula": "",       # UI can override later
+                "custom_formula": "",
+                "formula_config": {
+                    "criticality": 0.333,
+                    "cvss": 0.333,
+                    "threat": 0.333
+                },
                 "components": [
                     {"name": "Criticality", "neo4jProperty": "criticality", "weight": 0.333, "max_value": 10, "current_value": 0, "type": "centrality"},
                     {"name": "CVSS",        "neo4jProperty": "cvss_score",  "weight": 0.333, "max_value": 10, "current_value": 0, "type": "vulnerability"},
@@ -168,10 +174,15 @@ def ensure_base_risk_automation():
                 "created_date": datetime.now().isoformat(),
                 "hasSchedule": False,
             }
-            save_component_config(cfg)
+            
+            os.makedirs(os.path.dirname(RISK_CONFIG_PATH), exist_ok=True)
+            with open(RISK_CONFIG_PATH, 'w') as file:
+                yaml.dump(cfg, file, default_flow_style=False)
+            logger.info("Created base-risk automation in risk_assessment_config.yaml")
+            
     except Exception as e:
         logger.warning(f"Could not ensure base risk automation: {e}")
-
+        
 async def initialize_core_component_schedules(client: Client):
     """Initialize schedules for core risk components"""
     logger.info("Initializing core component schedules...")
@@ -318,7 +329,7 @@ async def main():
         client,
         task_queue="component-calculations",
         workflows=[ComponentCalculationWorkflow, RiskFormulaCalculationWorkflow],
-        activities=[calculate_component_score]
+        activities=[calculate_component_score, execute_risk_formula]
     )
 
     
