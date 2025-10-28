@@ -18,7 +18,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
 
   worker:
     build: .
@@ -27,7 +27,7 @@ services:
       - ./docker/config.yaml:/app/config/config.yaml
       - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
 
 #  metasploitable3:
 #    image: kirscht/metasploitable3-ub1404
@@ -79,7 +79,7 @@ services:
     ports:
       - "127.0.0.1:6379:6379"
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
 
   nmap-worker:
     build:
@@ -89,7 +89,7 @@ services:
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
     environment:
       - TEMPORAL_HOST=temporal
       - TEMPORAL_PORT=7233
@@ -107,7 +107,7 @@ services:
 #    depends_on:
 #      neo4j:
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
     environment:
       - NVD_KEY
       - TEMPORAL_HOST=temporal
@@ -124,7 +124,7 @@ services:
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
     environment:
       - TEMPORAL_HOST=temporal
       - TEMPORAL_PORT=7233
@@ -132,7 +132,3 @@ services:
 volumes:
   neo4j_easyeasm_data:
 
-
-networks:
-  casm_isim_test_network:
-    name: casm_isim_test_network
