@@ -86,6 +86,11 @@ class SLPEnrichmentConfig:
 
 
 @dataclass
+class CveConnectorConfig:
+    nvd_api_key: str | None = None
+
+
+@dataclass
 class Config:
     temporal: TemporalConfig
     neo4j: Neo4jConfig
@@ -95,6 +100,7 @@ class Config:
     isim: ISIMConfig
     easm_scanner: EasmScannerConfig
     slp_enrichment: SLPEnrichmentConfig
+    cve_connector: CveConnectorConfig
 
 
 class AppConfig:

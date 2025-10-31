@@ -38,3 +38,6 @@ easm_scanner:
 
 slp_enrichment:
   x_api_key: ""
+
+cve_connector:
+  nvd_api_key: ""

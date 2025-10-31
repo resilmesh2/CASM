@@ -19,13 +19,17 @@ At least `Python3.13`.
 Required packages are specified in `setup.py` and they will be installed when one of following installation methods is used.
 The implementation was prepared for Neo4j database version 5.24.0
 
+## NVD API KEY
+You need to obtain your NVD REST API key from https://nvd.nist.gov/developers/request-an-api-key.
+We used `name and surname` as `organization name` and `personal use / not listed` as `organization type`.
+The API KEY should be filled into configuration files in [config](../config/config.yaml) and 
+[docker](../docker/config.yaml) folders for cve_connector as nvd_api_key. 
+If you encounter any issues, you can try to fill the value also in [config.py](../config.py) 
+as nvd_api_key as a string, i.e., `"<api_key_value>"`.
+
 ## Usage
 
-CVE connector can be run locally. You need to obtain your NVD REST API key from https://nvd.nist.gov/developers/request-an-api-key.
-We used `name and surname` as `organization name` and `personal use / not listed` as `organization type`.
-The API KEY should be filled into [config.py](cve_config.py) as api_key as a string, i.e., `"<api_key_value>"`.
-
-The easiest way to use CVE connector is to use [compose.yml](../compose.yml) and 
+CVE connector can be run locally. The easiest way to use CVE connector is to use [compose.yml](../compose.yml) and 
 instructions from the [README.md](../README.md) for the whole CASM 
 repository. The CVE connector is created as one of containers and its workflows are added to temporal automatically. 
 They are executed each two hours by default.
@@ -56,23 +60,15 @@ python3
 Consequently, execute the following commands from `python` console: 
 
 ```python
-api_key="YOUR API KEY"
-neo4j_password="YOUR NEO4J PASSWORD"
+from cve_connector.cve_temporal import cve_version
+from datetime import datetime
 
-from cve_connector.nvd_cve.toneo4j import move_cve_data_to_neo4j, get_software_versions_from_neo4j
-from cve_connector.nvd_cve.cve_parser import parse_vulnerabilities
-from cve_connector.nvd_cve.cve_client import search_cve_by_version
-
-versions_and_timestamps = get_software_versions_from_neo4j(neo4j_password)
-for version_item in versions_and_timestamps:
-    version = version_item['version']
-    for part in ['a', 'o', 'h']:
-        cve_data = None
-        raw_data = search_cve_by_version(version=version, part=part, api_key=api_key)
-        if "vulnerabilities" in raw_data:
-            cve_data = [vuln["cve"] for vuln in raw_data.get("vulnerabilities", [])]
-            parsed_data = parse_vulnerabilities(data=cve_data)
-            move_cve_data_to_neo4j(parsed_data, neo4j_password)
+workflow_start = datetime.now().isoformat()
+neo4j_bolt = "bolt://localhost:7687"
+neo4j_user = "neo4j"
+neo4j_password = "<your_password>"
+nvd_api_key = "<your_api_key>"
+cve_version(workflow_start, neo4j_password, neo4j_bolt, neo4j_user, nvd_api_key)
 ```
 
 Finally, deactivate the virtual environment with:

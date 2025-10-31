@@ -11,6 +11,10 @@ from temporal.easm.passive_enumeration.workflow import PassiveEnumerationWorkflo
 
 
 async def main() -> None:
+    """
+    Entry point for creating a worker that runs ParentEasmWorkflow.
+    :return: None
+    """
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url)
     workflows = [ParentEasmWorkflow, PassiveEnumerationWorkflow, ActiveEnumeratonWorkflow]

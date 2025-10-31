@@ -20,7 +20,7 @@ and ISIM that contains a Neo4j database.
 Configuration files are located in the [config](config) and in [docker](docker) folders. Config in [config](config) serves for local deployment of workers
 and for running clients to trigger on-demand workflows. 
 
-Configs in [docker](docker) folder are used by dockerized app where urls and paths are preconfigured to work within the docker environment.:
+Configs in [docker](docker) folder are used by dockerized app where urls and paths are preconfigured to work within the docker environment:
 - config.yaml: config for workers, same format as in the local deployment
 - amass_config.yaml: config file for worker, configures amass to know where is the postgresql located
 
@@ -64,8 +64,11 @@ easm_scanner:
   threads: 100   # required only for complete mode
   wordlist_path: "/app/temporal/easm/subdomainwordlist.txt"  # required only for complete mode
 
+slp_enrichment:
+  x_api_key: ""
 
-
+cve_connector:
+  nvd_api_key: ""
 ```
 - temporal:
   - url: url of Temporal server GRPC service from the [workflow orchestrator repository](https://github.com/resilmesh2/Workflow-Orchestrator/)
@@ -92,10 +95,17 @@ easm_scanner:
   - httpx_path: path to httpx binary
   - wordlist_path (required only for `complete` mode): path to wordlist for dnsx, default is placed in `temporal/easm/subdomainwordlist.txt`
   - threads (required only for `complete` mode): number of threads for dnsx bruteforce
+- slp_enrichment:
+  - x_api_key: API key for Silent Push Explore API at https://api.silentpush.com/api/v1/merge-api/ that can be obtained 
+  from [their website](https://app.silentpush.com/) as documented in [documentation](https://docs.silentpush.com/).
+- cve_connector:
+  - nvd_api_key: key for NVD REST API. Instructions for obtaining the key are listed in [README](cve_connector/README.md).
 
 When deploying CASM in an environment where endpoints for `temporal`, `neo4j`, and `redis` are not
 accessible using localhost, you should use names of containers instead of localhost. Names of containers
-can be found from list of containers using, e.g., `docker container ls -a`. If you encounter some problems
+can be found from list of containers using, e.g., `docker container ls -a`. Please, ensure that your config is filled
+with values instead of empty strings when deploying CASM.
+If you encounter some problems
 with CASM, you can also try to enter configuration details in `config.py`, which contains data classes
 that store the configuration details.
 

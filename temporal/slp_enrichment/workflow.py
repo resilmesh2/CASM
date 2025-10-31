@@ -18,8 +18,17 @@ logger = structlog.get_logger()
 
 @workflow.defn(name="SLPEnrichmentWorkflow")
 class SLPEnrichmentWorkflow:
+    """
+    A workflow that executes enrichment of information about assets using SLP API.
+    """
+
     @workflow.run
     async def run(self) -> None:
+        """
+        This method runs three activities for accomplishing SLP enrichment.
+        :return: None
+        """
+
         config = AppConfig().get()
         slp_enrichment_config = config.slp_enrichment
 
@@ -69,6 +78,11 @@ class SLPEnrichmentWorkflow:
 
 
 async def main() -> None:
+    """
+    Entry point for starting the SLP enrichment workflow.
+    :return: None
+    """
+
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url)
     logger = getLogger()

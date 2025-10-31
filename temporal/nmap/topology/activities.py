@@ -55,6 +55,10 @@ class NmapTopologyActivities:
 
     @activity.defn
     async def compute_criticalities(self) -> None:
+        """
+        Call ISIM's REST API endpoints to compute betweenness and degree centralities.
+        :return: None
+        """
         async with httpx.AsyncClient() as client:
             await client.post(f"{self.isim_config.url}/nodes/betweenness_centrality")
             await client.post(f"{self.isim_config.url}/nodes/degree_centrality")

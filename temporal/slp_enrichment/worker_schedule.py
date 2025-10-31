@@ -19,6 +19,11 @@ from temporal.slp_enrichment.workflow import SLPEnrichmentWorkflow
 
 
 async def main() -> None:
+    """
+    Entry point for starting the worker and scheduling the enrichment workflows.
+    :return: None
+    """
+
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url)
     logger = getLogger()

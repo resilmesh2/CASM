@@ -25,7 +25,6 @@ Dependencies:
 import logging
 import re
 import time
-from dataclasses import dataclass
 from typing import Any
 
 import requests
@@ -34,28 +33,6 @@ from packaging.version import Version
 from cve_connector.nvd_cve.cpe_identifier import CpeIdentifier
 from cve_connector.nvd_cve.CveConnectorClient import CVEConnectorClient
 from cve_connector.nvd_cve.vulnerability import Vulnerability
-
-
-@dataclass
-class Cpe:
-    part: str
-    vendor: str
-    product: str
-    version: str
-    update: str = "*"
-    edition: str = "*"
-    language: str = "*"
-    sw_edition: str = "*"
-    target_sw: str = "*"
-    target_hw: str = "*"
-    other: str = "*"
-
-    def to_cpe23_string(self) -> str:
-        return (
-            f"cpe:2.3:{self.part}:{self.vendor}:{self.product}:{self.version}:"
-            f"{self.update}:{self.edition}:{self.language}:{self.sw_edition}:"
-            f"{self.target_sw}:{self.target_hw}:{self.other}"
-        )
 
 
 def move_cve_data_to_neo4j(
@@ -73,6 +50,7 @@ def move_cve_data_to_neo4j(
     or updates existing ones, and establishes relationships with software versions.
 
     :param vulnerability_list: List of Vulnerability objects.
+    :param cpe: String representation of CPE identifier.
     :param neo4j_passwd: Password for Neo4j authentication.
     :param nvd_api_key: Neo4j API key. Defaults to None.
     :param bolt: Bolt connection string. Defaults to "bolt://localhost:7687".
@@ -237,6 +215,7 @@ def check_ranges(cpe_match: dict[str, Any], version: str, nvd_api_key: str) -> b
 
     :param cpe_match: Dictionary with version range keys (e.g., 'versionStartIncluding').
     :param version: Software version to check.
+    :param nvd_api_key: API key for NVD REST API.
     :return: True if version is within range; False otherwise.
     """
     logging.info(f"Checking CPE range: {cpe_match}")
@@ -308,6 +287,7 @@ def check_configurations(
     :param cpe_configurations: Configuration data for the vulnerability.
     :param vul_description: Vulnerability description.
     :param flag: Indicates if a vulnerability node was created.
+    :param nvd_api_key: API key for NVD REST API.
     :return: Updated flag indicating if a vulnerability node was created.
     :raises ValueError: If configuration structure is invalid.
     """
@@ -346,6 +326,12 @@ def process_nvd_cpe(
     """
     Processes a CPE match to create relationships between vulnerabilities and software versions.
     Uses Cpe dataclass for parsing CPE 2.3 format.
+    :param client: CVEConnectorClient for Neo4j interactions.
+    :param cpe_match: dictionary of raw data containing CPE match information.
+    :param vul_description: description of a Neo4j node of type Vulnerability.
+    :param flag: Indicates if a vulnerability node was created.
+    :param nvd_api_key: API key for NVD REST API.
+    :return: Updated flag indicating if a vulnerability node was created.
     """
     vulnerability_created = flag
     try:

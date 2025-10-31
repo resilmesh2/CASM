@@ -31,7 +31,7 @@ from temporalio.common import RetryPolicy
 from temporalio.exceptions import TemporalError
 from temporalio.worker import UnsandboxedWorkflowRunner, Worker
 
-from cve_connector.cve_config import CveConnectorConfig
+from config import AppConfig
 from cve_connector.nvd_cve.cpe_identifier import CpeIdentifier
 from cve_connector.nvd_cve.cve_client import search_cve_by_version
 from cve_connector.nvd_cve.cve_parser import parse_vulnerabilities
@@ -188,20 +188,22 @@ class CveDatabaseUpdater:
         :raises Exception: If Neo4j operations fail due to connection or query issues.
         :raises KeyError: If required environment variables are missing.
         """
-        # required_env_vars = ['NVD_KEY', 'NEO4J_PASSWORD', 'NEO4J_BOLT', 'NEO4J_USER']
         required_env_vars = ["NEO4J_PASSWORD", "NEO4J_BOLT", "NEO4J_USER"]
         for var in required_env_vars:
             if not os.getenv(var):
                 raise KeyError(f"Missing required environment variable: {var}")
 
-        cve_config = CveConnectorConfig()
+        config = AppConfig().get()
+        cve_config = config.cve_connector
+
+        logging.info(f"NVD API KEY: {cve_config.nvd_api_key}")
 
         cve_version(
             workflow_start,
             neo4j_password=os.getenv("NEO4J_PASSWORD", ""),
             neo4j_bolt=os.getenv("NEO4J_BOLT", ""),
             neo4j_user=os.getenv("NEO4J_USER", ""),
-            nvd_api_key=cve_config.api_key or os.getenv("NVD_KEY", ""),
+            nvd_api_key=cve_config.nvd_api_key or os.getenv("NVD_KEY", ""),
         )
 
 
@@ -263,7 +265,6 @@ async def main() -> None:
     :raises ConnectionRefusedError: If connection to Temporal server fails after retries.
     :raises KeyError: If required environment variables are missing.
     """
-    # required_env_vars = ['NVD_KEY', 'NEO4J_PASSWORD', 'NEO4J_BOLT', 'NEO4J_USER', 'TEMPORAL_HOST', 'TEMPORAL_PORT']
     required_env_vars = ["NEO4J_PASSWORD", "NEO4J_BOLT", "NEO4J_USER", "TEMPORAL_HOST", "TEMPORAL_PORT"]
     for env_var in required_env_vars:
         if not os.getenv(env_var):

@@ -8,11 +8,20 @@ from config import ISIMConfig
 
 
 class SLPEnrichmentActivities:
+    """
+    Activities for performing enrichment of information about assets obtained from SLP.
+    """
+
     def __init__(self, isim_config: ISIMConfig) -> None:
         self.isim_config = isim_config
 
     @activity.defn
     async def get_asset_info(self) -> list[list[dict[str, Any] | None]]:
+        """
+        This method gets information about assets necessary for obtaining data from SLP.
+        The most important are IP addresses, domain names, and subnets.
+        :return: a list of assets from the ISIM's REST API
+        """
         unprocessed_addresses = []
         last_item_found = False
         offset = 0
@@ -34,6 +43,13 @@ class SLPEnrichmentActivities:
     async def get_data_from_slp(
         self, response_json: list[list[dict[str, Any] | None]], x_api_key: str
     ) -> list[dict[str, Any]]:
+        """
+        This method obtains enrichment data from SLP - IP addresses, domain names,
+        risk score, and subnets.
+        :param response_json: contains a list of assets from the ISIM's REST API
+        :param x_api_key: a key for the SLP's API
+        :return: a list of assets from the SLP
+        """
         domains_ips_for_storing = []
         ip_addresses_in_database = []
         domains_ips_from_database = {}
@@ -117,6 +133,11 @@ class SLPEnrichmentActivities:
 
     @activity.defn
     async def store_data_from_slp(self, data: list[dict[str, Any]]) -> str:
+        """
+        This method stores data from SLP by calling a dedicated ISIM's REST API endpoint.
+        :param data: data for storing
+        :return: textual response obtained from the ISIM's REST API
+        """
         async with httpx.AsyncClient() as client:
             response = await client.post(f"{self.isim_config.url}/slp_enrichment", json=data)
             return response.text

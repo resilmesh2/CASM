@@ -109,7 +109,6 @@ services:
     networks:
       - resilmesh_network
     environment:
-      - NVD_KEY
       - TEMPORAL_HOST=temporal
       - TEMPORAL_PORT=7233
       - NEO4J_USER=neo4j
@@ -132,3 +131,6 @@ services:
 volumes:
   neo4j_easyeasm_data:
 
+networks:
+  resilmesh_network:
+    name: resilmesh_network

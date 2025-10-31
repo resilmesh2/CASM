@@ -3,6 +3,10 @@ from dataclasses import dataclass
 
 @dataclass
 class CpeIdentifier:
+    """
+    A class for representing a CPE match string of version 2.3.
+    """
+
     part: str
     vendor: str
     product: str
@@ -16,6 +20,11 @@ class CpeIdentifier:
     other: str = "*"
 
     def to_cpe23_string(self) -> str:
+        """
+        Returns a string representation of the CPE match string of version 2.3.
+        :return: CPE match string of version 2.3
+        """
+
         return (
             f"cpe:2.3:{self.part}:{self.vendor}:{self.product}:{self.version}:"
             f"{self.update}:{self.edition}:{self.language}:{self.sw_edition}:"
@@ -24,6 +33,12 @@ class CpeIdentifier:
 
     @staticmethod
     def from_string(cpe_str: str) -> "CpeIdentifier":
+        """
+        This method creates a CpeIdentifier object from possibly incomplete CPE match string.
+        :param cpe_str: a raw string representation of a CPE match string
+        :return: an instance of CpeIdentifier
+        :raises ValueError: if the CPE string is invalid
+        """
         parts = cpe_str.split(":")
 
         if not parts or parts[0] != "cpe":
