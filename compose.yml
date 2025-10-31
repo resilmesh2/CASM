@@ -130,7 +130,3 @@ services:
 
 volumes:
   neo4j_easyeasm_data:
-
-networks:
-  resilmesh_network:
-    name: resilmesh_network
