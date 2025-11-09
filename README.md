@@ -267,7 +267,7 @@ Then you can start the CASM application with the following command inside the pr
 docker compose up -d
 ```
 
-Then, build and start the ISIM application similarly and ensure the `external: true` is uncommented in the `casm_isim_test_network` network.
+Then, build and start the ISIM application similarly and ensure the `external: true` is uncommented in the `resilmesh_network` network.
 When everything is up and running, you can run the nmap demo by running:
 
 ```bash

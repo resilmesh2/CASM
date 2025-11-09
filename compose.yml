@@ -1,5 +1,5 @@
 services:
-  postgres:
+  resilmesh_sap_casm_postgres:
     image: postgres:17
     environment:
       POSTGRES_USER: postgres
@@ -20,12 +20,16 @@ services:
     networks:
       - resilmesh_network
 
-  worker:
+  resilmesh_sap_casm_worker:
     build: .
     restart: unless-stopped
+    container_name: easm-worker
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
       - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
+    # depends_on:
+    #   resilmesh_sap_wo_temporal:
+    #     condition: service_healthy
     networks:
       - resilmesh_network
 
@@ -45,8 +49,7 @@ services:
 #      SSH: yes
 #      SQL: yes
 #    networks:
-#      casm_isim_test_network:
-
+#      resilmesh_network:
 
 
 #  neo4j:
@@ -69,9 +72,9 @@ services:
 #      retries: 10
 #    restart: unless-stopped
 #    networks:
-#      - casm_isim_test_network
+#      - resilmesh_network
 
-  redis:
+  resilmesh_sap_casm_redis:
     image: docker.io/redis:7
     environment:
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
@@ -81,52 +84,64 @@ services:
     networks:
       - resilmesh_network
 
-  nmap-worker:
+  resilmesh_sap_casm_nmap-worker:
     build:
       dockerfile: nmap.Dockerfile
     container_name: nmap-worker
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
+    # depends_on:
+    #   resilmesh_sap_wo_temporal:
+    #     condition: service_healthy
     networks:
       - resilmesh_network
     environment:
+      - NVD_KEY
       - TEMPORAL_HOST=temporal
       - TEMPORAL_PORT=7233
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=supertestovaciheslo
       - NEO4J_BOLT=bolt://neo4j:7687
 
-  cve-connector-worker:
+  resilmesh_sap_casm_cve-connector-worker:
     build:
       dockerfile: cve-connector.Dockerfile
     container_name: cve-connector
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
-#    depends_on:
+    # depends_on:
+    #   resilmesh_sap_wo_temporal:
+    #     condition: service_healthy
 #      neo4j:
     networks:
       - resilmesh_network
     environment:
+      - NVD_KEY
       - TEMPORAL_HOST=temporal
       - TEMPORAL_PORT=7233
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=supertestovaciheslo
       - NEO4J_BOLT=bolt://neo4j:7687
 
-  slp-enrichment-worker:
+  resilmesh_sap_casm_slp-enrichment-worker:
     build:
       dockerfile: slp_enrichment.Dockerfile
-    container_name: slp-enrichment
+    container_name: resilmesh_sap_casm_slp-enrichment
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
     networks:
       - resilmesh_network
     environment:
-      - TEMPORAL_HOST=temporal
+      - TEMPORAL_HOST=resilmesh_sap_casm_temporal
       - TEMPORAL_PORT=7233
 
-volumes:
-  neo4j_easyeasm_data:
+# volumes:
+#   neo4j_easyeasm_data:
+
+
+networks:
+  resilmesh_network:
+    external: true
