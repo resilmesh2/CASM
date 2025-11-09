@@ -23,13 +23,13 @@ services:
   resilmesh_sap_casm_worker:
     build: .
     restart: unless-stopped
-    container_name: easm-worker
+    container_name: resilmesh_sap_casm_easm-worker
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
       - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
-    # depends_on:
-    #   resilmesh_sap_wo_temporal:
-    #     condition: service_healthy
+    depends_on:
+      resilmesh_sap_wo_temporal:
+        condition: service_healthy
     networks:
       - resilmesh_network
 
@@ -87,13 +87,13 @@ services:
   resilmesh_sap_casm_nmap-worker:
     build:
       dockerfile: nmap.Dockerfile
-    container_name: nmap-worker
+    container_name: resilmesh_sap_casm_nmap-worker
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
-    # depends_on:
-    #   resilmesh_sap_wo_temporal:
-    #     condition: service_healthy
+    depends_on:
+      resilmesh_sap_wo_temporal:
+        condition: service_healthy
     networks:
       - resilmesh_network
     environment:
@@ -107,14 +107,14 @@ services:
   resilmesh_sap_casm_cve-connector-worker:
     build:
       dockerfile: cve-connector.Dockerfile
-    container_name: cve-connector
+    container_name: resilmesh_sap_casm_cve-connector
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
-    # depends_on:
-    #   resilmesh_sap_wo_temporal:
-    #     condition: service_healthy
-#      neo4j:
+    depends_on:
+      resilmesh_sap_wo_temporal:
+        condition: service_healthy
+     # neo4j:
     networks:
       - resilmesh_network
     environment:
@@ -140,8 +140,3 @@ services:
 
 # volumes:
 #   neo4j_easyeasm_data:
-
-
-networks:
-  resilmesh_network:
-    external: true
