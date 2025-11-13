@@ -1,34 +1,34 @@
-resilmesh_sap_wo_temporal:
-  url: "temporal:7233"
+temporal:
+  url: "resilmesh_sap_wo_temporal:7233"
   namespace: default
   easm_task_queue: easm
   nmap_task_queue: nmap
   cve_connector_task_queue: cve_connector
   slp_enrichment_task_queue: slp_enrichment
 
-resilmesh_sap_isim_neo4j:
+neo4j:
   password: supertestovaciheslo
-  bolt: bolt://neo4j:7687
+  bolt: bolt://resilmesh_sap_isim_neo4j:7687
   user: neo4j
 
-resilmesh_sap_casm_redis:
-  host: redis
+redis:
+  host: resilmesh_sap_casm_redis
   port: 6379
 
-resilmesh_sap_isim:
-  url: "http://isim:8000"
+isim:
+  url: "http://resilmesh_sap_isim:8000"
 
-resilmesh_sap_casm_nmap_basic:
+nmap_basic:
   targets:
-    - metasploitable3
+    - resilmesh_sap_casm_metasploitable3
   arguments: "-sV -A"
 
-resilmesh_sap_casm_nmap_topology:
+nmap_topology:
   targets:
-    - metasploitable3
+    - resilmesh_sap_casm_metasploitable3
   arguments: "-sn -n --traceroute"
 
-resilmesh_sap_casm_easm_scanner:
+easm_scanner:
   domains:
     - vulnweb.com
   mode: fast  # fast or complete
@@ -36,8 +36,8 @@ resilmesh_sap_casm_easm_scanner:
   threads: 100   # required only for complete mode
   wordlist_path: "/app/temporal/easm/subdomainwordlist.txt"  # required only for complete mode
 
-resilmesh_sap_casm_slp_enrichment:
+slp_enrichment:
   x_api_key: ""
 
-resilmesh_sap_casm_cve_connector:
+cve_connector:
   nvd_api_key: ""
