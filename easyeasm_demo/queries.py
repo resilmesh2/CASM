@@ -38,7 +38,6 @@ WITH apoc.convert.fromJsonMap($json_string) AS input_, datetime.truncate('second
         OPTIONAL MATCH (sv)<-[r4:ON]-(host) WHERE r4.end IS NULL
             FOREACH(r IN CASE WHEN r4 IS NULL THEN [r4] ELSE [] END |
                 MERGE (sv)<-[sv_h:ON { start:  scan_dt}]-(host)
-                ON CREATE SET sv_h.tag = ["unknown", "CASM"]
             )
         ;
 """
