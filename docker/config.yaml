@@ -8,7 +8,7 @@ temporal:
 
 neo4j:
   password: supertestovaciheslo
-  bolt: bolt://resilmesh_sap_isim_neo4j:7687
+  bolt: bolt://resilmesh_sap_neo4j:7687
   user: neo4j
 
 redis:
@@ -16,7 +16,7 @@ redis:
   port: 6379
 
 isim:
-  url: "http://resilmesh_sap_isim:8000"
+  url: "http://isim:8000"
 
 nmap_basic:
   targets:
