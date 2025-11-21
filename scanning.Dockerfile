@@ -21,7 +21,9 @@ ENV VIRTUAL_ENV=/venv \
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends nmap && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get-install -y golang && \
+    go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 WORKDIR /app
 

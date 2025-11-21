@@ -54,6 +54,9 @@ class NmapTopologyConfig:
     targets: list[str]
     arguments: str
 
+@dataclass
+class NucleiConfig: ...
+
 
 @dataclass
 class EasmScannerConfig:
@@ -101,6 +104,7 @@ class Config:
     easm_scanner: EasmScannerConfig
     slp_enrichment: SLPEnrichmentConfig
     cve_connector: CveConnectorConfig
+    nuclei: NucleiConfig
 
 
 class AppConfig:

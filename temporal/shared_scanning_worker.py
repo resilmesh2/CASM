@@ -11,7 +11,7 @@ from temporal.nmap.topology.workflow import NmapTopologyWorkflow
 
 async def main() -> None:
     """
-    Entry point for creating a worker that runs nmap basic and topology workflows.
+    Entry point for creating a worker that runs nmap (basic, topology) and nuclei workflows.
     :return: None
     """
     config = AppConfig.get()
