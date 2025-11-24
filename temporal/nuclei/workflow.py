@@ -13,7 +13,7 @@ from config import AppConfig
 from temporal.nuclei.activities import NucleiActivities
 
 
-@workflow.defn(name="NmapBasicWorkflow")
+@workflow.defn(name="NucleiWorkflow")
 class NucleiWorkflow:
     """
     Workflow that runs a basic nmap scan, parses the XML, and publishes results to ISIM.
@@ -27,16 +27,16 @@ class NucleiWorkflow:
         :param input_: Optional mapping compatible with NmapBasicConfig to override defaults.
         :return: None
         """
-        config = AppConfig.get()
-        nuclei_config = config.nuclei
+        # config = AppConfig.get()
+        # nuclei_config = config.nuclei
 
-        if input_ is not None:
-            nuclei_config = await workflow.execute_activity(
-                NucleiActivities.validate_input,
-                arg=input_,
-                retry_policy=RetryPolicy(maximum_attempts=1),
-                start_to_close_timeout=timedelta(minutes=5),
-            )
+        # if input_ is not None:
+        #     nuclei_config = await workflow.execute_activity(
+        #         NucleiActivities.validate_input,
+        #         arg=input_,
+        #         retry_policy=RetryPolicy(maximum_attempts=1),
+        #         start_to_close_timeout=timedelta(minutes=5),
+        #     )
 
 
     @classmethod

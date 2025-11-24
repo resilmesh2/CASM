@@ -104,7 +104,7 @@ class Config:
     easm_scanner: EasmScannerConfig
     slp_enrichment: SLPEnrichmentConfig
     cve_connector: CveConnectorConfig
-    nuclei: NucleiConfig
+    # nuclei: NucleiConfig
 
 
 class AppConfig:
