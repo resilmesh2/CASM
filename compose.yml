@@ -1,10 +1,11 @@
 services:
   resilmesh_sap_casm_postgres:
+    container_name: resilmesh_sap_casm_postgres
     image: postgres:17
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: resilmesh_sap_casm_postgres
       POSTGRES_DB: amass
       PG_DATA: /data/postgres
     healthcheck:
@@ -21,9 +22,9 @@ services:
       - resilmesh_network
 
   resilmesh_sap_casm_worker:
+    container_name: resilmesh_sap_casm_easm-worker
     build: .
     restart: unless-stopped
-    container_name: resilmesh_sap_casm_easm-worker
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
       - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
@@ -33,23 +34,23 @@ services:
     networks:
       - resilmesh_network
 
-#  metasploitable3:
-#    image: kirscht/metasploitable3-ub1404
-#    container_name: metasploitable3
-#    # use environment variables to set password, enable root and start services
-#    entrypoint: /entrypoint.sh
-#    environment:
-#      PASS: myPass
-#      ROOT: yes
-#      CUPS: yes
-#      FTP: yes
-#      HTTP: yes
-#      IRC: yes
-#      SMB: yes
-#      SSH: yes
-#      SQL: yes
-#    networks:
-#      resilmesh_network:
+  resilmesh_sap_casm_metasploitable3:
+    container_name: resilmesh_sap_casm_metasploitable3
+    image: kirscht/metasploitable3-ub1404
+    # use environment variables to set password, enable root and start services
+    entrypoint: /entrypoint.sh
+    environment:
+      PASS: myPass
+      ROOT: yes
+      CUPS: yes
+      FTP: yes
+      HTTP: yes
+      IRC: yes
+      SMB: yes
+      SSH: yes
+      SQL: yes
+    networks:
+      - resilmesh_network
 
 
 #  neo4j:
@@ -75,6 +76,7 @@ services:
 #      - resilmesh_network
 
   resilmesh_sap_casm_redis:
+    container_name: resilmesh_sap_casm_redis
     image: docker.io/redis:7
     environment:
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
@@ -85,9 +87,9 @@ services:
       - resilmesh_network
 
   resilmesh_sap_casm_nmap-worker:
+    container_name: resilmesh_sap_casm_nmap-worker
     build:
       dockerfile: nmap.Dockerfile
-    container_name: resilmesh_sap_casm_nmap-worker
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
@@ -98,16 +100,16 @@ services:
       - resilmesh_network
     environment:
       - NVD_KEY
-      - TEMPORAL_HOST=temporal
+      - TEMPORAL_HOST=resilmesh_sap_wo_temporal
       - TEMPORAL_PORT=7233
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=supertestovaciheslo
-      - NEO4J_BOLT=bolt://neo4j:7687
+      - NEO4J_BOLT=bolt://resilmesh_sap_neo4j:7687
 
   resilmesh_sap_casm_cve-connector-worker:
+    container_name: resilmesh_sap_casm_cve-connector
     build:
       dockerfile: cve-connector.Dockerfile
-    container_name: resilmesh_sap_casm_cve-connector
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
@@ -119,23 +121,23 @@ services:
       - resilmesh_network
     environment:
       - NVD_KEY
-      - TEMPORAL_HOST=temporal
+      - TEMPORAL_HOST=resilmesh_sap_wo_temporal
       - TEMPORAL_PORT=7233
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=supertestovaciheslo
-      - NEO4J_BOLT=bolt://neo4j:7687
+      - NEO4J_BOLT=bolt://resilmesh_sap_neo4j:7687
 
   resilmesh_sap_casm_slp-enrichment-worker:
+    container_name: resilmesh_sap_casm_slp-enrichment
     build:
       dockerfile: slp_enrichment.Dockerfile
-    container_name: resilmesh_sap_casm_slp-enrichment
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
     networks:
       - resilmesh_network
     environment:
-      - TEMPORAL_HOST=resilmesh_sap_casm_temporal
+      - TEMPORAL_HOST=resilmesh_sap_wo_temporal
       - TEMPORAL_PORT=7233
 
 # volumes:
