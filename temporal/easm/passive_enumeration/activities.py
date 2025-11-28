@@ -1,10 +1,9 @@
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
-from temporalio import activity
-
 from config import RedisConfig
 from temporal.easm.passive_enumeration import activities_impl
+from temporalio import activity
 
 
 class PassiveEnumerationActivities:

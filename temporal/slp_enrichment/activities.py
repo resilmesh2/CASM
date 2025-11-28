@@ -2,9 +2,9 @@ from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
 import httpx
-from temporalio import activity
 
 from config import ISIMConfig
+from temporalio import activity
 
 
 class SLPEnrichmentActivities:
