@@ -4,10 +4,6 @@ from xml.etree.ElementTree import Element
 from temporal.nmap.basic.dtos import Application, Device, Host, NmapResults, SoftwareVersion, Subnet
 
 
-def _get_ip_version(ip: str) -> int:
-    return ipaddress.ip_address(ip).version
-
-
 def _get_default_prefix(ip_version: int) -> int:
     return 24 if ip_version == 4 else 64
 
@@ -142,8 +138,12 @@ def _create_application(service: Element, port_num: str, protocol: str, device_n
 
 
 def _process_ports_and_services(
-    host: Element, ip: str, software_versions: list[SoftwareVersion], applications: list[Application], device_name: str,
-        tag: list[str]
+    host: Element,
+    ip: str,
+    software_versions: list[SoftwareVersion],
+    applications: list[Application],
+    device_name: str,
+    tag: list[str],
 ) -> None:
     """
     Inspect a host's <ports> and collect applications and software versions for open services.
@@ -173,10 +173,6 @@ def _process_ports_and_services(
                 software_versions.append(software_version)
             if service.attrib.get("name"):
                 applications.append(_create_application(service, port_num, protocol, device_name))
-
-
-def _create_host(primary_ip: str, hostnames: list[str], host_subnets: list[str], tag: list[str]) -> Host:
-    return Host(ip_address=primary_ip, tag=tag, domain_names=hostnames, uris=[], subnets=host_subnets)
 
 
 def _is_host_up(host: Element) -> bool:
@@ -227,7 +223,8 @@ def parse_nmap_xml(nmap_output: Element, tag: list[str]) -> NmapResults:
         host_subnets = _extract_host_subnets(ip_addresses, subnet_set)
         hostnames = _extract_hostnames(host)
         primary_ip = ip_addresses[0]
-        results.hosts.append(_create_host(primary_ip, hostnames, host_subnets, tag))
+        results.hosts.append(Host(ip_address=primary_ip, tag=tag, domain_names=hostnames, uris=[], subnets=host_subnets)
+)
 
         for ip in ip_addresses:
             device_name = hostnames[0] if hostnames else ip
@@ -239,11 +236,3 @@ def parse_nmap_xml(nmap_output: Element, tag: list[str]) -> NmapResults:
     results.applications.extend(applications)
 
     return results
-
-# if __name__ == "__main__":
-#     import xml.etree.ElementTree as ET
-#     from pathlib import Path
-#     pardir = Path(__file__).parent / "nmap_out.xml"
-#     tree = ET.parse(pardir)
-#     root = tree.getroot()
-#     print(parse_nmap_xml(root, []))
