@@ -126,23 +126,24 @@ def _create_software_version(service: Element, ip: str, tag: list[str]) -> Softw
     return SoftwareVersion(version=cpe, description=_build_version_description(service), ip_addresses=[ip], tag=tag)
 
 
-def _create_application(service: Element, port_num: str, protocol: str, ip: str) -> Application:
+def _create_application(service: Element, port_num: str, protocol: str, device_name: str) -> Application:
     """
     Create a minimal Application record from a detected service/port.
 
     :param service: XML <service> element containing the service "name".
     :param port_num: Port number as a string from nmap attributes (e.g., "80").
     :param protocol: Transport protocol name (e.g., "tcp", "udp").
-    :param ip: IP address of the device that hosts the application.
+    :param device_name: Name of the device that hosts the application.
     :return: Application dataclass instance referencing the device by IP.
     """
     service_name = service.attrib.get("name", "")
     app_name = f"{service_name} (port {port_num}/{protocol})"
-    return Application(name=app_name, device=ip)
+    return Application(name=app_name, device=device_name)
 
 
 def _process_ports_and_services(
-    host: Element, ip: str, software_versions: list[SoftwareVersion], applications: list[Application], tag: list[str]
+    host: Element, ip: str, software_versions: list[SoftwareVersion], applications: list[Application], device_name: str,
+        tag: list[str]
 ) -> None:
     """
     Inspect a host's <ports> and collect applications and software versions for open services.
@@ -171,19 +172,11 @@ def _process_ports_and_services(
             if software_version := _create_software_version(service, ip, tag):
                 software_versions.append(software_version)
             if service.attrib.get("name"):
-                applications.append(_create_application(service, port_num, protocol, ip))
+                applications.append(_create_application(service, port_num, protocol, device_name))
 
 
 def _create_host(primary_ip: str, hostnames: list[str], host_subnets: list[str], tag: list[str]) -> Host:
     return Host(ip_address=primary_ip, tag=tag, domain_names=hostnames, uris=[], subnets=host_subnets)
-
-
-def _create_device(ip: str, hostnames: list[str]) -> Device:
-    device_name = hostnames[0] if hostnames else ip
-    return Device(
-        name=device_name,
-        ip_address=ip,
-    )
 
 
 def _is_host_up(host: Element) -> bool:
@@ -205,48 +198,6 @@ def _extract_host_subnets(ip_addresses: list[str], subnet_set: set[str]) -> list
             subnet_set.add(subnet)
             host_subnets.append(subnet)
     return host_subnets
-
-
-def _add_devices(results: NmapResults, ip_addresses: list[str], hostnames: list[str]) -> None:
-    """
-    Append Device records to results for each IP address on the host.
-
-    If multiple IPs are associated with the same host, annotate the device name with
-    the specific IP to keep them distinct.
-
-    :param results: NmapResults accumulator to which devices are added.
-    :param ip_addresses: All IPs found for the host.
-    :param hostnames: Hostname list used to derive a base device name.
-    :return: None
-    """
-    for ip in ip_addresses:
-        device = _create_device(ip, hostnames)
-        if len(ip_addresses) > 1:
-            device.name = f"{device.name} ({ip})"
-        results.devices.append(device)
-
-
-def _finalize_results(
-    results: NmapResults,
-    subnet_set: set[str],
-    software_versions: list[SoftwareVersion],
-    applications: list[Application],
-) -> None:
-    """
-    Transfer accumulated subnets, software versions, and applications into results.
-
-    Subnets are sorted and converted into Subnet DTOs. Software versions and
-    applications are appended as-is.
-
-    :param results: Target NmapResults an object to populate.
-    :param subnet_set: Unique set of CIDR subnet strings discovered during parsing.
-    :param software_versions: Collected SoftwareVersion items.
-    :param applications: Collected Application items.
-    :return: None
-    """
-    results.subnets.extend(Subnet(ip_range=subnet, note=subnet) for subnet in sorted(subnet_set))
-    results.software_versions.extend(software_versions)
-    results.applications.extend(applications)
 
 
 def parse_nmap_xml(nmap_output: Element, tag: list[str]) -> NmapResults:
@@ -278,9 +229,21 @@ def parse_nmap_xml(nmap_output: Element, tag: list[str]) -> NmapResults:
         primary_ip = ip_addresses[0]
         results.hosts.append(_create_host(primary_ip, hostnames, host_subnets, tag))
 
-        _add_devices(results, ip_addresses, hostnames)
         for ip in ip_addresses:
-            _process_ports_and_services(host, ip, software_versions, applications, tag)
+            device_name = hostnames[0] if hostnames else ip
+            _process_ports_and_services(host, ip, software_versions, applications, device_name, tag)
+            results.devices.append(Device(name=device_name, ip_address=ip))
 
-    _finalize_results(results, subnet_set, software_versions, applications)
+    results.subnets.extend(Subnet(ip_range=subnet, note=subnet) for subnet in sorted(subnet_set))
+    results.software_versions.extend(software_versions)
+    results.applications.extend(applications)
+
     return results
+
+# if __name__ == "__main__":
+#     import xml.etree.ElementTree as ET
+#     from pathlib import Path
+#     pardir = Path(__file__).parent / "nmap_out.xml"
+#     tree = ET.parse(pardir)
+#     root = tree.getroot()
+#     print(parse_nmap_xml(root, []))
