@@ -5,6 +5,7 @@ class AbstractClient:
     """
     Abstract Client for interacting with the Neo4j database.
     """
+
     def __init__(
         self, bolt="bolt://localhost:7687", user="neo4j", password=None, driver=None, lifetime=200, encrypted=False
     ) -> None:
