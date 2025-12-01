@@ -24,9 +24,14 @@ import signal
 import time
 from datetime import datetime, timedelta
 
-from temporalio import activity, workflow
-from temporalio.client import (Client, Schedule, ScheduleActionStartWorkflow, ScheduleIntervalSpec, ScheduleSpec,
-                               ScheduleAlreadyRunningError)
+from temporalio.client import (
+    Client,
+    Schedule,
+    ScheduleActionStartWorkflow,
+    ScheduleAlreadyRunningError,
+    ScheduleIntervalSpec,
+    ScheduleSpec,
+)
 from temporalio.common import RetryPolicy
 from temporalio.exceptions import TemporalError
 from temporalio.worker import UnsandboxedWorkflowRunner, Worker
@@ -40,6 +45,7 @@ from cve_connector.nvd_cve.toneo4j import (
     move_cve_data_to_neo4j,
     update_timestamp_for_software_version,
 )
+from temporalio import activity, workflow
 
 logging.basicConfig(
     level=logging.INFO,

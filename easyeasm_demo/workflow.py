@@ -10,13 +10,13 @@ from typing import Any
 from neo4j import GraphDatabase, basic_auth
 from redis.client import Redis
 from structlog import getLogger
-from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 from yaml import safe_dump
 
 from config import AppConfig, Neo4jConfig, RedisConfig
 from easyeasm_demo.queries import CASM_INSERT_QUERY
 from easyeasm_demo.utils import EasyEASMParsedResult, determine_software_versions, validate_input_target
+from temporalio import activity, workflow
 
 EASYEASM_BASE_PATH = "/tmp/easyeasm"  # noqa: S108
 
