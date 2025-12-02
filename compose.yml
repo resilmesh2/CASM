@@ -28,9 +28,9 @@ services:
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
       - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
-    depends_on:
-      resilmesh_sap_wo_temporal:
-        condition: service_healthy
+#    depends_on:
+#      resilmesh_sap_wo_temporal:
+#        condition: service_healthy
     networks:
       - resilmesh_network
 
@@ -75,16 +75,16 @@ services:
 #    networks:
 #      - resilmesh_network
 
-  resilmesh_sap_casm_redis:
-    container_name: resilmesh_sap_casm_redis
-    image: docker.io/redis:7
-    environment:
-      # ALLOW_EMPTY_PASSWORD is recommended only for development.
-      - ALLOW_EMPTY_PASSWORD=yes
-    ports:
-      - "127.0.0.1:6379:6379"
-    networks:
-      - resilmesh_network
+#  resilmesh_sap_casm_redis:
+#    container_name: redis
+#    image: valkey/valkey:7.2
+#    environment:
+#      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+#      - ALLOW_EMPTY_PASSWORD=yes
+#    expose:
+#      - 6379
+#    networks:
+#      - resilmesh_network
 
   resilmesh_sap_casm_nmap-worker:
     container_name: resilmesh_sap_casm_nmap-worker
@@ -93,9 +93,9 @@ services:
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
-    depends_on:
-      resilmesh_sap_wo_temporal:
-        condition: service_healthy
+#    depends_on:
+#      resilmesh_sap_wo_temporal:
+#        condition: service_healthy
     networks:
       - resilmesh_network
     environment:
@@ -113,9 +113,9 @@ services:
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
-    depends_on:
-      resilmesh_sap_wo_temporal:
-        condition: service_healthy
+#    depends_on:
+#      resilmesh_sap_wo_temporal:
+#        condition: service_healthy
      # neo4j:
     networks:
       - resilmesh_network
@@ -142,3 +142,8 @@ services:
 
 # volumes:
 #   neo4j_easyeasm_data:
+
+#networks:
+#  resilmesh_network:
+#    external: true
+#    name: resilmesh_network

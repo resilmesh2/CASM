@@ -6,7 +6,7 @@ from dataclasses import asdict, dataclass
 from ipaddress import IPv4Interface, IPv6Interface
 from typing import Any
 
-from redis import Redis
+from valkey import Valkey
 
 from config import RedisConfig
 from temporal.lib import exceptions, util
@@ -56,7 +56,7 @@ async def run_httpx(domains_to_probe_uuid: str, httpx_path: str, redis_config: R
     :return: Redis key where the httpx JSONL output is stored.
     :raises temporal.lib.exceptions.EnumerationToolError: If the httpx command returns a non-zero exit code.
     """
-    redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
+    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
     input_data = redis_client.get(domains_to_probe_uuid).decode("utf-8")
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as temp_file:
@@ -72,7 +72,7 @@ async def run_httpx(domains_to_probe_uuid: str, httpx_path: str, redis_config: R
             f"httpx run failed with status code {return_code} and error {std_err, std_out}, command={command}",
         )
 
-    redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
+    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
     httpx_uuid = f"httpx-{uuid.uuid4()!s}"
     redis_client.set(httpx_uuid, std_out)
     redis_client.close()
@@ -88,7 +88,7 @@ def parse_httpx_output(httpx_uuid: str, redis_config: RedisConfig) -> list[EasyE
     :param redis_config: Connection details for Redis.
     :return: List of parsed results, one per successful httpx line entry.
     """
-    redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
+    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
     httpx_json = redis_client.get(httpx_uuid).decode("utf-8")
     redis_client.close()
     easm_output: list[EasyEASMParsedResult] = []
