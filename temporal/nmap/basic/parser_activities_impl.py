@@ -1,5 +1,9 @@
+import argparse
 import ipaddress
+import sys
+from pathlib import Path
 from xml.etree.ElementTree import Element
+import xml.etree.ElementTree as ET
 
 from temporal.nmap.basic.dtos import Application, Device, Host, NmapResults, SoftwareVersion, Subnet
 
@@ -103,7 +107,7 @@ def convert_cpe_to_version_2_3(cpe: str) -> str | None:
     return "cpe:2.3:" + ":".join(fields)
 
 
-def _create_software_version(service: Element, ip: str, tag: list[str]) -> SoftwareVersion | None:
+def _create_software_version(service: Element, ip: str, tag: list[str], port: str, protocol: str) -> SoftwareVersion | None:
     """
     Create a SoftwareVersion entry from a <service> element if a valid CPE exists.
 
@@ -119,7 +123,15 @@ def _create_software_version(service: Element, ip: str, tag: list[str]) -> Softw
     if not (cpe and (cpe := convert_cpe_to_version_2_3(cpe))):
         return None
 
-    return SoftwareVersion(version=cpe, description=_build_version_description(service), ip_addresses=[ip], tag=tag)
+    return SoftwareVersion(
+        version=cpe,
+        service=service.attrib.get("name", ""),
+        protocol=protocol,
+        port=int(port),
+        description=_build_version_description(service),
+        ip_addresses=[ip],
+        tag=tag,
+    )
 
 
 def _create_application(service: Element, port_num: str, protocol: str, device_name: str) -> Application:
@@ -169,7 +181,7 @@ def _process_ports_and_services(
         state = port.find("state")
         service = port.find("service")
         if state is not None and state.attrib.get("state") == "open" and service is not None:
-            if software_version := _create_software_version(service, ip, tag):
+            if software_version := _create_software_version(service, ip, tag, port_num, protocol):
                 software_versions.append(software_version)
             if service.attrib.get("name"):
                 applications.append(_create_application(service, port_num, protocol, device_name))
@@ -236,3 +248,10 @@ def parse_nmap_xml(nmap_output: Element, tag: list[str]) -> NmapResults:
     results.applications.extend(applications)
 
     return results
+
+
+if __name__ == "__main__":
+    path = Path(__file__).parent / "nmap_out.xml"
+    nmap_output = ET.parse(path).getroot()
+    result = parse_nmap_xml(nmap_output, ["test"])
+    print(result)
