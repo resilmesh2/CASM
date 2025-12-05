@@ -6,7 +6,7 @@ from dacite import from_dict
 
 BASE_DIR = Path(__file__).resolve().parent
 
-TEMPORAL_URL = "temporal:7233"
+TEMPORAL_URL = "resilmesh_sap_wo_temporal:7233"
 TEMPORAL_NAMESPACE = "default"
 HTTPX_PATH_DOCKER = "/app/go/bin/httpx"
 
