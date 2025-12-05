@@ -1,6 +1,6 @@
 services:
   elasticsearch:
-    container_name: temporal-elasticsearch
+    container_name: resilmesh_sap_wo_elasticsearch
     environment:
       - cluster.routing.allocation.disk.threshold_enabled=true
       - cluster.routing.allocation.disk.watermark.low=512mb
@@ -15,10 +15,10 @@ services:
     volumes:
       - /var/lib/elasticsearch/data
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
 
   postgresql:
-    container_name: temporal-postgresql
+    container_name: resilmesh_sap_wo_postgresql
     environment:
       POSTGRES_PASSWORD: temporal
       POSTGRES_USER: temporal
@@ -28,10 +28,10 @@ services:
     volumes:
       - /var/lib/postgresql/data
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
 
-  temporal:
-    container_name: temporal
+  resilmesh_sap_wo_temporal:
+    container_name: resilmesh_sap_wo_temporal
     depends_on:
       - postgresql
       - elasticsearch
@@ -40,10 +40,10 @@ services:
       - DB_PORT=5432
       - POSTGRES_USER=temporal
       - POSTGRES_PWD=temporal
-      - POSTGRES_SEEDS=postgresql
+      - POSTGRES_SEEDS=resilmesh_sap_wo_postgresql
       - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
       - ENABLE_ES=true
-      - ES_SEEDS=elasticsearch
+      - ES_SEEDS=resilmesh_sap_wo_elasticsearch
       - ES_VERSION=v7
     image: temporalio/auto-setup:${TEMPORAL_VERSION:-1.22.7}
     ports:
@@ -53,41 +53,42 @@ services:
     volumes:
       - ./temporalio/dynamicconfig:/etc/temporal/config/dynamicconfig
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
     healthcheck:
-      test: ["CMD","tctl", "--address", "temporal:7233", "workflow", "list", "||", "exit 1"]
+      test: ["CMD","tctl", "--address", "resilmesh_sap_wo_temporal:7233", "workflow", "list", "||", "exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 15s
 
-  temporal-admin-tools:
-    container_name: temporal-admin-tools
+  resilmesh_sap_wo_temporal_admin:
+    container_name: resilmesh_sap_wo_temporal_admin
     depends_on:
-      - temporal
+      - resilmesh_sap_wo_temporal
     environment:
-      - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CLI_ADDRESS=temporal:7233
+      - TEMPORAL_ADDRESS=resilmesh_sap_wo_temporal:7233
+      - TEMPORAL_CLI_ADDRESS=resilmesh_sap_wo_temporal:7233
     image: temporalio/admin-tools:${TEMPORAL_VERSION:-1.22.7}
     stdin_open: true
     tty: true
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
 
-  temporal-ui:
-    container_name: temporal-ui
+  resilmesh_sap_wo_temporal_ui:
+    container_name: resilmesh_sap_wo_temporal_ui
     depends_on:
-      - temporal
+      - resilmesh_sap_wo_temporal
     environment:
-      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_ADDRESS=resilmesh_sap_wo_temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000, http://localhost:4201, http://localhost:3000, http://localhost:5000
     image: temporalio/ui:${TEMPORAL_UI_VERSION:-2.31.2}
     ports:
       - 8080:8080
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
 
-  postgres:
+  resilmesh_sap_wo_postgres:
+    container_name: resilmesh_sap_wo_postgres
     image: postgres:17
     environment:
       POSTGRES_USER: postgres
@@ -106,9 +107,10 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
 
-  worker:
+  resilmesh_sap_wo_worker:
+    container_name: resilmesh_sap_wo_worker
     build: 
       context: .
       dockerfile: Dockerfile
@@ -118,15 +120,14 @@ services:
       - ./docker/config.yaml:/app/config/config.yaml
       - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
     depends_on:
-      temporal:
+      resilmesh_sap_wo_temporal:
         condition: service_healthy
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
 
 #  metasploitable3:
 #    image: kirscht/metasploitable3-ub1404
 #    container_name: metasploitable3
-#    # use environment variables to set password, enable root and start services
 #    entrypoint: /entrypoint.sh
 #    environment:
 #      PASS: myPass
@@ -139,119 +140,93 @@ services:
 #      SSH: yes
 #      SQL: yes
 #    networks:
-#      casm_isim_test_network:
+#      resilmesh_network:
 
-
-
-#  neo4j:
-#    image: neo4j:5.21.0
-#    environment:
-#      - NEO4J_AUTH=neo4j/supertestovaciheslo
-#      - NEO4J_PLUGINS=["apoc"]
-#      - NEO4J_apoc_export_file_enabled=true
-#      - NEO4J_apoc_import_file_enabled=true
-#      - NEO4J_apoc_import_file_use__neo4j__config=true
-#    volumes:
-#      - neo4j_easyeasm_data:/data
-#    ports:
-#      - 7474:7474
-#      - 7687:7687
-#    healthcheck:
-#      test: ["CMD", "wget", "http://localhost:7474/"]
-#      interval: 10s
-#      timeout: 2s
-#      retries: 10
-#    restart: unless-stopped
-#    networks:
-#      - casm_isim_test_network
-
-  redis:
+  resilmesh_sap_wo_redis:
+    container_name: resilmesh_sap_wo_redis
     image: redis:7.0-alpine
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - "127.0.0.1:6379:6379"
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
 
-  component-scheduler-worker:
+  resilmesh_sap_wo_component_scheduler:
+    container_name: resilmesh_sap_wo_component_scheduler
     build:
       context: .
       network: host
       dockerfile: Dockerfile
-    container_name: component-scheduler-worker
     command: ["/venv/bin/python", "/app/component_worker.py"]
     restart: unless-stopped
     volumes:
       - ./logs:/app/logs
-      - ../ISIM/config:/config:ro  # Mount ISIM's config as read-only
+      - ../ISIM/config:/config:ro
     depends_on:
-      temporal:
+      resilmesh_sap_wo_temporal:
         condition: service_healthy
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
     environment:
-      - TEMPORAL_HOST=temporal
+      - TEMPORAL_HOST=resilmesh_sap_wo_temporal
       - TEMPORAL_PORT=7233
       - TEMPORAL_NAMESPACE=default
-      - RISK_API_URL=http://neo4j_automation:5000
-      - NEO4J_URI=bolt://neo4j:7687
+      - RISK_API_URL=http://resilmesh_sap_isim_automation:5000
+      - NEO4J_URI=bolt://resilmesh_sap_isim_neo4j:7687
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=supertestovaciheslo
 
-  nmap-worker:
+  resilmesh_sap_wo_nmap:
+    container_name: resilmesh_sap_wo_nmap
     build:
       dockerfile: nmap.Dockerfile
       network: host
-    container_name: nmap-worker
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
     depends_on:
-      temporal:
+      resilmesh_sap_wo_temporal:
         condition: service_healthy
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
     environment:
       - NVD_KEY
-      - TEMPORAL_HOST=temporal
+      - TEMPORAL_HOST=resilmesh_sap_wo_temporal
       - TEMPORAL_PORT=7233
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=supertestovaciheslo
-      - NEO4J_BOLT=bolt://neo4j:7687
+      - NEO4J_BOLT=bolt://resilmesh_sap_isim_neo4j:7687
 
-  cve-connector-worker:
+  resilmesh_sap_wo_cve_connector:
+    container_name: resilmesh_sap_wo_cve_connector
     build:
       dockerfile: cve-connector.Dockerfile
       network: host
-    container_name: cve-connector
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
     depends_on:
-      temporal:
+      resilmesh_sap_wo_temporal:
         condition: service_healthy
-#      neo4j:
     networks:
-      - casm_isim_test_network
+      - resilmesh_network
     environment:
       - NVD_KEY
-      - TEMPORAL_HOST=temporal
+      - TEMPORAL_HOST=resilmesh_sap_wo_temporal
       - TEMPORAL_PORT=7233
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=supertestovaciheslo
-      - NEO4J_BOLT=bolt://neo4j:7687
+      - NEO4J_BOLT=bolt://resilmesh_sap_isim_neo4j:7687
 
 volumes:
-  neo4j_easyeasm_data:
-
+  resilmesh_sap_wo_neo4j_data:
 
 networks:
-  casm_isim_test_network:
+  resilmesh_network:
     external: true
-    name: casm_isim_test_network

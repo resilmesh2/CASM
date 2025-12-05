@@ -14,11 +14,11 @@ from component_calculation import ComponentCalculationWorkflow, RiskFormulaCalcu
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-TEMPORAL_HOST = os.environ.get("TEMPORAL_HOST", "temporal")
+TEMPORAL_HOST = os.environ.get("TEMPORAL_HOST", "resilmesh_sap_wo_temporal")
 TEMPORAL_PORT = os.environ.get("TEMPORAL_PORT", "7233")
 TEMPORAL_NAMESPACE = os.environ.get("TEMPORAL_NAMESPACE", "default")
 TEMPORAL_ADDRESS = f"{TEMPORAL_HOST}:{TEMPORAL_PORT}"
-RISK_API_URL = os.environ.get("RISK_API_URL", "http://localhost:5000")
+RISK_API_URL = os.environ.get("RISK_API_URL", "http://resilmesh_sap_isim_automation:5000")
 COMPONENT_CONFIG_PATH = "/config/component_automation_config.yaml"
 
 def load_component_config():
@@ -58,15 +58,12 @@ async def calculate_component_score(component_data: dict) -> dict:
         
         logger.info(f"Calculating score for component: {component_name} ({component_id})")
         
-        # Call the risk API to execute the component calculation
         execution_endpoint = component_data.get('execution_endpoint')
         
         if execution_endpoint:
-            # Use the provided execution endpoint
             api_url = execution_endpoint
             logger.info(f"Using custom endpoint: {api_url}")
         else:
-            # Use default component execution endpoint
             api_url = f"{RISK_API_URL}/api/risk/components/execute/{neo4j_property or component_id}"
             logger.info(f"Using default endpoint: {api_url}")
         
@@ -135,7 +132,6 @@ def ensure_base_risk_automation():
     Combines criticality + cvss_score + threatScore into 'Risk Score'.
     """
     try:
-        # Load the MAIN risk assessment config, not component config
         RISK_CONFIG_PATH = "/config/risk_assessment_config.yaml"
         
         try:
@@ -262,7 +258,6 @@ async def initialize_base_risk_schedule(client: Client):
     ensure_base_risk_automation()
 
     schedule_id = "automation-schedule-base-risk"
-    # pass only what the workflow needs
     workflow_input = {"automation_id": "base-risk"}
     spec = ScheduleSpec(
         intervals=[
@@ -290,7 +285,6 @@ async def initialize_base_risk_schedule(client: Client):
     try:
         await client.create_schedule(schedule_id, schedule)
         logger.info(f"Created schedule '{schedule_id}' (every 2h, +30m offset)")
-        # Mark hasSchedule true
         cfg = load_component_config()
         if "active_automations" in cfg and "base-risk" in cfg["active_automations"]:
             cfg["active_automations"]["base-risk"]["hasSchedule"] = True
@@ -320,11 +314,9 @@ async def main():
                 raise
             await asyncio.sleep(retry_interval)
     
-    # Initialize core component schedules
     await initialize_core_component_schedules(client)
     await initialize_base_risk_schedule(client)
     
-    # Start the worker
     worker = Worker(
         client,
         task_queue="component-calculations",
