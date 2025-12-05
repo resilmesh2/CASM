@@ -67,7 +67,7 @@ class SLPEnrichmentActivities:
                 {
                     "domain_name": domain_name,
                     "found": False,
-                    "subnet": asset_info[1]["range"] if asset_info[1] else ["0.0.0.0/0"],
+                    "subnet": asset_info[1]["range"] if asset_info[1] else "0.0.0.0/0",
                 }
             )
 
