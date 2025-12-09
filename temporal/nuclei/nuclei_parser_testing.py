@@ -87,6 +87,35 @@ class ScanData:
     hosts: List[Host] = field(default_factory=list)
 
 
+async def update_nuclei(nucleiPath=None):
+    """
+    Checks and updates Nuclei.
+
+    Checks for any updates to Nuclei or Nuclei Templates,
+    and installs them if any.
+    """
+
+    processes = list()
+    nucleiBinary = "nuclei"
+    if nucleiPath:
+        nucleiBinary = f"{nucleiPath}/{nucleiBinary}"
+
+    commands = [
+        [nucleiBinary, "-update-templates"],
+        [nucleiBinary, "-update"]
+    ]
+
+    for command in commands:
+        await util.run_command_with_output(command)
+
+    for process in processes:
+        output, error = process.communicate()
+        if verbose:
+            print(f"[Stdout] {output.decode('utf-8', 'ignore')}")
+            print(f"[Stderr] {error.decode('utf-8', 'ignore')}")
+
+
+
 def parse_json_to_dataclass(json_data) -> ScanData:
     """Parse JSON into ScanData dataclass"""
     if isinstance(json_data, str):
@@ -368,6 +397,7 @@ async def main():
     print("NUCLEI VULNERABILITY SCANNER")
     print("=" * 80)
 
+    await update_nuclei()
     # Load JSON data from file
     json_file = Path(__file__).parent / "cves.json"
 
