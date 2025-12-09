@@ -1,5 +1,5 @@
 temporal:
-  url: "temporal:7233"
+  url: "resilmesh_sap_wo_temporal:7233"
   namespace: default
   easm_task_queue: easm
   nmap_task_queue: nmap
@@ -7,7 +7,7 @@ temporal:
 
 neo4j:
   password: supertestovaciheslo
-  bolt: bolt://neo4j:7687
+  bolt: bolt://resilmesh_sap_neo4j:7687
   user: neo4j
 
 redis:
@@ -19,12 +19,12 @@ isim:
 
 nmap_basic:
   targets:
-    - metasploitable3
+    - resilmesh_sap_casm_metasploitable3
   arguments: "-sV -A"
 
 nmap_topology:
   targets:
-    - metasploitable3
+    - resilmesh_sap_casm_metasploitable3
   arguments: "-sn -n --traceroute"
 
 easm_scanner:
