@@ -2,7 +2,7 @@ import asyncio
 import tempfile
 import uuid
 
-from redis import Redis
+from valkey import Valkey
 
 from config import RedisConfig
 from temporal.lib import exceptions, util
@@ -25,7 +25,7 @@ async def run_dnsx_bruteforce(
     :raises temporal.lib.exceptions.EnumerationToolError: If dnsx execution fails.
     :raises temporal.lib.exceptions.NoDomainsFoundError: If dnsx returns no results.
     """
-    redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
+    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
     domains = redis_client.get(passive_scan_domains_uuid).decode("utf-8")
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as domain_temp_file:
@@ -72,7 +72,7 @@ async def run_alterx(domains_uuid: str, redis_config: RedisConfig) -> str:
     :return: Redis key where alterx output is stored.
     :raises temporal.lib.exceptions.EnumerationToolError: If alterx execution fails.
     """
-    redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
+    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
     input_domains = redis_client.get(domains_uuid).decode("utf-8")
 
     with (
@@ -112,7 +112,7 @@ async def run_dnsx_resolver(domains_uuid: str, redis_config: RedisConfig) -> str
     :raises temporal.lib.exceptions.EnumerationToolError: If dnsx execution fails.
     :raises temporal.lib.exceptions.NoDomainsFoundError: If no subdomains resolve.
     """
-    redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
+    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
     input_domains = redis_client.get(domains_uuid).decode("utf-8")
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as domains_file:

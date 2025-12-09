@@ -1,6 +1,6 @@
 import uuid
 
-from redis import Redis
+from valkey import Valkey
 
 from config import RedisConfig
 from temporal.lib import exceptions, util
@@ -30,7 +30,7 @@ async def run_subfinder(domains: list[str], redis_config: RedisConfig) -> str:
             f"subfinder run failed with status code {return_code} and error {std_err}, command={command}",
         )
 
-    redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
+    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
     redis_client.set(subfinder_scan_uuid, std_out)
     redis_client.close()
 
@@ -59,7 +59,7 @@ async def run_amass(domains: list[str], redis_config: RedisConfig) -> str:
         )
 
     # Store results in Redis
-    redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
+    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
     redis_client.set(amass_scan_uuid, std_out)
     redis_client.close()
 
@@ -76,7 +76,7 @@ async def get_unique_subdomains(redis_config: RedisConfig, data_redis_uuids: lis
     :raises temporal.lib.exceptions.NoDomainsFoundError: If the merged set is empty.
     """
     unique_subdomains = set()
-    redis_client = Redis(host=redis_config.host, port=redis_config.port, db=0)
+    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
     for uuid_item in data_redis_uuids:
         data = redis_client.get(uuid_item)
         if data:
