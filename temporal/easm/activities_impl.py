@@ -59,12 +59,14 @@ async def run_httpx(domains_to_probe_uuid: str, httpx_path: str, redis_config: R
     redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
     input_data = redis_client.get(domains_to_probe_uuid).decode("utf-8")
 
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as temp_file:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as temp_file:
         temp_file.write(input_data)
+        temp_file.flush()
         temp_input = temp_file.name
 
         command = [httpx_path, "-l", temp_input, "-silent", "-td", "-j"]
         std_out, std_err, return_code = await util.run_command_with_output(command)
+        temp_file.close()
 
     if return_code != 0:
         redis_client.close()
@@ -74,7 +76,8 @@ async def run_httpx(domains_to_probe_uuid: str, httpx_path: str, redis_config: R
 
     redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
     httpx_uuid = f"httpx-{uuid.uuid4()!s}"
-    redis_client.set(httpx_uuid, std_out)
+    output_data = std_out + std_err
+    redis_client.set(httpx_uuid, output_data)
     redis_client.close()
 
     return httpx_uuid
