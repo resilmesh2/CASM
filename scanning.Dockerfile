@@ -15,7 +15,7 @@ RUN . /venv/bin/activate && ~/.local/bin/poetry install --with nmap
 FROM python:3.12-slim-bookworm AS runtime
 
 ENV VIRTUAL_ENV=/venv \
-	PATH=/venv/bin:/app/go/bin:/usr/local/go/bin:$PATH \
+	PATH=/root/go/bin:/venv/bin:/app/go/bin:/usr/local/go/bin:$PATH \
 	PYTHONFAULTHANDLER=1 \
     PYTHONBUFFERED=1
 
@@ -34,5 +34,5 @@ COPY --from=build /venv /venv
 
 EXPOSE 8000
 
-ENTRYPOINT ["/venv/bin/python", "-m", "temporal.shared_scanning_worker"]
+CMD ["/venv/bin/python", "-m", "temporal.shared_scanning_worker"]
 
