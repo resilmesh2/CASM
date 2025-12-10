@@ -1,16 +1,8 @@
-import asyncio
-import uuid
 from collections.abc import Awaitable, Callable, Sequence
-from datetime import timedelta
-from logging import getLogger
 from typing import Any
 
-from temporalio import workflow
-from temporalio.client import Client
-from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
-
 from config import AppConfig
-from temporal.nuclei.activities import NucleiActivities
+from temporalio import workflow
 
 
 @workflow.defn(name="NucleiWorkflow")
@@ -37,7 +29,6 @@ class NucleiWorkflow:
         #         retry_policy=RetryPolicy(maximum_attempts=1),
         #         start_to_close_timeout=timedelta(minutes=5),
         #     )
-
 
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
