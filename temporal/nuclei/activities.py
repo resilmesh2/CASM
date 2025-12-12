@@ -1,9 +1,9 @@
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
-from config import ISIMConfig, NmapBasicConfig
-from temporal.nmap.basic.dtos import NmapResults
+from config import ISIMConfig, NucleiConfig, RedisConfig, Neo4jConfig
 from temporalio import activity
+from temporal.nuclei import activities_impl
 
 
 class NucleiActivities:
@@ -18,16 +18,13 @@ class NucleiActivities:
 
 
     @activity.defn
-    async def validate_input(self, input_: dict[str, Any]) -> NmapBasicConfig: ...
-
-    @activity.defn
-    async def get_targets(self, input_: dict[str, Any]) -> NmapBasicConfig: ...
+    async def validate_input(self, input_: dict[str, Any]) -> NucleiConfig: ...
 
     @activity.defn
     async def check_latest_cve_changes(self, targets: list[str], arguments: str) -> None: ...
 
     @activity.defn
-    async def run_nuclei(self, targets: list[str], arguments: str) -> NmapResults: ...
+    async def run_nuclei(self, targets: list[str], arguments: str) -> NucleiConfig: ...
 
     @activity.defn
     async def parse_nuclei_results(self) -> None: ...

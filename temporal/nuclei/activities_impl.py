@@ -9,11 +9,12 @@ import json
 import logging
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, LiteralString
 
 import dacite
 from neo4j import GraphDatabase, basic_auth
 
+from config import Neo4jConfig
 from temporal.lib import util
 from temporal.nuclei import dtos
 
@@ -33,7 +34,8 @@ class VulnerabilityStatus(Enum):
     UNCONFIRMED = "unconfirmed"
     NOT_FOUND = "not_found"
 
-async def update_nuclei(nucleiPath=None) -> dict:
+
+async def update_nuclei(nuclei_path=None) -> dict:
     """
     Checks and updates Nuclei.
 
@@ -44,16 +46,16 @@ async def update_nuclei(nucleiPath=None) -> dict:
         Dictionary with status and any error messages
     """
 
-    nucleiBinary = "nuclei"
-    if nucleiPath:
-        nucleiBinary = f"{nucleiPath}/{nucleiBinary}"
+    nuclei_binary = "nuclei"
+    if nuclei_path:
+        nuclei_binary = f"{nuclei_path}/{nuclei_binary}"
 
-    commands = [[nucleiBinary, "-update-templates"], [nucleiBinary, "-update"]]
+    commands = [[nuclei_binary, "-update-templates"], [nuclei_binary, "-update"]]
 
     results = []
     for command in commands:
         try:
-            stdout, stderr, returncode = await util.run_command_with_output(command)
+            _stdout, _stderr, returncode = await util.run_command_with_output(command)
             logger.info(f"Executed {' '.join(command)}: returncode={returncode}")
             results.append({
                 "command": " ".join(command),
@@ -61,7 +63,7 @@ async def update_nuclei(nucleiPath=None) -> dict:
                 "success": returncode == 0
             })
         except Exception as e:
-            logger.error(f"Failed to execute {' '.join(command)}: {e}")
+            logger.exception(f"Failed to execute {' '.join(command)}: {e}")
             results.append({
                 "command": " ".join(command),
                 "success": False,
@@ -69,14 +71,6 @@ async def update_nuclei(nucleiPath=None) -> dict:
             })
 
     return {"status": "completed", "updates": results}
-
-
-def parse_json_to_dataclass(network_services_data: dict[str, Any]) -> dtos.ScanData:
-
-    # Navigate to the hosts array
-    ksd =
-    return ksd
-
 
 
 def search_nuclei_templates(cve_id: str, service: str) -> list[str]:
@@ -292,14 +286,13 @@ async def get_network_services_cves():
     return json_data["data"]
 
 
-async def update_vulnerability_status(neo4j_config) -> dict:
+def update_vulnerability_status(neo4j_config: Neo4jConfig, cve_status: dict[str, str]) -> None:
     neo4j_client = GraphDatabase.driver(
         neo4j_config.bolt, auth=basic_auth(neo4j_config.user, password=neo4j_config.password)
     )
 
-    vulnerability_update = (Path(__file__).resolve().parent / "assets/update_vulnerabilities.cypher").read_text()
-    neo4j_client.execute_query(vulnerability_update)
-
+    vulnerability_update: LiteralString = (Path(__file__).resolve().parent / "assets/update_vulnerabilities.cypher").read_text()
+    neo4j_client.execute_query(vulnerability_update, cve_status=cve_status)
 
 
 async def main() -> dict:
@@ -346,6 +339,8 @@ async def main() -> dict:
     if confirmed_cves:
         for cve_id in sorted(confirmed_cves):
             logger.info(f"Confirmed CVE: {cve_id}")
+
+    update_vulnerability_status(Neo4jConfig(), cve_status)
 
     return {
         "status": "completed",
