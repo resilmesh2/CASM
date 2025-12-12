@@ -27,10 +27,11 @@ from typing import Any
 import requests
 
 
-def search_cve_by_date_range(api_key: str | None = None,
-                             end_date: datetime = datetime.now(),
-                             start_date: datetime = datetime.now() - timedelta(days=30)
-                             ) -> list[dict[str, Any]] | None:
+def search_cve_by_date_range(
+    api_key: str | None = None,
+    end_date: datetime = datetime.now(),
+    start_date: datetime = datetime.now() - timedelta(days=30),
+) -> list[dict[str, Any]] | None:
     """
     Searches for CVE entries published within a specified date range from the NVD API.
 
@@ -122,9 +123,15 @@ def search_cve_by_id(cve_id: str, api_key: str | None = None) -> list[dict[str, 
         return None
 
 
-def search_cve_by_version(version: str, part: str = "a", api_key: str | None = None, start_index: int = 0,
-                          is_vulnerable: bool = False, last_mod_start_date: datetime | None = None,
-                          last_mod_end_date: datetime | None = None) -> list[dict[str, Any]] | None:
+def search_cve_by_version(
+    version: str,
+    part: str = "a",
+    api_key: str | None = None,
+    start_index: int = 0,
+    is_vulnerable: bool = False,
+    last_mod_start_date: datetime | None = None,
+    last_mod_end_date: datetime | None = None,
+) -> list[dict[str, Any]] | None:
     """
     Searches for CVEs associated with a specific product and version using the NVD API.
 

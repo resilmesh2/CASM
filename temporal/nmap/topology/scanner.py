@@ -15,8 +15,11 @@ import structlog
 
 def get_ip():
     """
-    Get source ip(my ip)
-    :return: IP if request was successful, empty string otherwise
+    Retrieve the public source IP address of the current machine.
+
+    The function queries https://ident.me and returns the response as a string.
+
+    :return: Public IP address as a string if the request succeeds, otherwise an empty string.
     """
     try:
         return urllib.request.urlopen("https://ident.me").read().decode("utf8")
@@ -24,22 +27,25 @@ def get_ip():
         return ""
 
 
-def topology_scan_neo(targets, logger=structlog.get_logger()):
+def topology_scan_neo(targets: list[str], logger=structlog.get_logger()):
     """
-    Gets IP ranges to be scanned from IP set on the basis of given index.
-    :param targets: list of networks/machines to be scanned
-    :param logger: just logger
-    :return: informations about scans in dictionary
+    Perform a nmap ping scan with traceroute against the given targets and extract hop paths.
+
+    This function runs nmap with "-sn -n --traceroute" for each target and parses the XML output
+    to build a list of connections with hop counts between the local machine and each destination.
+
+    :param targets: List of networks/hosts (IPs, hostnames, or CIDR ranges) to be scanned.
+    :param logger: Logger instance used for progress messages.
+    :return: Dictionary with keys:
+             - "time": ISO8601 timestamp of when the scan executed.
+             - "data": List of connection dicts with keys "dst_ip" and "hops".
     """
     logger.info("Topology scanner started.")
     nm = nmap3.Nmap()
     my_ip = get_ip()
     if os.getuid() != 0:
         logger.warning("Nmap traceroute typically require root permissions")
-    connections = {
-        "data": [],
-        "time": datetime.datetime.now().replace(microsecond=0).isoformat()
-    }
+    connections = {"data": [], "time": datetime.datetime.now().replace(microsecond=0).isoformat()}
 
     for target in targets:
         logger.info(f"Topology scan of {target} started.")
@@ -51,19 +57,14 @@ def topology_scan_neo(targets, logger=structlog.get_logger()):
         for host in root.iter("host"):
             prev_ip = my_ip
             trace = host.find("trace")
-            connection = {
-                "dst_ip": host.find("address").get("addr"),
-                "hops": []
-            }
+            connection = {"dst_ip": host.find("address").get("addr"), "hops": []}
 
             prev_ttl = 0
             if ET.iselement(trace):  # host executing the script does not have trace element
                 for route in trace:
                     ttl = int(route.get("ttl"))
                     ip = route.get("ipaddr")
-                    data = {"prev_ip": prev_ip,
-                            "hops": ttl - prev_ttl,
-                            "next_ip": ip}
+                    data = {"prev_ip": prev_ip, "hops": ttl - prev_ttl, "next_ip": ip}
                     connection["hops"].append(data)
                     prev_ttl = ttl
                     prev_ip = ip

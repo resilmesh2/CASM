@@ -19,12 +19,7 @@ class CVEConnectorClient(AbstractClient):
         :return: True if the CVE exists, False otherwise.
         """
         with self._driver.session() as session:
-            record = session.run(
-                "MATCH (cve:CVE) "
-                "WHERE cve.cve_id = $cve_id "
-                "RETURN cve.cve_id",
-                cve_id=cve_id
-            )
+            record = session.run("MATCH (cve:CVE) WHERE cve.cve_id = $cve_id RETURN cve.cve_id", cve_id=cve_id)
             return record.single() is not None
 
     def software_version_exists(self, version: str) -> bool:
@@ -36,10 +31,7 @@ class CVEConnectorClient(AbstractClient):
         """
         with self._driver.session() as session:
             record = session.run(
-                "MATCH (v:SoftwareVersion) "
-                "WHERE v.version = $version "
-                "RETURN v.version",
-                version=version
+                "MATCH (v:SoftwareVersion) WHERE v.version = $version RETURN v.version", version=version
             )
             return record.single() is not None
 
@@ -51,10 +43,11 @@ class CVEConnectorClient(AbstractClient):
         """
         with self._driver.session() as session:
             result = session.run(
-                "MATCH (v:SoftwareVersion) "
-                "RETURN v.version AS version, v.cve_timestamp AS cve_timestamp"
+                "MATCH (v:SoftwareVersion) RETURN v.version AS version, v.cve_timestamp AS cve_timestamp"
             ).data()
-            return [{"version": record["version"], "cve_timestamp": record.get("cve_timestamp", None)} for record in result]
+            return [
+                {"version": record["version"], "cve_timestamp": record.get("cve_timestamp", None)} for record in result
+            ]
 
     def create_new_vulnerability(self, description: str, vulnerability_type: str | None = None) -> None:
         """
@@ -66,7 +59,8 @@ class CVEConnectorClient(AbstractClient):
         """
         self._run_query(
             "CREATE (vul:Vulnerability {description: $description, type: $type})",
-            description=description, type=vulnerability_type
+            description=description,
+            type=vulnerability_type,
         )
 
     def create_relationship_between_vulnerability_and_software_version(self, description: str, version: str) -> None:
@@ -81,7 +75,8 @@ class CVEConnectorClient(AbstractClient):
             "MATCH (vul:Vulnerability), (ver:SoftwareVersion) "
             "WHERE vul.description = $description AND ver.version = $version "
             "MERGE (vul)-[:IN]->(ver)",
-            description=description, version=version
+            description=description,
+            version=version,
         )
 
     def create_cve_from_nvd(
@@ -150,7 +145,7 @@ class CVEConnectorClient(AbstractClient):
         ref_tags,
         published,
         last_modified,
-        result_impacts
+        result_impacts,
     ) -> None:
         """
         Creates a new CVE node along with associated CVSS metrics.
@@ -314,7 +309,71 @@ class CVEConnectorClient(AbstractClient):
     CREATE (cve)-[:HAS_CVSS_v31]->(cvss31)
     CREATE (cve)-[:HAS_CVSS_v40]->(cvss40)
             """,
-            cve_id=cve_id, description=description, cwe=cwe, vectorString_v2=vector_string_v2, accessVector_v2=access_vector_v2, accessComplexity_v2=access_complexity_v2, authentication_v2=authentication_v2, confidentialityImpact_v2=confidentiality_impact_v2, integrityImpact_v2=integrity_impact_v2, availabilityImpact_v2=availability_impact_v2, baseScore_v2=base_score_v2, baseSeverity_v2=base_severity_v2, exploitabilityScore_v2=exploitability_score_v2, impactScore_v2=impact_score_v2, acInsufInfo_v2=ac_insuf_info_v2, obtainAllPrivilege_v2=obtain_all_privilege_v2, obtainUserPrivilege_v2=obtain_user_privilege_v2, obtainOtherPrivilege_v2=obtain_other_privilege_v2, userInteractionRequired_v2=user_interaction_required_v2, vectorString_v30=vector_string_v30, attackVector_v30=attack_vector_v30, attackComplexity_v30=attack_complexity_v30, privilegesRequired_v30=privileges_required_v30, userInteraction_v30=user_interaction_v30, scope_v30=scope_v30, confidentialityImpact_v30=confidentiality_impact_v30, integrityImpact_v30=integrity_impact_v30, availabilityImpact_v30=availability_impact_v30, baseScore_v30=base_score_v30, baseSeverity_v30=base_severity_v30, exploitabilityScore_v30=exploitability_score_v30, impactScore_v30=impact_score_v30, vectorString_v31=vector_string_v31, attackVector_v31=attack_vector_v31, attackComplexity_v31=attack_complexity_v31, privilegesRequired_v31=privileges_required_v31, userInteraction_v31=user_interaction_v31, scope_v31=scope_v31, confidentialityImpact_v31=confidentiality_impact_v31, integrityImpact_v31=integrity_impact_v31, availabilityImpact_v31=availability_impact_v31, baseScore_v31=base_score_v31, baseSeverity_v31=base_severity_v31, exploitabilityScore_v31=exploitability_score_v31, impactScore_v31=impact_score_v31, vectorString_v40=vector_string_v40, attackVector_v40=attack_vector_v40, attackComplexity_v40=attack_complexity_v40, attackRequirements_v40=attack_requirements_v40, privilegesRequired_v40=privileges_required_v40, userInteraction_v40=user_interaction_v40, vulnerableSystemConfidentiality_v40=vulnerable_system_confidentiality_v40, vulnerableSystemIntegrity_v40=vulnerable_system_integrity_v40, vulnerableSystemAvailability_v40=vulnerable_system_availability_v40, subsequentSystemConfidentiality_v40=subsequent_system_confidentiality_v40, subsequentSystemIntegrity_v40=subsequent_system_integrity_v40, subsequentSystemAvailability_v40=subsequent_system_availability_v40, exploitMaturity_v40=exploit_maturity_v40, baseScore_v40=base_score_v40, baseSeverity_v40=base_severity_v40, cpe_type=cpe_type, ref_tags=ref_tags, published=published, lastModified=last_modified, result_impacts=result_impacts
+            cve_id=cve_id,
+            description=description,
+            cwe=cwe,
+            vectorString_v2=vector_string_v2,
+            accessVector_v2=access_vector_v2,
+            accessComplexity_v2=access_complexity_v2,
+            authentication_v2=authentication_v2,
+            confidentialityImpact_v2=confidentiality_impact_v2,
+            integrityImpact_v2=integrity_impact_v2,
+            availabilityImpact_v2=availability_impact_v2,
+            baseScore_v2=base_score_v2,
+            baseSeverity_v2=base_severity_v2,
+            exploitabilityScore_v2=exploitability_score_v2,
+            impactScore_v2=impact_score_v2,
+            acInsufInfo_v2=ac_insuf_info_v2,
+            obtainAllPrivilege_v2=obtain_all_privilege_v2,
+            obtainUserPrivilege_v2=obtain_user_privilege_v2,
+            obtainOtherPrivilege_v2=obtain_other_privilege_v2,
+            userInteractionRequired_v2=user_interaction_required_v2,
+            vectorString_v30=vector_string_v30,
+            attackVector_v30=attack_vector_v30,
+            attackComplexity_v30=attack_complexity_v30,
+            privilegesRequired_v30=privileges_required_v30,
+            userInteraction_v30=user_interaction_v30,
+            scope_v30=scope_v30,
+            confidentialityImpact_v30=confidentiality_impact_v30,
+            integrityImpact_v30=integrity_impact_v30,
+            availabilityImpact_v30=availability_impact_v30,
+            baseScore_v30=base_score_v30,
+            baseSeverity_v30=base_severity_v30,
+            exploitabilityScore_v30=exploitability_score_v30,
+            impactScore_v30=impact_score_v30,
+            vectorString_v31=vector_string_v31,
+            attackVector_v31=attack_vector_v31,
+            attackComplexity_v31=attack_complexity_v31,
+            privilegesRequired_v31=privileges_required_v31,
+            userInteraction_v31=user_interaction_v31,
+            scope_v31=scope_v31,
+            confidentialityImpact_v31=confidentiality_impact_v31,
+            integrityImpact_v31=integrity_impact_v31,
+            availabilityImpact_v31=availability_impact_v31,
+            baseScore_v31=base_score_v31,
+            baseSeverity_v31=base_severity_v31,
+            exploitabilityScore_v31=exploitability_score_v31,
+            impactScore_v31=impact_score_v31,
+            vectorString_v40=vector_string_v40,
+            attackVector_v40=attack_vector_v40,
+            attackComplexity_v40=attack_complexity_v40,
+            attackRequirements_v40=attack_requirements_v40,
+            privilegesRequired_v40=privileges_required_v40,
+            userInteraction_v40=user_interaction_v40,
+            vulnerableSystemConfidentiality_v40=vulnerable_system_confidentiality_v40,
+            vulnerableSystemIntegrity_v40=vulnerable_system_integrity_v40,
+            vulnerableSystemAvailability_v40=vulnerable_system_availability_v40,
+            subsequentSystemConfidentiality_v40=subsequent_system_confidentiality_v40,
+            subsequentSystemIntegrity_v40=subsequent_system_integrity_v40,
+            subsequentSystemAvailability_v40=subsequent_system_availability_v40,
+            exploitMaturity_v40=exploit_maturity_v40,
+            baseScore_v40=base_score_v40,
+            baseSeverity_v40=base_severity_v40,
+            cpe_type=cpe_type,
+            ref_tags=ref_tags,
+            published=published,
+            lastModified=last_modified,
+            result_impacts=result_impacts,
         )
 
     def create_relationship_between_cve_and_vulnerability(self, cve_id: str, vulnerability_description: str) -> None:
@@ -329,7 +388,8 @@ class CVEConnectorClient(AbstractClient):
             "MATCH (cve:CVE), (vul:Vulnerability) "
             "WHERE cve.cve_id = $cve_id AND vul.description = $description "
             "MERGE (vul)-[:REFERS_TO]->(cve)",
-            cve_id=cve_id, description=vulnerability_description
+            cve_id=cve_id,
+            description=vulnerability_description,
         )
 
     def update_cve_from_nvd(
@@ -398,7 +458,7 @@ class CVEConnectorClient(AbstractClient):
         ref_tags,
         published,
         last_modified,
-        result_impacts
+        result_impacts,
     ) -> None:
         """
         Updates an existing CVE node in the database with new details, including associated CVSS metrics.
@@ -564,42 +624,72 @@ class CVEConnectorClient(AbstractClient):
         base_severity: $baseSeverity_v40
     }
             """,
-            cve_id=cve_id, description=description, cwe=cwe, vectorString_v2=vector_string_v2, accessVector_v2=access_vector_v2, accessComplexity_v2=access_complexity_v2, authentication_v2=authentication_v2, confidentialityImpact_v2=confidentiality_impact_v2, integrityImpact_v2=integrity_impact_v2, availabilityImpact_v2=availability_impact_v2, baseScore_v2=base_score_v2, baseSeverity_v2=base_severity_v2, exploitabilityScore_v2=exploitability_score_v2, impactScore_v2=impact_score_v2, acInsufInfo_v2=ac_insuf_info_v2, obtainAllPrivilege_v2=obtain_all_privilege_v2, obtainUserPrivilege_v2=obtain_user_privilege_v2, obtainOtherPrivilege_v2=obtain_other_privilege_v2, userInteractionRequired_v2=user_interaction_required_v2, vectorString_v30=vector_string_v30, attackVector_v30=attack_vector_v30, attackComplexity_v30=attack_complexity_v30, privilegesRequired_v30=privileges_required_v30, userInteraction_v30=user_interaction_v30, scope_v30=scope_v30, confidentialityImpact_v30=confidentiality_impact_v30, integrityImpact_v30=integrity_impact_v30, availabilityImpact_v30=availability_impact_v30, baseScore_v30=base_score_v30, baseSeverity_v30=base_severity_v30, exploitabilityScore_v30=exploitability_score_v30, impactScore_v30=impact_score_v30, vectorString_v31=vector_string_v31, attackVector_v31=attack_vector_v31, attackComplexity_v31=attack_complexity_v31, privilegesRequired_v31=privileges_required_v31, userInteraction_v31=user_interaction_v31, scope_v31=scope_v31, confidentialityImpact_v31=confidentiality_impact_v31, integrityImpact_v31=integrity_impact_v31, availabilityImpact_v31=availability_impact_v31, baseScore_v31=base_score_v31, baseSeverity_v31=base_severity_v31, exploitabilityScore_v31=exploitability_score_v31, impactScore_v31=impact_score_v31, vectorString_v40=vector_string_v40, attackVector_v40=attack_vector_v40, attackComplexity_v40=attack_complexity_v40, attackRequirements_v40=attack_requirements_v40, privilegesRequired_v40=privileges_required_v40, userInteraction_v40=user_interaction_v40, vulnerableSystemConfidentiality_v40=vulnerable_system_confidentiality_v40, vulnerableSystemIntegrity_v40=vulnerable_system_integrity_v40, vulnerableSystemAvailability_v40=vulnerable_system_availability_v40, subsequentSystemConfidentiality_v40=subsequent_system_confidentiality_v40, subsequentSystemIntegrity_v40=subsequent_system_integrity_v40, subsequentSystemAvailability_v40=subsequent_system_availability_v40, exploitMaturity_v40=exploit_maturity_v40, baseScore_v40=base_score_v40, baseSeverity_v40=base_severity_v40, cpe_type=cpe_type, ref_tags=ref_tags, published=published, lastModified=last_modified, result_impacts=result_impacts
+            cve_id=cve_id,
+            description=description,
+            cwe=cwe,
+            vectorString_v2=vector_string_v2,
+            accessVector_v2=access_vector_v2,
+            accessComplexity_v2=access_complexity_v2,
+            authentication_v2=authentication_v2,
+            confidentialityImpact_v2=confidentiality_impact_v2,
+            integrityImpact_v2=integrity_impact_v2,
+            availabilityImpact_v2=availability_impact_v2,
+            baseScore_v2=base_score_v2,
+            baseSeverity_v2=base_severity_v2,
+            exploitabilityScore_v2=exploitability_score_v2,
+            impactScore_v2=impact_score_v2,
+            acInsufInfo_v2=ac_insuf_info_v2,
+            obtainAllPrivilege_v2=obtain_all_privilege_v2,
+            obtainUserPrivilege_v2=obtain_user_privilege_v2,
+            obtainOtherPrivilege_v2=obtain_other_privilege_v2,
+            userInteractionRequired_v2=user_interaction_required_v2,
+            vectorString_v30=vector_string_v30,
+            attackVector_v30=attack_vector_v30,
+            attackComplexity_v30=attack_complexity_v30,
+            privilegesRequired_v30=privileges_required_v30,
+            userInteraction_v30=user_interaction_v30,
+            scope_v30=scope_v30,
+            confidentialityImpact_v30=confidentiality_impact_v30,
+            integrityImpact_v30=integrity_impact_v30,
+            availabilityImpact_v30=availability_impact_v30,
+            baseScore_v30=base_score_v30,
+            baseSeverity_v30=base_severity_v30,
+            exploitabilityScore_v30=exploitability_score_v30,
+            impactScore_v30=impact_score_v30,
+            vectorString_v31=vector_string_v31,
+            attackVector_v31=attack_vector_v31,
+            attackComplexity_v31=attack_complexity_v31,
+            privilegesRequired_v31=privileges_required_v31,
+            userInteraction_v31=user_interaction_v31,
+            scope_v31=scope_v31,
+            confidentialityImpact_v31=confidentiality_impact_v31,
+            integrityImpact_v31=integrity_impact_v31,
+            availabilityImpact_v31=availability_impact_v31,
+            baseScore_v31=base_score_v31,
+            baseSeverity_v31=base_severity_v31,
+            exploitabilityScore_v31=exploitability_score_v31,
+            impactScore_v31=impact_score_v31,
+            vectorString_v40=vector_string_v40,
+            attackVector_v40=attack_vector_v40,
+            attackComplexity_v40=attack_complexity_v40,
+            attackRequirements_v40=attack_requirements_v40,
+            privilegesRequired_v40=privileges_required_v40,
+            userInteraction_v40=user_interaction_v40,
+            vulnerableSystemConfidentiality_v40=vulnerable_system_confidentiality_v40,
+            vulnerableSystemIntegrity_v40=vulnerable_system_integrity_v40,
+            vulnerableSystemAvailability_v40=vulnerable_system_availability_v40,
+            subsequentSystemConfidentiality_v40=subsequent_system_confidentiality_v40,
+            subsequentSystemIntegrity_v40=subsequent_system_integrity_v40,
+            subsequentSystemAvailability_v40=subsequent_system_availability_v40,
+            exploitMaturity_v40=exploit_maturity_v40,
+            baseScore_v40=base_score_v40,
+            baseSeverity_v40=base_severity_v40,
+            cpe_type=cpe_type,
+            ref_tags=ref_tags,
+            published=published,
+            lastModified=last_modified,
+            result_impacts=result_impacts,
         )
-
-    def get_cve_patch(self, cve_id: str) -> bool | None:
-        """
-        Retrieves the 'patched' property for a CVE.
-
-        :param cve_id: CVE identifier.
-        :return: Boolean value of 'patched' if it exists, None if CVE or property is missing.
-        """
-        with self._driver.session() as session:
-            record = session.run(
-                "MATCH (node:CVE) "
-                "WHERE node.cve_id = $cve_id "
-                "RETURN node.patched",
-                cve_id=cve_id
-            )
-            data = record.single()
-            if data is None:
-                return None
-            return data["node.patched"]
-
-    def get_cve(self, cve_id: str):
-        """
-        Retrieves a CVE node from the database.
-
-        :param cve_id: CVE identifier.
-        :return: Neo4j query result containing CVE details.
-        """
-        with self._driver.session() as session:
-            return session.run(
-                "MATCH (cve:CVE) "
-                "WHERE cve.cve_id = $cve_id "
-                "RETURN {description: cve.description, cve_id: cve.cve_id, published_date: cve.published_date} AS cve",
-                cve_id=cve_id
-            )
 
     def get_versions_of_product(self, vendor_and_product: str) -> list[str]:
         """
@@ -613,9 +703,8 @@ class CVEConnectorClient(AbstractClient):
             return session.run(
                 "MATCH (s:SoftwareVersion) WHERE s.version STARTS WITH $product_string "
                 "RETURN {version: s.version} AS software",
-                product_string=product_string
+                product_string=product_string,
             ).data()
-            # logging.info(f"Retrieved software versions for {product_string}:, {result}")
 
     def update_timestamp_of_software_version(self, version: str, cve_timestamp: str) -> None:
         """
@@ -625,6 +714,8 @@ class CVEConnectorClient(AbstractClient):
         :return: None
         """
         with self._driver.session() as session:
-            session.run("MATCH (s:SoftwareVersion) WHERE s.version = $version "
-                        "SET s.cve_timestamp = $cve_timestamp",
-                        version=version, cve_timestamp=cve_timestamp)
+            session.run(
+                "MATCH (s:SoftwareVersion) WHERE s.version = $version SET s.cve_timestamp = $cve_timestamp",
+                version=version,
+                cve_timestamp=cve_timestamp,
+            )

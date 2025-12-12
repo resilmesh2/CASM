@@ -25,7 +25,6 @@ Dependencies:
 import logging
 import re
 import time
-from dataclasses import dataclass
 from typing import Any
 
 import requests
@@ -36,30 +35,14 @@ from cve_connector.nvd_cve.CveConnectorClient import CVEConnectorClient
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
 
-@dataclass
-class Cpe:
-    part: str
-    vendor: str
-    product: str
-    version: str
-    update: str = "*"
-    edition: str = "*"
-    language: str = "*"
-    sw_edition: str = "*"
-    target_sw: str = "*"
-    target_hw: str = "*"
-    other: str = "*"
-
-    def to_cpe23_string(self) -> str:
-        return (
-            f"cpe:2.3:{self.part}:{self.vendor}:{self.product}:{self.version}:"
-            f"{self.update}:{self.edition}:{self.language}:{self.sw_edition}:"
-            f"{self.target_sw}:{self.target_hw}:{self.other}"
-        )
-
-
-def move_cve_data_to_neo4j(vulnerability_list: list[Vulnerability], cpe: str, neo4j_passwd: str, nvd_api_key: str | None = None,
-                           bolt: str = "bolt://localhost:7687", user: str = "neo4j") -> None:
+def move_cve_data_to_neo4j(
+    vulnerability_list: list[Vulnerability],
+    cpe: str,
+    neo4j_passwd: str,
+    nvd_api_key: str | None = None,
+    bolt: str = "bolt://localhost:7687",
+    user: str = "neo4j",
+) -> None:
     """
     Moves CVE data from Vulnerability objects into a Neo4j database.
 
@@ -67,6 +50,7 @@ def move_cve_data_to_neo4j(vulnerability_list: list[Vulnerability], cpe: str, ne
     or updates existing ones, and establishes relationships with software versions.
 
     :param vulnerability_list: List of Vulnerability objects.
+    :param cpe: String representation of CPE identifier.
     :param neo4j_passwd: Password for Neo4j authentication.
     :param nvd_api_key: Neo4j API key. Defaults to None.
     :param bolt: Bolt connection string. Defaults to "bolt://localhost:7687".
@@ -140,13 +124,13 @@ def move_cve_data_to_neo4j(vulnerability_list: list[Vulnerability], cpe: str, ne
                 subsequent_system_integrity_v40=vulnerability.cvssv40.get("subsequentSystemIntegrity"),
                 subsequent_system_availability_v40=vulnerability.cvssv40.get("subsequentSystemAvailability"),
                 exploit_maturity_v40=vulnerability.cvssv40.get("exploitMaturity"),
-                    base_score_v40=vulnerability.cvssv40.get("baseScore"),
+                base_score_v40=vulnerability.cvssv40.get("baseScore"),
                 base_severity_v40=vulnerability.cvssv40.get("baseSeverity"),
                 cpe_type=list(vulnerability.cpe_type),
                 ref_tags=list(vulnerability.ref_tag),
                 published=vulnerability.published,
                 last_modified=vulnerability.lastModified,
-                result_impacts=vulnerability.result_impacts
+                result_impacts=vulnerability.result_impacts,
             )
             client.create_relationship_between_cve_and_vulnerability(vulnerability.cve, vul_description)
             cve_count_created += 1
@@ -216,7 +200,7 @@ def move_cve_data_to_neo4j(vulnerability_list: list[Vulnerability], cpe: str, ne
                 ref_tags=list(vulnerability.ref_tag),
                 published=vulnerability.published,
                 last_modified=vulnerability.lastModified,
-                result_impacts=vulnerability.result_impacts
+                result_impacts=vulnerability.result_impacts,
             )
             client.create_relationship_between_cve_and_vulnerability(vulnerability.cve, vul_description)
             cve_count_updated += 1
@@ -231,14 +215,19 @@ def check_ranges(cpe_match: dict[str, Any], version: str, nvd_api_key: str) -> b
 
     :param cpe_match: Dictionary with version range keys (e.g., 'versionStartIncluding').
     :param version: Software version to check.
+    :param nvd_api_key: API key for NVD REST API.
     :return: True if version is within range; False otherwise.
     """
     logging.info(f"Checking CPE range: {cpe_match}")
     if CpeIdentifier.from_string(cpe_match["criteria"]).version != "*":
         raise ValueError(f"Invalid CPE range containing version number: {cpe_match}")
 
-    if "versionStartIncluding" in cpe_match or "versionStartExcluding" in cpe_match or \
-            "versionEndIncluding" in cpe_match or "versionEndExcluding" in cpe_match:
+    if (
+        "versionStartIncluding" in cpe_match
+        or "versionStartExcluding" in cpe_match
+        or "versionEndIncluding" in cpe_match
+        or "versionEndExcluding" in cpe_match
+    ):
         result = False
         current_version = Version(version)
         if "versionStartIncluding" in cpe_match:
@@ -282,8 +271,13 @@ def check_ranges(cpe_match: dict[str, Any], version: str, nvd_api_key: str) -> b
     return False
 
 
-def check_configurations(client: CVEConnectorClient, cpe_configurations: list[dict[str, Any]],
-                         vul_description: str, flag: bool, nvd_api_key: str) -> bool:
+def check_configurations(
+    client: CVEConnectorClient,
+    cpe_configurations: list[dict[str, Any]],
+    vul_description: str,
+    flag: bool,
+    nvd_api_key: str,
+) -> bool:
     """
     Processes CPE configurations to determine if a vulnerability node should be created or updated.
 
@@ -293,6 +287,7 @@ def check_configurations(client: CVEConnectorClient, cpe_configurations: list[di
     :param cpe_configurations: Configuration data for the vulnerability.
     :param vul_description: Vulnerability description.
     :param flag: Indicates if a vulnerability node was created.
+    :param nvd_api_key: API key for NVD REST API.
     :return: Updated flag indicating if a vulnerability node was created.
     :raises ValueError: If configuration structure is invalid.
     """
@@ -308,16 +303,20 @@ def check_configurations(client: CVEConnectorClient, cpe_configurations: list[di
                         logging.error("Invalid recursion depth in AND configuration")
                         raise ValueError("Depth of recursion was more than 1")
                     for cpe_item in vuln_node.get("cpeMatch", []):
-                        create_vulnerability = process_nvd_cpe(client, cpe_item, vul_description,
-                                                                create_vulnerability, nvd_api_key)
+                        create_vulnerability = process_nvd_cpe(
+                            client, cpe_item, vul_description, create_vulnerability, nvd_api_key
+                        )
                 else:
-                    logging.warning(f"Expected two nodes in AND configuration, got {len(configuration.get('nodes', []))}")
+                    logging.warning(
+                        f"Expected two nodes in AND configuration, got {len(configuration.get('nodes', []))}"
+                    )
         else:
             for node in configuration.get("nodes", []):
                 if node.get("operator", "") == "OR":
                     for cpe_match in node.get("cpeMatch", []):
-                        create_vulnerability = process_nvd_cpe(client, cpe_match, vul_description,
-                                                                create_vulnerability, nvd_api_key)
+                        create_vulnerability = process_nvd_cpe(
+                            client, cpe_match, vul_description, create_vulnerability, nvd_api_key
+                        )
     return create_vulnerability
 
 
@@ -327,6 +326,12 @@ def process_nvd_cpe(
     """
     Processes a CPE match to create relationships between vulnerabilities and software versions.
     Uses Cpe dataclass for parsing CPE 2.3 format.
+    :param client: CVEConnectorClient for Neo4j interactions.
+    :param cpe_match: dictionary of raw data containing CPE match information.
+    :param vul_description: description of a Neo4j node of type Vulnerability.
+    :param flag: Indicates if a vulnerability node was created.
+    :param nvd_api_key: API key for NVD REST API.
+    :return: Updated flag indicating if a vulnerability node was created.
     """
     vulnerability_created = flag
     try:
@@ -379,8 +384,9 @@ def process_nvd_cpe(
     return vulnerability_created
 
 
-def get_software_versions_from_neo4j(neo4j_passwd: str, bolt: str = "bolt://localhost:7687",
-                                     user: str = "neo4j") -> list[dict[str, Any]]:
+def get_software_versions_from_neo4j(
+    neo4j_passwd: str, bolt: str = "bolt://localhost:7687", user: str = "neo4j"
+) -> list[dict[str, Any]]:
     """
     Retrieves all software versions stored in the Neo4j database.
 
@@ -393,8 +399,9 @@ def get_software_versions_from_neo4j(neo4j_passwd: str, bolt: str = "bolt://loca
     return client.get_all_software_versions()
 
 
-def update_timestamp_for_software_version(software_version: str, timestamp: str, neo4j_passwd: str,
-                                          bolt: str = "bolt://localhost:7687", user: str = "neo4j") -> None:
+def update_timestamp_for_software_version(
+    software_version: str, timestamp: str, neo4j_passwd: str, bolt: str = "bolt://localhost:7687", user: str = "neo4j"
+) -> None:
     """
     Creates or updates a timestamp for software version.
 

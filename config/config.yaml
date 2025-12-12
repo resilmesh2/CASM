@@ -4,6 +4,7 @@ temporal:
   easm_task_queue: easm
   nmap_task_queue: nmap
   cve_connector_task_queue: cve_connector
+  slp_enrichment_task_queue: slp_enrichment
 
 neo4j:
   password: supertestovaciheslo
@@ -30,7 +31,13 @@ nmap_topology:
 easm_scanner:
   domains:
     - vulnweb.com
-  mode: fast
-  httpx_path: "/app/go/bin/httpx"
-  threads: 100
-  wordlist_path: "/app/wordlists/default.txt"
+  mode: fast  # fast or complete
+  httpx_path: "path/to/httpx"
+  threads: 100  # required only for complete mode
+  wordlist_path: "path/to/wordlist.txt"  # required only for complete mode
+
+slp_enrichment:
+  x_api_key: ""
+
+cve_connector:
+  nvd_api_key: ""

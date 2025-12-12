@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from neo4j import GraphDatabase, basic_auth
-from redis.client import Redis
+from valkey import Valkey
 from structlog import getLogger
 from temporalio.common import RetryPolicy
 from yaml import safe_dump
@@ -68,14 +68,14 @@ class EasyEasmActivities:
         except UnicodeDecodeError:
             result = result_file.read_text("iso-8859-2").encode("utf-8").decode()
 
-        redis_client = Redis(host=self.redis_config.host, port=self.redis_config.port, db=0)
+        redis_client = Valkey(host=self.redis_config.host, port=self.redis_config.port, db=3)
         redis_client.set(scan_uuid, result)
         redis_client.close()
         return scan_uuid
 
     @activity.defn
     async def store_result_to_neo4j(self, scan_uuid: str, domains: list[str]) -> None:
-        redis_client = Redis(host=self.redis_config.host, port=self.redis_config.port, db=0)
+        redis_client = Valkey(host=self.redis_config.host, port=self.redis_config.port, db=3)
         neo4j_client = GraphDatabase.driver(
             self.neo4j_config.bolt, auth=basic_auth(self.neo4j_config.user, password=self.neo4j_config.password)
         )
@@ -92,8 +92,12 @@ class EasyEasmActivities:
             row = line.split(",")
             try:
                 entry = EasyEASMParsedResult(
-                    ip=row[7], domain_name=row[4], service=row[5], port=row[3], protocol=row[5],
-                    software_versions=determine_software_versions(row[12])
+                    ip=row[7],
+                    domain_name=row[4],
+                    service=row[5],
+                    port=row[3],
+                    protocol=row[5],
+                    software_versions=determine_software_versions(row[12]),
                 )
 
                 loaded_result["data"].append(entry.to_dict())

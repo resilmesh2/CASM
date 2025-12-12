@@ -11,15 +11,16 @@ from temporal.easm.passive_enumeration.workflow import PassiveEnumerationWorkflo
 
 
 async def main() -> None:
+    """
+    Entry point for creating a worker that runs ParentEasmWorkflow.
+    :return: None
+    """
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url)
     workflows = [ParentEasmWorkflow, PassiveEnumerationWorkflow, ActiveEnumeratonWorkflow]
     activities = ParentEasmWorkflow.get_activities()
     workflow_runner = SandboxedWorkflowRunner(
-        restrictions=SandboxRestrictions.default.with_passthrough_modules(
-            "temporal.easm",
-            "config"
-        )
+        restrictions=SandboxRestrictions.default.with_passthrough_modules("temporal.easm", "config")
     )
 
     worker = Worker(

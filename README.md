@@ -6,7 +6,6 @@ in its current version.
 
 The environment consists of the following components:
 * Neo4J database for results
-* Temporal server as orchestrator
 * Custom Temporal worker carrying out the workflows
 * Redis as an in memory database for EasyEASM worker to pass the scan results between tasks
 * PostgreSQL database utilized by scanning tool
@@ -14,12 +13,14 @@ The environment consists of the following components:
 * Other containers providing functionality to workers
 
 The demonstrator can be deployed with Docker. There is a `compose.yml` file spawning all components.
+This component has a dependency on two other components - workflow orchestrator that orchestrates the workflows
+and ISIM that contains a Neo4j database. 
 
 # Configuration
 Configuration files are located in the [config](config) and in [docker](docker) folders. Config in [config](config) serves for local deployment of workers
 and for running clients to trigger on-demand workflows. 
 
-Configs in [docker](docker) folder are used by dockerized app where urls and paths are preconfigured to work within the docker environment.:
+Configs in [docker](docker) folder are used by dockerized app where urls and paths are preconfigured to work within the docker environment:
 - config.yaml: config for workers, same format as in the local deployment
 - amass_config.yaml: config file for worker, configures amass to know where is the postgresql located
 
@@ -63,11 +64,14 @@ easm_scanner:
   threads: 100   # required only for complete mode
   wordlist_path: "/app/temporal/easm/subdomainwordlist.txt"  # required only for complete mode
 
+slp_enrichment:
+  x_api_key: ""
 
-
+cve_connector:
+  nvd_api_key: ""
 ```
 - temporal:
-  - url: url of Temporal server GRPC service
+  - url: url of Temporal server GRPC service from the [workflow orchestrator repository](https://github.com/resilmesh2/Workflow-Orchestrator/)
   - namespace: namespace on Temporal server
   - task_queues: task_queues used by Workers and Workflows
 - neo4j:
@@ -91,10 +95,17 @@ easm_scanner:
   - httpx_path: path to httpx binary
   - wordlist_path (required only for `complete` mode): path to wordlist for dnsx, default is placed in `temporal/easm/subdomainwordlist.txt`
   - threads (required only for `complete` mode): number of threads for dnsx bruteforce
+- slp_enrichment:
+  - x_api_key: API key for Silent Push Explore API at https://api.silentpush.com/api/v1/merge-api/ that can be obtained 
+  from [their website](https://app.silentpush.com/) as documented in [documentation](https://docs.silentpush.com/).
+- cve_connector:
+  - nvd_api_key: key for NVD REST API. Instructions for obtaining the key are listed in [README](cve_connector/README.md).
 
 When deploying CASM in an environment where endpoints for `temporal`, `neo4j`, and `redis` are not
 accessible using localhost, you should use names of containers instead of localhost. Names of containers
-can be found from list of containers using, e.g., `docker container ls -a`. If you encounter some problems
+can be found from list of containers using, e.g., `docker container ls -a`. Please, ensure that your config is filled
+with values instead of empty strings when deploying CASM.
+If you encounter some problems
 with CASM, you can also try to enter configuration details in `config.py`, which contains data classes
 that store the configuration details.
 
@@ -102,7 +113,9 @@ that store the configuration details.
 
 ## Prerequisites
 
-CASM requires Neo4j database to be set up and running. It is recommended to run ISIM first (e.g., in Docker), then run CASM.
+CASM requires Neo4j database to be set up and running. It is recommended to run [ISIM](https://github.com/resilmesh2/ISIM) first (e.g., in Docker).
+Another prerequisite is the [workflow orchestrator](https://github.com/resilmesh2/Workflow-Orchestrator/) that must be up using its compose.yml file. Afterwards, CASM can 
+be deployed using Docker.
 
 ## Running the app
 
@@ -116,8 +129,10 @@ you can verify that the following is available:
 Neo4J should be available at http://localhost:7474/browser/. The default credentials are `neo4j:supertestovaciheslo`. If you want to change the credentials you can do so in the `compose` file by chaging the `NEO4J_AUTH` variable. Please, do no forget to pass the new credentials to the Temporal worker configuration as well (see [Configuration](#configuration))
 
 ### Temporalio server
-Temporalio server should be available at http://localhost:8080/. You can watch the progress of your workflows there, or look for errors
-if any problems occure. You can also create a scheduled scanning workflow there.
+Temporalio server from the [workflow orchestrator](https://github.com/resilmesh2/Workflow-Orchestrator/)
+should be available at http://localhost:8080/. You can watch the progress 
+of your workflows there, or look for errors if any problems occur. 
+You can also create a scheduled scanning workflow there.
 
 ### Worker
 Worker is a custom image build by this [project](Dockerfile) for EasyEASM. Worker has installed:
@@ -227,6 +242,18 @@ which is called in
 
 ![img.png](assets/schedule.png)
 
+## Triggering a workflow (SLP Enrichment)
+
+This workflow can be triggered by executing:
+
+```shell
+sudo docker exec -it <slp_worker_container_id> python -m temporal.slp_enrichment.workflow
+```
+
+After executing the command, you can find a new workflow in Temporal UI. Results from a successful workflow
+can be found in the Neo4j database. The new information can be found among IP addresses, domain names, 
+and subnets.
+
 # CVE connector
 Instructions for running the CVE connector are listed in [README](cve_connector/README.md).
 The most important thing is to obtain NVD REST API key that should be used by the CVE connector.
@@ -240,7 +267,7 @@ Then you can start the CASM application with the following command inside the pr
 docker compose up -d
 ```
 
-Then, build and start the ISIM application similarly and ensure the `external: true` is uncommented in the `casm_isim_test_network` network.
+Then, build and start the ISIM application similarly and ensure the `external: true` is uncommented in the `resilmesh_network` network.
 When everything is up and running, you can run the nmap demo by running:
 
 ```bash
