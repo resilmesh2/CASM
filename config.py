@@ -31,6 +31,7 @@ class TemporalConfig:
 @dataclass
 class RedisConfig:
     host: str
+    db: int
     username: str | None = None
     password: str | None = None
     port: int = 6379
@@ -50,12 +51,18 @@ class ISIMConfig:
 
 
 @dataclass
+class ISIMGraphqlConfig:
+    url: str
+
+
+@dataclass
 class NmapTopologyConfig:
     targets: list[str]
     arguments: str
 
-@dataclass
-class NucleiConfig: ...
+# @dataclass
+# class NucleiConfig: ...
+#     arguments: str
 
 
 @dataclass
@@ -101,6 +108,7 @@ class Config:
     nmap_basic: NmapBasicConfig
     nmap_topology: NmapTopologyConfig
     isim: ISIMConfig
+    isim_graphql: ISIMGraphqlConfig
     easm_scanner: EasmScannerConfig
     slp_enrichment: SLPEnrichmentConfig
     cve_connector: CveConnectorConfig

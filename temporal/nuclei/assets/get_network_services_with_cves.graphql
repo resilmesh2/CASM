@@ -1,0 +1,25 @@
+query NetworkServiceVulnerabilities {
+    hosts {
+        network_services {
+            protocol
+            port
+            service
+            software_versions {
+                vulnerabilities {
+                    cve {
+                        cve_id
+                        cpe_type
+                    }
+                }
+        }
+        }
+        node {
+            ips {
+                domain_names {
+                    domain_name
+                }
+                address
+            }
+        }
+    }
+}

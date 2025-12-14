@@ -14,18 +14,24 @@ neo4j:
 redis:
   host: redis
   port: 6379
+  db: 3
 
 isim:
   url: "http://isim:8000"
 
+isim_graphql:
+  url: "http://resilmesh_sap_isim_graphql:4001"
+
 nmap_basic:
   targets:
     - resilmesh_sap_casm_metasploitable3
+    - resilmesh_sap_casm_dvwa
   arguments: "-sV -A"
 
 nmap_topology:
   targets:
     - resilmesh_sap_casm_metasploitable3
+    - resilmesh_sap_casm_dvwa
   arguments: "-sn -n --traceroute"
 
 easm_scanner:
