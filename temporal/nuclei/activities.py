@@ -1,9 +1,10 @@
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
-from config import ISIMConfig, NucleiConfig, RedisConfig, Neo4jConfig
+from config import ISIMConfig, RedisConfig, Neo4jConfig, ISIMGraphqlConfig
 from temporalio import activity
 from temporal.nuclei import activities_impl
+from valkey import Valkey
 
 
 class NucleiActivities:
@@ -11,18 +12,24 @@ class NucleiActivities:
     Activities to run a basic nmap scan, parse results, and publish them to ISIM.
     """
 
-    def __init__(self, isim_config: ISIMConfig, redis_config: RedisConfig, neo4j_config: Neo4jConfig) -> None:
+    def __init__(self, isim_config: ISIMConfig, isim_graphql_config: ISIMGraphqlConfig, redis_config: RedisConfig, neo4j_config: Neo4jConfig) -> None:
         self.isim_config = isim_config
+        self.isim_graphql_config = isim_graphql_config
         self.redis_config = redis_config
         self.neo4j_config = neo4j_config
-
-
-    @activity.defn
-    async def validate_input(self, input_: dict[str, Any]) -> NucleiConfig: ...
+        self.valkey_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
 
     @activity.defn
-    async def check_latest_cve_changes(self, targets: list[str], arguments: str) -> None: ...
+    async def update_nuclei(self) -> None:
+        await activities_impl.update_nuclei()
 
+    @activity.defn
+    async def get_network_service_data(self) -> None:
+        await activities_impl.get_network_service_data(self.isim_graphql_config, self.valkey_client)
+
+    @activity.defn
+    async def parse_network_service_data_for_nuclei_run(self, targets: list[str], arguments: str) -> None: ...
+        await activities_impl.parse_data_for_nuclei_scan()
     @activity.defn
     async def run_nuclei(self, targets: list[str], arguments: str) -> NucleiConfig: ...
 
