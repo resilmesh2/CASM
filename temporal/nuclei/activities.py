@@ -24,26 +24,26 @@ class NucleiActivities:
         await activities_impl.update_nuclei()
 
     @activity.defn
-    async def get_network_service_data(self) -> None:
-        await activities_impl.get_network_service_data(self.isim_graphql_config, self.valkey_client)
+    async def get_network_service_data(self) -> str:
+        return await activities_impl.get_network_service_data(self.isim_graphql_config, self.valkey_client)
 
     @activity.defn
-    async def parse_network_service_data_for_nuclei_run(self, targets: list[str], arguments: str) -> None: ...
-        await activities_impl.parse_data_for_nuclei_scan()
-    @activity.defn
-    async def run_nuclei(self, targets: list[str], arguments: str) -> NucleiConfig: ...
+    async def parse_network_service_data_for_nuclei_run(self, network_service_data_uuid: str) -> str:
+        return activities_impl.parse_data_for_nuclei_scan(self.valkey_client, network_service_data_uuid)
 
     @activity.defn
-    async def parse_nuclei_results(self) -> None: ...
+    async def run_nuclei(self, service_data_for_nuclei_uuid: str) -> str:
+        return await activities_impl.run_nuclei_on_all_targets(self.valkey_client, service_data_for_nuclei_uuid)
 
     @activity.defn
-    async def update_cve_lifecycle_info(self) -> None: ...
+    async def update_cve_lifecycle_info(self, cve_status_uuid: str) -> None:
+        await activities_impl.update_vulnerability_status(self.neo4j_config, self.valkey_client, cve_status_uuid)
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
         return [
-            self.get_targets,
-            self.check_latest_cve_changes,
+            self.update_nuclei,
+            self.get_network_service_data,
+            self.parse_network_service_data_for_nuclei_run,
             self.run_nuclei,
-            self.parse_nuclei_results,
             self.update_cve_lifecycle_info,
         ]
