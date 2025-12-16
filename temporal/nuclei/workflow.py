@@ -1,12 +1,16 @@
+import asyncio
+import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from typing import Any
 
-from temporalio.common import RetryPolicy
+from temporalio.client import Client
+from temporalio import workflow
+from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
+from logging import getLogger
 
 from config import AppConfig
 from temporal.nuclei.activities import NucleiActivities
-from temporalio import workflow
 
 
 @workflow.defn(name="NucleiWorkflow")
@@ -16,15 +20,7 @@ class NucleiWorkflow:
     """
 
     @workflow.run
-    async def run(self, input_: dict[str, Any] | None = None) -> None:
-        """
-        Execute the basic nmap workflow end-to-end.
-
-        :param input_: Optional mapping compatible with NmapBasicConfig to override defaults.
-        :return: None
-        """
-        config = AppConfig.get()
-
+    async def run(self) -> None:
         await workflow.execute_activity(
             NucleiActivities.update_nuclei,
             retry_policy=RetryPolicy(
@@ -62,7 +58,7 @@ class NucleiWorkflow:
             start_to_close_timeout=timedelta(minutes=5),
         )
 
-        cves_status = await workflow.execute_activity(
+        cves_status_uuid = await workflow.execute_activity(
             NucleiActivities.run_nuclei,
             service_data_for_nuclei_uuid,
             retry_policy=RetryPolicy(
@@ -77,7 +73,7 @@ class NucleiWorkflow:
 
         await workflow.execute_activity(
             NucleiActivities.update_cve_lifecycle_info,
-            cves_status,
+            cves_status_uuid,
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=5,
@@ -98,3 +94,32 @@ class NucleiWorkflow:
         config = AppConfig.get()
         activities = NucleiActivities(config.isim, config.isim_graphql, config.redis, config.neo4j)
         return [*activities.get_activities()]
+
+
+async def main() -> None:
+    """
+    Convenience entry point to start the NucleiWorkflow from the CLI.
+
+    Connects to the Temporal server, starts a workflow run on the configured task
+    queue, and logs basic information about the request.
+
+    :return: None
+    """
+    config = AppConfig.get()
+    client = await Client.connect(config.temporal.url)
+    logger = getLogger()
+    workflow_id = uuid.uuid4().hex
+    # noinspection PyTypeChecker
+    workflow_handle = await client.start_workflow(
+        NucleiWorkflow.run,
+        args=(),
+        id=workflow_id,
+        task_queue=config.temporal.scanning_task_queue,
+        id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
+    )
+    workflow_description = await workflow_handle.describe()
+    logger.info("Workflow start requested.", workflow_id=workflow_description.id, run_id=workflow_description.run_id)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

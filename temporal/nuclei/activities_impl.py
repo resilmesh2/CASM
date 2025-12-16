@@ -4,23 +4,21 @@ Nuclei Template Scanner with subprocess
 Parses JSON data, searches for Nuclei templates matching CVEs, and runs scans using nuclei binary.
 """
 
-import asyncio
 import json
 import logging
 import uuid
 from enum import Enum
 from pathlib import Path
-from typing import Any, Coroutine, LiteralString
 
 import dacite
 import httpx
-from dacite.data import Data
 from neo4j import GraphDatabase, basic_auth
 from valkey import Valkey
 
 from config import ISIMGraphqlConfig, Neo4jConfig
 from temporal.lib import util
 from temporal.nuclei import dtos, exceptions
+from dataclasses import asdict
 
 logger = logging.getLogger(__name__)
 
@@ -56,10 +54,9 @@ async def get_network_service_data(isim_graphql_config: ISIMGraphqlConfig, valke
     async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.post(isim_graphql_config.url, json=payload)
         resp.raise_for_status()
-        json_response = resp.json()
-
     service_data_uuid = f"service_data-{uuid.uuid4()!s}"
-    valkey_client.set(service_data_uuid, json_response)
+
+    valkey_client.set(service_data_uuid, resp.content.decode("utf-8"))
 
     return service_data_uuid
 
@@ -147,7 +144,7 @@ def parse_data_for_nuclei_scan(valkey_client: Valkey, service_data_uuid: str) ->
     """
     service_data_json = valkey_client.get(service_data_uuid)
 
-    scan_data = dacite.from_dict(dtos.ScanData, json.loads(service_data_json))
+    scan_data = dacite.from_dict(dtos.NetworkServiceData, json.loads(service_data_json)["data"])
     result: dict[str, dtos.ServiceTemplateData] = {}
 
     for _host_idx, host in enumerate(scan_data.hosts):
@@ -170,7 +167,7 @@ def parse_data_for_nuclei_scan(valkey_client: Valkey, service_data_uuid: str) ->
                 for vuln in sw_version.vulnerabilities:
                     cve_id = vuln.cve.cve_id
                     if cve_id:
-                        all_cves.append(cve_id)
+                        all_cves.append(cve_id.upper())
                         templates = search_nuclei_templates(cve_id, service.service)
                         all_templates.extend(templates)
 
@@ -181,7 +178,7 @@ def parse_data_for_nuclei_scan(valkey_client: Valkey, service_data_uuid: str) ->
             all_templates = list(set(all_templates))
             all_cves = list(set(all_cves))
 
-            result[service_key] = dtos.ServiceTemplateData(
+            result[service_key] = asdict(dtos.ServiceTemplateData(
                 target=target,
                 ip_address=ip_address,
                 port=service.port,
@@ -189,7 +186,7 @@ def parse_data_for_nuclei_scan(valkey_client: Valkey, service_data_uuid: str) ->
                 protocol=service.protocol,
                 cves=all_cves,
                 templates=all_templates,
-            )
+            ))
 
     scan_data_uuid = f"services_with_nuclei_templates-{uuid.uuid4()!s}"
     valkey_client.set(scan_data_uuid, json.dumps(result))
@@ -210,7 +207,8 @@ async def run_nuclei_on_all_targets(valkey_client: Valkey, services_with_nuclei_
     for service_data in services_with_nuclei_templates.values():
         service_template_data = dacite.from_dict(dtos.ServiceTemplateData, service_data)
         result = await run_nuclei_scan(service_template_data, cve_status)
-        _determine_cve_status_from_nuclei_scan_results(result, service_template_data, cve_status)
+        if result is not None:
+            _determine_cve_status_from_nuclei_scan_results(result, service_template_data, cve_status)
 
     cve_status_uuid = f"cve_status-{uuid.uuid4()!s}"
     valkey_client.set(cve_status_uuid, json.dumps(cve_status))
@@ -243,7 +241,7 @@ def _determine_cve_status_from_nuclei_scan_results(stdout: str, service_data: dt
                 classification = result["info"].get("classification", {})
                 if "cve-id" in classification:
                     for cve_id in classification["cve-id"]:
-                        if cve_id.upper().strip() in service_data.cves:
+                        if (cve_id := cve_id.upper()) in service_data.cves:
                             cve_status[cve_id] = VulnerabilityStatus.CONFIRMED.value
                             vulnerabilities_found += 1
 
@@ -254,7 +252,7 @@ def _determine_cve_status_from_nuclei_scan_results(stdout: str, service_data: dt
         logger.info(f"Found {vulnerabilities_found} confirmed vulnerability/vulnerabilities at {service_data.target}:{service_data.port}")
 
 
-async def run_nuclei_scan(service_data: dtos.ServiceTemplateData, cve_status: dict) -> str:
+async def run_nuclei_scan(service_data: dtos.ServiceTemplateData, cve_status: dict) -> str | None:
     """
     Execute Nuclei scan for a specific service using its CVE templates.
 
@@ -269,7 +267,7 @@ async def run_nuclei_scan(service_data: dtos.ServiceTemplateData, cve_status: di
         for cve_id in service_data.cves:
             if cve_id not in cve_status:
                 cve_status[cve_id] = "not_found"
-        return {"status": "skipped", "reason": "no_templates"}
+        return None
 
     # Create target URL/endpoint
     scan_target = f"{service_data.target}:{service_data.port}"

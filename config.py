@@ -23,7 +23,7 @@ class TemporalConfig:
     url: str = TEMPORAL_URL
     namespace: str = TEMPORAL_NAMESPACE
     easm_task_queue: str = "easm"
-    nmap_task_queue: str = "nmap"
+    scanning_task_queue: str = "scanning"
     cve_connector_task_queue: str = "cve_connector"
     slp_enrichment_task_queue: str = "slp_enrichment"
 
