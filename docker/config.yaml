@@ -12,7 +12,7 @@ neo4j:
   user: neo4j
 
 redis:
-  host: redis
+  host: resilmesh_sap_casm_redis
   port: 6379
   db: 3
 
@@ -20,7 +20,7 @@ isim:
   url: "http://isim:8000"
 
 isim_graphql:
-  url: "http://resilmesh_sap_isim_graphql:4001"
+  url: "http://resilmesh_sap_isim_graphql:4001/graphql"
 
 nmap_basic:
   targets:
