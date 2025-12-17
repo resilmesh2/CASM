@@ -160,7 +160,7 @@ There should also be workers for Nmap and CVE connector available in your list o
 > Be aware that the point of this project is to run scans against live domain names. This means that you should select your
 > targets **VERY** carefully. Generally, it is advised against running the workflow against random targets available on the Internet.
 > 
-> The workflow was tested against _vulnweb.com_ domain name very cautiously. The target was selected because it 
+> The workflow was tested against _vulnweb.com_ domain name very cautiously. The target was selected because it
 > hosts intentionally vulnerable web applications and is made for testing purposes.
 
 This project provides user with a prepared client that can connect to Temporal and trigger workflow on selected targets. If you want
@@ -271,7 +271,7 @@ Then, build and start the ISIM application similarly and ensure the `external: t
 When everything is up and running, you can run the nmap demo by running:
 
 ```bash
-docker exec -it nmap-worker python -m temporal.nmap.topology.workflow && docker exec -it nmap-worker python -m temporal.nmap.basic.workflow
+docker exec -it resilmesh_sap_casm_scanning-worker python -m temporal.nmap.topology.workflow && docker exec -it resilmesh_sap_casm_scanning-worker python -m temporal.nmap.basic.workflow
 ```
 
 You can check the workflow progress in the Temporal server GUI http://localhost:8080/namespaces/default/workflows.
