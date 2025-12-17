@@ -7,6 +7,7 @@ Parses JSON data, searches for Nuclei templates matching CVEs, and runs scans us
 import json
 import logging
 import uuid
+from dataclasses import asdict
 from enum import Enum
 from pathlib import Path
 
@@ -18,7 +19,6 @@ from valkey import Valkey
 from config import ISIMGraphqlConfig, Neo4jConfig
 from temporal.lib import util
 from temporal.nuclei import dtos, exceptions
-from dataclasses import asdict
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ async def get_network_service_data(isim_graphql_config: ISIMGraphqlConfig, valke
     return service_data_uuid
 
 
-async def update_nuclei(nuclei_path=None) -> None:
+async def update_nuclei(nuclei_path: str | None = None) -> None:
     """
     Update Nuclei binary and templates to latest versions.
 
@@ -145,7 +145,7 @@ def parse_data_for_nuclei_scan(valkey_client: Valkey, service_data_uuid: str) ->
     service_data_json = valkey_client.get(service_data_uuid)
 
     scan_data = dacite.from_dict(dtos.NetworkServiceData, json.loads(service_data_json)["data"])
-    result: dict[str, dtos.ServiceTemplateData] = {}
+    result: dict[str, dict[str, str | list[str]]] = {}
 
     for _host_idx, host in enumerate(scan_data.hosts):
         # Get primary domain name or IP
@@ -178,15 +178,17 @@ def parse_data_for_nuclei_scan(valkey_client: Valkey, service_data_uuid: str) ->
             all_templates = list(set(all_templates))
             all_cves = list(set(all_cves))
 
-            result[service_key] = asdict(dtos.ServiceTemplateData(
-                target=target,
-                ip_address=ip_address,
-                port=service.port,
-                service=service.service,
-                protocol=service.protocol,
-                cves=all_cves,
-                templates=all_templates,
-            ))
+            result[service_key] = asdict(
+                dtos.ServiceTemplateData(
+                    target=target,
+                    ip_address=ip_address,
+                    port=service.port,
+                    service=service.service,
+                    protocol=service.protocol,
+                    cves=all_cves,
+                    templates=all_templates,
+                )
+            )
 
     scan_data_uuid = f"services_with_nuclei_templates-{uuid.uuid4()!s}"
     valkey_client.set(scan_data_uuid, json.dumps(result))
@@ -215,7 +217,9 @@ async def run_nuclei_on_all_targets(valkey_client: Valkey, services_with_nuclei_
     return cve_status_uuid
 
 
-def _determine_cve_status_from_nuclei_scan_results(stdout: str, service_data: dtos.ServiceTemplateData, cve_status: dict[str, str]) -> None:  # noqa: C901
+def _determine_cve_status_from_nuclei_scan_results(  # noqa: C901
+    stdout: str, service_data: dtos.ServiceTemplateData, cve_status: dict[str, str]
+) -> None:
     """
     Parse Nuclei scan output and determine CVE status (confirmed/unconfirmed).
 
@@ -249,7 +253,9 @@ def _determine_cve_status_from_nuclei_scan_results(stdout: str, service_data: dt
             continue
 
     if vulnerabilities_found > 0:
-        logger.info(f"Found {vulnerabilities_found} confirmed vulnerability/vulnerabilities at {service_data.target}:{service_data.port}")
+        logger.info(
+            f"Found {vulnerabilities_found} confirmed vulnerability/vulnerabilities at {service_data.target}:{service_data.port}"
+        )
 
 
 async def run_nuclei_scan(service_data: dtos.ServiceTemplateData, cve_status: dict) -> str | None:
@@ -297,7 +303,7 @@ async def run_nuclei_scan(service_data: dtos.ServiceTemplateData, cve_status: di
     return stdout
 
 
-async def update_vulnerability_status(neo4j_config: Neo4jConfig, valkey_client: Valkey, cve_status_uuid: str) -> None:
+def update_vulnerability_status(neo4j_config: Neo4jConfig, valkey_client: Valkey, cve_status_uuid: str) -> None:
     """
     Update vulnerability status in Neo4j database based on Nuclei scan results.
 

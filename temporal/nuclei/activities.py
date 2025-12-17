@@ -1,10 +1,11 @@
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
-from config import ISIMConfig, RedisConfig, Neo4jConfig, ISIMGraphqlConfig
-from temporalio import activity
-from temporal.nuclei import activities_impl
 from valkey import Valkey
+
+from config import ISIMConfig, ISIMGraphqlConfig, Neo4jConfig, RedisConfig
+from temporal.nuclei import activities_impl
+from temporalio import activity
 
 
 class NucleiActivities:
@@ -12,7 +13,13 @@ class NucleiActivities:
     Activities to run a basic nmap scan, parse results, and publish them to ISIM.
     """
 
-    def __init__(self, isim_config: ISIMConfig, isim_graphql_config: ISIMGraphqlConfig, redis_config: RedisConfig, neo4j_config: Neo4jConfig) -> None:
+    def __init__(
+        self,
+        isim_config: ISIMConfig,
+        isim_graphql_config: ISIMGraphqlConfig,
+        redis_config: RedisConfig,
+        neo4j_config: Neo4jConfig,
+    ) -> None:
         self.isim_config = isim_config
         self.isim_graphql_config = isim_graphql_config
         self.redis_config = redis_config
@@ -37,7 +44,7 @@ class NucleiActivities:
 
     @activity.defn
     async def update_cve_lifecycle_info(self, cve_status_uuid: str) -> None:
-        await activities_impl.update_vulnerability_status(self.neo4j_config, self.valkey_client, cve_status_uuid)
+        activities_impl.update_vulnerability_status(self.neo4j_config, self.valkey_client, cve_status_uuid)
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
         return [

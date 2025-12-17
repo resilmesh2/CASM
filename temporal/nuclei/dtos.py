@@ -67,6 +67,7 @@ class Host:
 @dataclass
 class NetworkServiceData:
     """Main scan data structure"""
+
     hosts: list[Host] = field(default_factory=list)
 
 
