@@ -5,18 +5,18 @@ from datetime import timedelta
 from logging import getLogger
 from typing import Any
 
+from temporalio import workflow
 from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
 from config import AppConfig
 from temporal.nuclei.activities import NucleiActivities
-from temporalio import workflow
 
 
 @workflow.defn(name="NucleiWorkflow")
 class NucleiWorkflow:
     """
-    Workflow that runs a basic nmap scan, parses the XML, and publishes results to ISIM.
+    Workflow that runs a nuclei scan for each network service and updates the vulnerability status in neo4j.
     """
 
     @workflow.run
@@ -87,7 +87,7 @@ class NucleiWorkflow:
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
         """
-        Collect all activity callables used by the basic nmap workflow.
+        Collect all activity callables used by nuclei workflow.
 
         :return: A flat sequence of activity functions to be registered with a worker.
         """

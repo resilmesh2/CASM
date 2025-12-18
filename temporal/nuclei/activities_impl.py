@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-Nuclei Template Scanner with subprocess
-Parses JSON data, searches for Nuclei templates matching CVEs, and runs scans using nuclei binary.
-"""
-
 import json
 import logging
 import uuid
@@ -76,13 +70,11 @@ async def update_nuclei(nuclei_path: str | None = None) -> None:
     commands = [[nuclei_binary, "-update-templates"], [nuclei_binary, "-update"]]
 
     for command in commands:
-        try:
-            _stdout, _stderr, returncode = await util.run_command_with_output(command)
-            logger.info(f"Executed {' '.join(command)}: returncode={returncode}")
+        _stdout, _stderr, returncode = await util.run_command_with_output(command)
+        logger.info(f"Executed {' '.join(command)}: returncode={returncode}")
 
-        except Exception as e:
-            logger.exception(f"Failed to execute {' '.join(command)}: {e}")
-            raise
+        if returncode != 0:
+            raise exceptions.NucleiRunError(f"Failed to update Nuclei templates/binary: returncode={returncode}")
 
 
 def search_nuclei_templates(cve_id: str, service: str) -> list[str]:

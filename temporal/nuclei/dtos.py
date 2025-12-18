@@ -34,19 +34,13 @@ class NetworkService:
     software_versions: list[SoftwareVersion] = field(default_factory=list)
 
 
-@dataclass
-class DomainName:
-    """Represents a domain name"""
-
-    domain_name: str
-
 
 @dataclass
 class IPAddress:
     """Represents an IP address with domain names"""
 
     address: str
-    domain_names: list[DomainName] = field(default_factory=list)
+    domain_names: list[str] = field(default_factory=list)
 
 
 @dataclass
