@@ -289,6 +289,43 @@ You can leave the first `Use Policy` option and click `Trigger`.
 Again, you can check the workflow progress in the Temporal server GUI http://localhost:8080/namespaces/default/workflows.
 When the cve-connector workflow finishes successfully, you can check the populated neo4j database on http://localhost:7474/browser/
 
+## Vulnerability Confirmation with Nuclei
+
+This functionality validates vulnerabilities discovered by the CVE connector using **Nuclei**.
+
+### Overview
+When the Nuclei workflow is executed, it performs an automated verification process against the assets stored in the Neo4j database. 
+Its goal is to determine whether reported CVEs are actually exploitable on the discovered network services.
+
+### Workflow Details
+1. **Data Collection**
+   - Retrieves all network services from Neo4j.
+   - For each service, loads the associated CVEs identified by the CVE connector.
+
+2. **Template Matching**
+   - For every CVE, attempts to locate a corresponding Nuclei template.
+   - If no matching template exists, the CVE cannot be actively tested.
+
+3. **Execution**
+   - Runs the matching Nuclei templates against the target services.
+   - Collects and evaluates the scan results.
+
+4. **Vulnerability Status Assignment**
+   - `confirmed` — Nuclei successfully validated the vulnerability.
+   - `unconfirmed` — A template was executed, but exploitation could not be verified.
+   - `not_found` — Nuclei template for the given CVE was not found.
+
+### Notes
+- Most CVEs will probably not have a corresponding Nuclei template (at least in our demo).
+- Absence of a template does **not** imply the vulnerability is invalid—only that it could not be confirmed automatically.
+
+### Running the Workflow
+Execute the following command to start the Nuclei workflow:
+
+```bash
+docker exec -it resilmesh_sap_casm_scanning-worker python -m temporal.nuclei.workflow
+```
+
 # Tests
 Tests are available in `test` folder. 
 Test data contain an example output that can be obtained from scanning by EasyEASM.
