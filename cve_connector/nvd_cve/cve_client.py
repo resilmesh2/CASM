@@ -148,7 +148,7 @@ def search_cve_by_version(
     :return: Data obtained from the NVD REST API.
     :raises ValueError: If version format or part value is invalid.
     """
-    if not version or not isinstance(version, str) or version.count(":") < 2:
+    if not version or version.count(":") < 2:
         logging.error(f"Invalid version format: {version}. Expected 'vendor:product:version'")
         raise ValueError("Version must be in format 'vendor:product:version'")
 
@@ -157,16 +157,16 @@ def search_cve_by_version(
         raise ValueError("Part must be 'a', 'h', or 'o'")
 
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
-    params = {"cpeName": f"cpe:2.3:{part}:{version}", "startIndex": start_index}
+    params_dict: dict[str, Any] = {"cpeName": f"cpe:2.3:{part}:{version}", "startIndex": start_index}
     if is_vulnerable:
-        params["isVulnerable"] = None
+        params_dict["isVulnerable"] = None
     if last_mod_start_date:
-        params["lastModStartDate"] = last_mod_start_date.replace("+", "%2B")
+        params_dict["lastModStartDate"] = last_mod_start_date.replace("+", "%2B")
     if last_mod_end_date:
-        params["lastModEndDate"] = last_mod_end_date.replace("+", "%2B")
+        params_dict["lastModEndDate"] = last_mod_end_date.replace("+", "%2B")
     elif last_mod_start_date:
-        params["lastModEndDate"] = (datetime.now() + timedelta(hours=1)).isoformat().replace("+", "%2B")
-    params = "&".join([key if value is None else f"{key}={value}" for key, value in params.items()])
+        params_dict["lastModEndDate"] = (datetime.now() + timedelta(hours=1)).isoformat().replace("+", "%2B")
+    params: str = "&".join([key if value is None else f"{key}={value}" for key, value in params_dict.items()])
     headers = {"apiKey": api_key} if api_key else {}
     logging.info(f"Searching for CVEs for {version} (part: {part}). Last timestamp is {last_mod_start_date}.")
 

@@ -117,7 +117,7 @@ def cve_version(
                         is_vulnerable=True,
                         last_mod_start_date=timestamp,
                     )
-                    if "vulnerabilities" in raw_data:
+                    if raw_data is not None and "vulnerabilities" in raw_data:
                         cve_data = [vuln["cve"] for vuln in raw_data.get("vulnerabilities", [])]
                     logging.info(f"Found {len(cve_data)} vulnerabilities")
                     time.sleep(retry_delay)
