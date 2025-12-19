@@ -18,6 +18,7 @@ syrupy = "^5.0.0"
 pytest = "^9.0.1"
 valkey = "^6.1.1"
 pytest-mock = "^3.15.1"
+pyright = "^1.1.407"
 
 [tool.poetry.group.dev.dependencies]
 ruff = ">=0.0.261"
@@ -120,5 +121,22 @@ max-complexity = 10
     "FBT", # Don't care about booleans as positional arguments in tests, e.g. via @pytest.mark.parametrize()
     "SLF001", # Private member access
 ]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+useLibraryCodeForTypes = true
+reportMissingImports = true
+reportImportCycles = true
+reportMissingTypeStubs = true
+reportMissingModuleSource = false
+venvPath = "."
+venv = ".venv"
+exclude = [
+    "**/__pycache__",
+    "**/.*",
+    ".venv/",
+]
+
 
 
