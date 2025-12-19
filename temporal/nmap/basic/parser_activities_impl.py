@@ -1,9 +1,7 @@
-import argparse
 import ipaddress
-import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from xml.etree.ElementTree import Element
-import xml.etree.ElementTree as ET
 
 from temporal.nmap.basic.dtos import Application, Device, Host, NmapResults, SoftwareVersion, Subnet
 
@@ -107,7 +105,9 @@ def convert_cpe_to_version_2_3(cpe: str) -> str | None:
     return "cpe:2.3:" + ":".join(fields)
 
 
-def _create_software_version(service: Element, ip: str, tag: list[str], port: str, protocol: str) -> SoftwareVersion | None:
+def _create_software_version(
+    service: Element, ip: str, tag: list[str], port: str, protocol: str
+) -> SoftwareVersion | None:
     """
     Create a SoftwareVersion entry from a <service> element if a valid CPE exists.
 
@@ -235,8 +235,9 @@ def parse_nmap_xml(nmap_output: Element, tag: list[str]) -> NmapResults:
         host_subnets = _extract_host_subnets(ip_addresses, subnet_set)
         hostnames = _extract_hostnames(host)
         primary_ip = ip_addresses[0]
-        results.hosts.append(Host(ip_address=primary_ip, tag=tag, domain_names=hostnames, uris=[], subnets=host_subnets)
-)
+        results.hosts.append(
+            Host(ip_address=primary_ip, tag=tag, domain_names=hostnames, uris=[], subnets=host_subnets)
+        )
 
         for ip in ip_addresses:
             device_name = hostnames[0] if hostnames else ip
@@ -254,4 +255,3 @@ if __name__ == "__main__":
     path = Path(__file__).parent / "nmap_out.xml"
     nmap_output = ET.parse(path).getroot()
     result = parse_nmap_xml(nmap_output, ["test"])
-    print(result)

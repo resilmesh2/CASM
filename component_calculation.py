@@ -13,7 +13,7 @@ class ComponentCalculationWorkflow:
     """Workflow for calculating component scores on a schedule"""
 
     @workflow.run
-    async def run(self, component_data: dict) -> dict:
+    async def run(self, component_data: dict:) -> dict:
         component_id = component_data.get('component_id')
         component_name = component_data.get('component_name')
         

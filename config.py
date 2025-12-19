@@ -60,6 +60,7 @@ class NmapTopologyConfig:
     targets: list[str]
     arguments: str
 
+
 # @dataclass
 # class NucleiConfig: ...
 #     arguments: str

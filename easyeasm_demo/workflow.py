@@ -8,9 +8,9 @@ from pathlib import Path
 from typing import Any
 
 from neo4j import GraphDatabase, basic_auth
-from valkey import Valkey
 from structlog import getLogger
 from temporalio.common import RetryPolicy
+from valkey import Valkey
 from yaml import safe_dump
 
 from config import AppConfig, Neo4jConfig, RedisConfig

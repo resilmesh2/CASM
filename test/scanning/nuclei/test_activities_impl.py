@@ -3,14 +3,13 @@
 import json
 from pathlib import Path
 from typing import Any
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 from pytest_mock import MockerFixture
 from syrupy import SnapshotAssertion
 
-from temporal.nuclei import dtos, exceptions
-from temporal.nuclei import activities_impl
+from temporal.nuclei import activities_impl, dtos, exceptions
 
 
 @pytest.fixture
@@ -127,7 +126,9 @@ class TestParseDataForNucleiScan:
             for key, value in sorted(input_dict.items())
         }
 
-    def test_parse_valid_service_data(self, network_services_response: str, mocker: MockerFixture, snapshot: SnapshotAssertion) -> None:
+    def test_parse_valid_service_data(
+        self, network_services_response: str, mocker: MockerFixture, snapshot: SnapshotAssertion
+    ) -> None:
         """Test parsing valid network service data with CVEs."""
         mock_valkey = Mock()
         mock_valkey.get.return_value = network_services_response
@@ -205,7 +206,6 @@ class TestParseDataForNucleiScan:
 
         mocker.patch("temporal.nuclei.activities_impl.search_nuclei_templates", return_value=[])
         activities_impl.parse_data_for_nuclei_scan(mock_valkey, "test-uuid")
-
 
         stored_data = json.loads(mock_valkey.set.call_args[0][1])
         assert stored_data == snapshot

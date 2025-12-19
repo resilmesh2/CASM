@@ -1,11 +1,11 @@
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
-from temporalio import activity
 from valkey import Valkey
 
 from config import ISIMConfig, ISIMGraphqlConfig, Neo4jConfig, RedisConfig
 from temporal.nuclei import activities_impl
+from temporalio import activity
 
 
 class NucleiActivities:
