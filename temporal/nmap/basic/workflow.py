@@ -8,7 +8,7 @@ from typing import Any
 from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
-from config import AppConfig
+from config import AppConfig, NmapBasicConfig
 from temporal.nmap.basic.activities import NmapBasicActivities
 from temporalio import workflow
 

@@ -86,7 +86,7 @@ def search_nuclei_templates(cve_id: str, service: str) -> list[str]:
     :return: List of matching template file paths as strings
     :raises NucleiTemplatesNotFoundError: If nuclei template directories don't exist
     """
-    matching_templates = []
+    matching_templates: list[str] = []
 
     # Determine which template paths to search
     search_paths = (

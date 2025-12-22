@@ -22,7 +22,7 @@ class NmapBasicActivities:
         self.isim_config = isim_config
 
     @activity.defn
-    async def nmap_basic_validate_input(self, input_: dict[str, Any]) -> NmapBasicConfig:
+    def nmap_basic_validate_input(self, input_: dict[str, Any]) -> NmapBasicConfig:
         """
         Validate and normalize the incoming nmap basic scan configuration.
 
@@ -36,7 +36,7 @@ class NmapBasicActivities:
         return obj_input
 
     @activity.defn
-    async def run_basic_nmap_scan(self, targets: list[str], arguments: str) -> ElementTree:
+    async def run_basic_nmap_scan(self, targets: list[str], arguments: str) -> str:
         """
         Execute a nmap scan with the provided targets and raw argument string.
 
@@ -64,7 +64,7 @@ class NmapBasicActivities:
         return parser_activities_impl.parse_nmap_xml(xml_nmap_output, tag)
 
     @activity.defn
-    async def send_result_to_api(self, parsed_nmap_results: NmapResults):
+    async def send_result_to_api(self, parsed_nmap_results: NmapResults) -> str:
         """
         Send parsed nmap results to the ISIM API.
 

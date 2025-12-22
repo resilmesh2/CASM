@@ -50,7 +50,7 @@ def _extract_hostnames(host: Element) -> list[str]:
     :param host: XML element for a host containing optional <hostnames>/<hostname> children.
     :return: List of hostname strings, empty if none are present.
     """
-    hostnames = []
+    hostnames: list[str] = []
     if (hostnames_elem := host.find("hostnames")) is not None:
         hostnames.extend(
             name for hostname in hostnames_elem.findall("hostname") if (name := hostname.attrib.get("name"))
@@ -81,7 +81,7 @@ def _build_version_description(service: Element) -> str:
     return full_version.strip() or name
 
 
-def _get_service_cpe(service: Element) -> str:
+def _get_service_cpe(service: Element) -> str | None:
     cpe_elem = service.find("cpe")
     return cpe_elem.text if cpe_elem is not None else service.attrib.get("cpe", "")
 
@@ -200,7 +200,7 @@ def _extract_host_subnets(ip_addresses: list[str], subnet_set: set[str]) -> list
     :param subnet_set: Set an accumulator of unique CIDR subnets across all hosts.
     :return: List of CIDR subnet strings associated with the given host IPs.
     """
-    host_subnets = []
+    host_subnets: list[str] = []
     for ip in ip_addresses:
         if subnet := extract_subnet(ip):
             subnet_set.add(subnet)
