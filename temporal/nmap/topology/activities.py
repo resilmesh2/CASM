@@ -1,4 +1,5 @@
 from collections.abc import Awaitable, Callable, Sequence
+from dataclasses import asdict
 from typing import Any
 
 import httpx
@@ -7,6 +8,7 @@ from config import ISIMConfig, NmapTopologyConfig
 from temporal.lib import util
 from temporal.nmap.topology.scanner import topology_scan_neo
 from temporalio import activity
+from temporal.nmap.topology import dtos
 
 
 class NmapTopologyActivities:
@@ -32,7 +34,7 @@ class NmapTopologyActivities:
         return obj_input
 
     @activity.defn
-    async def run_nmap_traceroute_scan(self, targets: list[str]) -> dict[str, Any]:
+    async def run_nmap_traceroute_scan(self, targets: list[str]) -> dtos.ScanResult:
         """
         Run nmap in ping + traceroute mode against provided targets and return hop data.
 
@@ -42,7 +44,7 @@ class NmapTopologyActivities:
         return topology_scan_neo(targets)
 
     @activity.defn
-    async def nmap_traceroute_neo4j(self, nmap_output: dict[str, Any]) -> str:
+    async def nmap_traceroute_neo4j(self, nmap_output: dtos.ScanResult) -> str:
         """
         Post-traceroute results to the ISIM topology endpoint.
 
@@ -50,7 +52,7 @@ class NmapTopologyActivities:
         :return: The response body returned by the ISIM API.
         """
         async with httpx.AsyncClient() as client:
-            response = await client.post(f"{self.isim_config.url}/traceroute", json=nmap_output)
+            response = await client.post(f"{self.isim_config.url}/traceroute", json=asdict(nmap_output))
             return response.text
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
