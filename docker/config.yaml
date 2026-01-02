@@ -37,7 +37,7 @@ easm_scanner:
   wordlist_path: "/app/temporal/easm/subdomainwordlist.txt"  # required only for complete mode
 
 slp_enrichment:
-  x_api_key: "T33RNGIE-7HKE7IX7YFWEWVKWE3MB67MKBLZ3FBNCM12JNZN6TTAO7QHUW"
+  x_api_key: ""
 
 cve_connector:
   nvd_api_key: ""
