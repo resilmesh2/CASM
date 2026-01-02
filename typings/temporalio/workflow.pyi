@@ -20,11 +20,36 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum, Flag, IntEnum
 from random import Random
-from typing import Any, Awaitable, Callable, Generator, Generic, Iterable, Iterator, List, Mapping, MutableMapping, NoReturn, Optional, Sequence, TYPE_CHECKING, Tuple, Type, TypeVar, Union, overload
+from typing import Any, Awaitable, Callable, Generator, Generic, Iterable, Iterator, List, Mapping, MutableMapping, NoReturn, Optional, Sequence, TYPE_CHECKING, Tuple, Type, TypeVar, Union, overload, TypeVarTuple, \
+    Unpack
 from nexusrpc import InputT, OutputT
 from typing_extensions import Concatenate, Literal, Protocol, TypedDict, runtime_checkable
 from temporalio.nexus._util import ServiceHandlerT
-from .types import AnyType, CallableAsyncNoParam, CallableAsyncSingleParam, CallableAsyncType, CallableSyncNoParam, CallableSyncOrAsyncReturnNoneType, CallableSyncOrAsyncType, CallableSyncSingleParam, CallableType, ClassType, MethodAsyncNoParam, MethodAsyncSingleParam, MethodSyncNoParam, MethodSyncOrAsyncNoParam, MethodSyncOrAsyncSingleParam, MethodSyncSingleParam, MultiParamSpec, ParamType, ProtocolReturnType, ReturnType, SelfType
+from .types import (
+    AnyType,
+    CallableAsyncNoParam,
+    CallableAsyncSingleParam,
+    CallableAsyncType,
+    CallableSyncNoParam,
+    CallableSyncOrAsyncReturnNoneType,
+    CallableSyncOrAsyncType,
+    CallableSyncSingleParam,
+    CallableType,
+    ClassType,
+    MethodAsyncNoParam,
+    MethodAsyncSingleParam,
+    MethodSyncNoParam,
+    MethodSyncOrAsyncNoParam,
+    MethodSyncOrAsyncSingleParam,
+    MethodSyncSingleParam,
+    MultiParamSpec,
+    ParamType,
+    ProtocolReturnType,
+    ReturnType,
+    SelfType,
+    ProtocolSelfType,
+    ProtocolParamType,
+)
 
 """Utilities that can decorate or be called inside workflows."""
 @overload
@@ -1223,6 +1248,14 @@ def start_activity(activity: Any, arg: Any = ..., *, args: Sequence[Any] = ..., 
     """
     ...
 
+Ts = TypeVarTuple("Ts")
+class MethodAsyncNParam(Protocol[ProtocolSelfType, ProtocolParamType, ProtocolReturnType]):
+    """Generic callable type."""
+    def __call__(__self, self: ProtocolSelfType, *args: ProtocolParamType) -> Awaitable[ProtocolReturnType]:
+        """Generic callable type callback."""
+        ...
+
+
 @overload
 async def execute_activity(activity: CallableAsyncNoParam[ReturnType], *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ..., summary: Optional[str] = ..., priority: temporalio.common.Priority = ...) -> ReturnType:
     ...
@@ -1244,7 +1277,31 @@ async def execute_activity(activity: Callable[..., Awaitable[ReturnType]], *, ar
     ...
 
 @overload
+async def execute_activity(activity: MethodSyncNoParam[Any, ReturnType], *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
+    ...
+
+@overload
 async def execute_activity(activity: Callable[..., ReturnType], *, args: Sequence[Any], task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ..., summary: Optional[str] = ..., priority: temporalio.common.Priority = ...) -> ReturnType:
+    ...
+
+@overload
+async def execute_activity(activity: MethodAsyncSingleParam[Any, ParamType, ReturnType], arg: ParamType, *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
+    ...
+
+@overload
+async def execute_activity(activity: MethodAsyncNParam[Any, Ts, ReturnType], *, args: Sequence[Any], task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
+    ...
+
+@overload
+async def execute_activity(activity: Callable[[Ts], ReturnType], *, args: Sequence[Ts], task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
+    ...
+
+@overload
+async def execute_activity(activity: Callable[[SelfType, Unpack[Ts]], Awaitable[ReturnType]], *, args: tuple[Unpack[Ts]], task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
+    ...
+
+@overload
+async def execute_activity(activity: Callable[[SelfType, Ts], ReturnType], *, args: tuple[Unpack[Ts]], task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
     ...
 
 @overload

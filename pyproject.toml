@@ -58,6 +58,8 @@ requires-poetry = ">=2.0.0,<3.0.0"
 line-length = 120
 target-version = "py312"
 
+extend-exclude = ["typings"]
+
 [tool.ruff.lint]
 preview = true
 select = [
@@ -131,4 +133,8 @@ reportMissingTypeStubs = true
 reportMissingModuleSource = false
 venvPath = "."
 venv = ".venv"
-exclude = ["**/__pycache__","**/.*",".venv/","typings/"]
+exclude = [
+    "**/__pycache__","**/.*",
+    ".venv/",
+    "typings/"
+]

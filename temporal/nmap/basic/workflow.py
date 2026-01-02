@@ -5,12 +5,12 @@ from datetime import timedelta
 from logging import getLogger
 from typing import Any
 
+from temporalio import workflow
 from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
-from config import AppConfig, NmapBasicConfig
+from config import AppConfig
 from temporal.nmap.basic.activities import NmapBasicActivities
-from temporalio import workflow
 
 
 @workflow.defn(name="NmapBasicWorkflow")
@@ -33,7 +33,7 @@ class NmapBasicWorkflow:
         if input_ is not None:
             nmap_config = await workflow.execute_activity(
                 NmapBasicActivities.nmap_basic_validate_input,
-                arg=input_,
+                args=[input_],
                 retry_policy=RetryPolicy(maximum_attempts=1),
                 start_to_close_timeout=timedelta(minutes=5),
             )
@@ -111,7 +111,9 @@ async def main() -> None:
         id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
     )
     workflow_description = await workflow_handle.describe()
-    logger.info("Workflow start requested.", workflow_id=workflow_description.id, run_id=workflow_description.run_id)
+    logger.info(
+        f"Workflow start requested. workflow_id={workflow_description.id}, run_id={workflow_description.run_id}"
+    )
 
 
 if __name__ == "__main__":
