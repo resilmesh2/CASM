@@ -42,7 +42,7 @@ cve-connector = [
 ]
 
 nmap = [
-    "python3-nmap>=1.9.1,<2.0.0",
+    "python3-nmap (==1.9.1)",
 ]
 
 [build-system]

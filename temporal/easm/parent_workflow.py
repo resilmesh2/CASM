@@ -51,7 +51,7 @@ class ParentEasmWorkflow:
                 start_to_close_timeout=timedelta(minutes=5),
             )
 
-        domains_output_uuid = await workflow.execute_child_workflow(
+        domains_output_uuid: str = await workflow.execute_child_workflow(  # pyright: ignore [reportUnknownMemberType]
             PassiveEnumerationWorkflow.run,
             args=[easm_config.domains],
             id=f"passive-{workflow.info().workflow_id}",
@@ -59,7 +59,7 @@ class ParentEasmWorkflow:
         )
 
         if easm_config.complete:
-            domains_output_uuid: str = await workflow.execute_child_workflow(
+            domains_output_uuid: str = await workflow.execute_child_workflow(  # pyright: ignore [reportUnknownMemberType]
                 ActiveEnumeratonWorkflow.run,
                 args=[domains_output_uuid, easm_config.wordlist_path, str(easm_config.threads)],
                 id=f"active-{workflow.info().workflow_id}",
@@ -93,8 +93,8 @@ class ParentEasmWorkflow:
         :return: A flat sequence of activity functions to be registered with a worker.
         """
         config = AppConfig.get()
-        passive_enum_activities = PassiveEnumerationActivities(config.redis)
-        active_enum_activities = ActiveEnumerationActivities(config.redis)
+        passive_enum_activities = PassiveEnumerationActivities()
+        active_enum_activities = ActiveEnumerationActivities()
         activities = EasmActivities(config.redis, config.isim)
         return [
             *passive_enum_activities.get_activities(),
@@ -125,7 +125,9 @@ async def main() -> None:
         id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
     )
     workflow_description = await workflow_handle.describe()
-    logger.info("Workflow start requested.", workflow_id=workflow_description.id, run_id=workflow_description.run_id)
+    logger.info(
+        f"Workflow start requested. workflow_id={workflow_description.id}, run_id={workflow_description.run_id}"
+    )
 
 
 if __name__ == "__main__":
