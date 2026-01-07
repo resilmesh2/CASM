@@ -22,7 +22,7 @@ class NmapBasicActivities:
         self.isim_config = isim_config
 
     @activity.defn
-    def nmap_basic_validate_input(self, input_: dict[str, Any]) -> NmapBasicConfig:
+    async def nmap_basic_validate_input(self, input_: dict[str, Any]) -> NmapBasicConfig:
         """
         Validate and normalize the incoming nmap basic scan configuration.
 

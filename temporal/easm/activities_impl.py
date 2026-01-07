@@ -1,16 +1,26 @@
 import json
 import tempfile
-import urllib
 import uuid
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from ipaddress import IPv4Interface, IPv6Interface
-from typing import Any
+from typing import Any, TypedDict
 
-from valkey import Valkey
+import httpx
 
-from config import RedisConfig
-from temporal.lib import exceptions, util
+from temporal.lib import exceptions, redis_handler, util
 
+
+class AppData(TypedDict, total=False):
+    cpe: str  # e.g. "cpe:2.3:a:vendor:product" or "cpe:/a:vendor:product"
+
+
+class Fingerprints(TypedDict):
+    apps: dict[str, AppData]
+
+
+class OutputEntry(TypedDict):
+    name: str  # original input token (e.g., "Apache:httpd 2.4" or "nginx:1.24")
+    version: str  # concrete CPE 2.3 string
 
 @dataclass
 class EasyEASMParsedResult:
@@ -29,9 +39,9 @@ class EasyEASMParsedResult:
     port: int
     protocol: str
     service: str
+    software_versions: list[OutputEntry] = field(default_factory=list[OutputEntry])
     ip: IPv4Interface | IPv6Interface | None = None
     domain_name: str | None = None
-    software_versions: list[dict[str, str]] | None = None
 
     def __post_init__(self) -> None:
         if self.ip is None and self.domain_name is None:
@@ -41,7 +51,7 @@ class EasyEASMParsedResult:
         return asdict(self)
 
 
-async def run_httpx(domains_to_probe_uuid: str, httpx_path: str, redis_config: RedisConfig) -> str:
+async def run_httpx(domains_to_probe_uuid: str, httpx_path: str) -> str:
     """
     Execute the external httpx tool over domains loaded from Redis and store its output.
 
@@ -52,15 +62,14 @@ async def run_httpx(domains_to_probe_uuid: str, httpx_path: str, redis_config: R
 
     :param domains_to_probe_uuid: Redis key holding the input domains (newline-separated).
     :param httpx_path: Path to the httpx executable to invoke.
-    :param redis_config: Connection details for Redis.
     :return: Redis key where the httpx JSONL output is stored.
     :raises temporal.lib.exceptions.EnumerationToolError: If the httpx command returns a non-zero exit code.
     """
-    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
-    input_data = redis_client.get(domains_to_probe_uuid).decode("utf-8")
+    redis_client = redis_handler.get_redis()
+    input_data = redis_client.get(domains_to_probe_uuid)
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as temp_file:
-        temp_file.write(input_data)
+        temp_file.write(str(input_data))
         temp_file.flush()
         temp_input = temp_file.name
 
@@ -74,26 +83,22 @@ async def run_httpx(domains_to_probe_uuid: str, httpx_path: str, redis_config: R
             f"httpx run failed with status code {return_code} and error {std_err, std_out}, command={command}",
         )
 
-    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
     httpx_uuid = f"httpx-{uuid.uuid4()!s}"
     output_data = std_out + std_err
     redis_client.set(httpx_uuid, output_data)
-    redis_client.close()
 
     return httpx_uuid
 
 
-def parse_httpx_output(httpx_uuid: str, redis_config: RedisConfig) -> list[EasyEASMParsedResult]:
+def parse_httpx_output(httpx_uuid: str) -> list[EasyEASMParsedResult]:
     """
     Parse httpx JSON Lines stored in Redis into typed EasyEASMParsedResult objects.
 
     :param httpx_uuid: Redis key where httpx JSONL output is stored.
-    :param redis_config: Connection details for Redis.
     :return: List of parsed results, one per successful httpx line entry.
     """
-    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
-    httpx_json = redis_client.get(httpx_uuid).decode("utf-8")
-    redis_client.close()
+    redis_client = redis_handler.get_redis()
+    httpx_json = str(redis_client.get(httpx_uuid))
     easm_output: list[EasyEASMParsedResult] = []
 
     for line in httpx_json.strip().split("\n"):
@@ -130,41 +135,140 @@ WAPPALYZERGO_FINGERPRINTS_URL = (
 )
 
 
-def determine_software_versions(technologies: list[str]) -> list[dict[str, str]]:
+
+def fetch_fingerprints(url: str = WAPPALYZERGO_FINGERPRINTS_URL, timeout_s: float = 10.0) -> Fingerprints:
     """
-    Map detected technology strings to normalized CPE entries using wappalyzergo fingerprints.
+    Download the WappalyzerGo fingerprints database and return it as a mapping.
 
-    Each technology string may optionally contain a version after a colon, e.g.,
-    "Apache:httpd 2.4". If a CPE template exists for the technology, a concrete
-    CPE 2.3 string is produced with the detected version or a wildcard.
+    The returned structure is expected to contain an "apps" dictionary with
+    entries describing technologies (apps) and, when available, a "cpe" field
+    that identifies the technology using a CPE string. Only a tiny portion of
+    the full schema is modeled here because we only need the CPE field.
 
-    :param technologies: List of technology identifiers returned by httpx (items like
-                         "nginx:1.24" or "Apache").
-    :return: A list of dictionaries with keys:
-             - "name": Original technology string from input.
-             - "version": A CPE 2.3 string reflecting vendor, product, and version.
+    :param url: HTTP URL of the fingerprints JSON file to download.
+    :param timeout_s: Total HTTP client timeout in seconds.
+    :return: Parsed JSON body as a Fingerprints dict.
+    :raises httpx.HTTPError: If the request fails or returns a bad status.
+    """
+    with httpx.Client(timeout=httpx.Timeout(timeout_s)) as client:
+        r = client.get(url)
+        r.raise_for_status()
+        return r.json()
+
+
+def _split_name_version(token: str) -> tuple[str, str | None]:
+    """
+    Split a technology token into name and version parts.
+
+    Tokens are expected in the form "name:version" (e.g., "nginx:1.24"). If no
+    colon is present, the entire token is treated as the name and the version is
+    returned as None.
+
+    :param token: Technology token reported by httpx/wappalyzer (e.g., "Apache:httpd 2.4" or "nginx:1.24").
+    :return: Tuple of (name, version_or_none).
+    """
+    if ":" not in token:
+        return token.strip(), None
+
+    name, version = token.split(":", 1)
+    return name.strip(), version.strip()
+
+
+def _parse_vendor_product_from_cpe(cpe: str) -> tuple[str, str] | None:
+    """
+    Extract vendor and product from a CPE string.
+
+    Supports the two common forms encountered in the fingerprints:
+    - "cpe:2.3:a:vendor:product[:...]"
+    - "cpe:/a:vendor:product[:...]"
+
+    The function finds the segment after the "a" part indicator and returns the
+    next two fields as (vendor, product). If the string does not match the
+    expected structure, None is returned.
+
+    :param cpe: Input CPE string from the fingerprints database.
+    :return: (vendor, product) tuple or None if parsing fails.
+    """
+    parts = cpe.split(":")
+    if len(parts) < 4:
+        return None
+
+    # For both formats, vendor and product follow the 'a' part indicator
+    # cpe:2.3:a:vendor:product or cpe:/a:vendor:product
+    try:
+        a_index = parts.index("a")
+        if a_index + 2 < len(parts):
+            vendor = parts[a_index + 1].strip()
+            product = parts[a_index + 2].strip()
+            if vendor and product:
+                return vendor, product
+    except ValueError:
+        pass
+
+    return None
+
+
+def _make_cpe23_app(vendor: str, product: str, version: str | None) -> str:
+    """
+    Build a CPE 2.3 application string for the given vendor/product/version.
+
+    When version is None or empty, a wildcard "*" is used in the version slot.
+    All other CPE 2.3 fields are filled with "*" since they are not needed for
+    the current use case.
+
+    :param vendor: CPE vendor field.
+    :param product: CPE product field.
+    :param version: Optional product version; if None, a wildcard is used.
+    :return: A normalized CPE 2.3 string, e.g., "cpe:2.3:a:nginx:nginx:1.24:*:*:*:*:*:*:*".
+    """
+    v = version if version else "*"
+    return f"cpe:2.3:a:{vendor}:{product}:{v}:*:*:*:*:*:*:*"
+
+
+def determine_software_versions(technologies: list[str]) -> list[OutputEntry]:
+    """
+    Convert detected technology tokens into concrete CPE 2.3 strings.
+
+    For each token in the input list (e.g., "nginx:1.24" or "Apache:httpd 2.4"),
+    this function:
+    - Splits it into name and optional version.
+    - Looks up the technology in the WappalyzerGo fingerprints to find a base CPE.
+    - Parses vendor and product from that CPE.
+    - Builds a full CPE 2.3 app string using the detected version or a wildcard.
+
+    Duplicate (token, CPE) pairs are deduplicated in the output.
+
+    :param technologies: List of technology tokens reported by httpx/wappalyzer.
+    :return: List of mappings with keys:
+             - "name": the original token from input
+             - "version": the computed CPE 2.3 string
     """
     if not technologies:
         return []
 
-    with urllib.request.urlopen(WAPPALYZERGO_FINGERPRINTS_URL) as jsonfile:
-        fingerprints = json.load(jsonfile)
+    fingerprints = fetch_fingerprints()
+    apps = fingerprints.get("apps", {})
 
-    results = []
+    results: list[OutputEntry] = []
+    seen: set[tuple[str, str]] = set()
 
-    for tech in technologies:
-        name, version = ([*tech.split(":", 1), None])[:2]
-        name, version = name.strip(), (version.strip() if version else None)
+    for token in technologies:
+        name, version = _split_name_version(token)
 
-        if name in fingerprints["apps"]:
-            app_data = fingerprints["apps"][name]
-            if "cpe" in app_data:
-                vendor, product = app_data["cpe"].split(":")[3:5]
-                cpe_version = version or "*"
-                cpe = f"cpe:2.3:a:{vendor}:{product}:{cpe_version}:*:*:*:*:*:*:*"
-                entry = {"name": tech, "version": cpe}
+        app = apps.get(name)
+        if not app or "cpe" not in app:
+            continue
 
-                if entry not in results:
-                    results.append(entry)
+        vendor_product = _parse_vendor_product_from_cpe(app["cpe"])
+        if not vendor_product:
+            continue
+
+        vendor, product = vendor_product
+        cpe23 = _make_cpe23_app(vendor, product, version)
+
+        key = (token, cpe23)
+        if key not in seen:
+            seen.add(key)
+            results.append({"name": token, "version": cpe23})
 
     return results

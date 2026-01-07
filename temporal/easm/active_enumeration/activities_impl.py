@@ -2,14 +2,12 @@ import asyncio
 import tempfile
 import uuid
 
-from valkey import Valkey
-
 from config import RedisConfig
-from temporal.lib import exceptions, util
+from temporal.lib import exceptions, redis_handler, util
 
 
 async def run_dnsx_bruteforce(
-    passive_scan_domains_uuid: str, wordlist: str, threads: str, redis_config: RedisConfig
+    passive_scan_domains_uuid: str, wordlist: str, threads: str
 ) -> str:
     """
     Run dnsx to bruteforce subdomains for the given domains and store results in Redis.
@@ -25,8 +23,8 @@ async def run_dnsx_bruteforce(
     :raises temporal.lib.exceptions.EnumerationToolError: If dnsx execution fails.
     :raises temporal.lib.exceptions.NoDomainsFoundError: If dnsx returns no results.
     """
-    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
-    domains = redis_client.get(passive_scan_domains_uuid).decode("utf-8")
+    redis_client = redis_handler.get_redis()
+    domains = str(redis_client.get(passive_scan_domains_uuid))
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as domain_temp_file:
         domain_temp_file.write(domains)
@@ -63,17 +61,16 @@ async def run_dnsx_bruteforce(
     return dnsx_uuid
 
 
-async def run_alterx(domains_uuid: str, redis_config: RedisConfig) -> str:
+async def run_alterx(domains_uuid: str) -> str:
     """
     Run alterx to generate domain permutations and store results in Redis.
 
     :param domains_uuid: Redis key pointing to input domains to be permuted.
-    :param redis_config: Redis connection configuration.
     :return: Redis key where alterx output is stored.
     :raises temporal.lib.exceptions.EnumerationToolError: If alterx execution fails.
     """
-    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
-    input_domains = redis_client.get(domains_uuid).decode("utf-8")
+    redis_client = redis_handler.get_redis()
+    input_domains = str(redis_client.get(domains_uuid))
 
     with (
         tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as domains_file,
@@ -102,18 +99,17 @@ async def run_alterx(domains_uuid: str, redis_config: RedisConfig) -> str:
     return alterx_uuid
 
 
-async def run_dnsx_resolver(domains_uuid: str, redis_config: RedisConfig) -> str:
+async def run_dnsx_resolver(domains_uuid: str) -> str:
     """
     Resolve candidate subdomains with dnsx and persist unique results in Redis.
 
     :param domains_uuid: Redis key pointing to candidate subdomains.
-    :param redis_config: Redis connection configuration.
     :return: Redis key where unique, resolvable subdomains are stored.
     :raises temporal.lib.exceptions.EnumerationToolError: If dnsx execution fails.
     :raises temporal.lib.exceptions.NoDomainsFoundError: If no subdomains resolve.
     """
-    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
-    input_domains = redis_client.get(domains_uuid).decode("utf-8")
+    redis_client = redis_handler.get_redis()
+    input_domains = str(redis_client.get(domains_uuid))
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as domains_file:
         domains_file.write(input_domains)
