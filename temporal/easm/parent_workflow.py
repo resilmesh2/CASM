@@ -68,7 +68,7 @@ class ParentEasmWorkflow:
 
         httpx_uuid = await workflow.execute_activity(
             EasmActivities.run_httpx,
-            args=[domains_output_uuid, easm_config.httpx_path],
+            args=(domains_output_uuid, easm_config.httpx_path),
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=2,

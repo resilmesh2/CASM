@@ -2,13 +2,10 @@ import asyncio
 import tempfile
 import uuid
 
-from config import RedisConfig
 from temporal.lib import exceptions, redis_handler, util
 
 
-async def run_dnsx_bruteforce(
-    passive_scan_domains_uuid: str, wordlist: str, threads: str
-) -> str:
+async def run_dnsx_bruteforce(passive_scan_domains_uuid: str, wordlist: str, threads: str) -> str:
     """
     Run dnsx to bruteforce subdomains for the given domains and store results in Redis.
 

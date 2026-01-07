@@ -17,9 +17,7 @@ class ActiveEnumerationActivities:
         :return: Redis key where dnsx bruteforce results are stored.
         :raises temporal.lib.exceptions.EnumerationToolError: If the dnsx command fails.
         """
-        return await activities_impl.run_dnsx_bruteforce(
-            passive_scan_domains_uuid, wordlist, threads
-        )
+        return await activities_impl.run_dnsx_bruteforce(passive_scan_domains_uuid, wordlist, threads)
 
     @activity.defn
     async def run_alterx(self, dnsx_output_uuid: str) -> str:

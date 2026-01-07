@@ -7,12 +7,7 @@ from config import AppConfig, RedisConfig
 
 class RedisHandler:
     def __init__(self, config: RedisConfig) -> None:
-        self.client = Valkey(
-            host=config.host,
-            port=config.port,
-            db=config.db,
-            decode_responses=True
-        )
+        self.client = Valkey(host=config.host, port=config.port, db=config.db, decode_responses=True)
 
     def healthcheck(self) -> None:
         pong = self.client.ping()  # pyright: ignore[reportUnknownMemberType]

@@ -8,10 +8,12 @@ class HopData:
     hops: int
     next_ip: str | None
 
+
 @dataclass
 class ConnectionData:
     dst_ip: str | None
     hops: list[HopData] = field(default_factory=list[HopData])
+
 
 @dataclass
 class ScanResult:

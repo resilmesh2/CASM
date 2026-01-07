@@ -25,7 +25,7 @@ def validate_input_hostname(target: str) -> bool:
 
 async def run_command_with_output(
     command: list[str], cwd: str | None = None, input_data: str | None = None
-) -> tuple[str, str, int]:
+) -> tuple[str, str, int | None]:
     """
     Executes a command as subprocess.
     :param command: Command to be executed represented as a list of strings.
@@ -58,7 +58,7 @@ def get_unique_subdomains(*data: str) -> str:
     :param data: input to be processed.
     :return: string representation of unique subdomains.
     """
-    unique_subdomains = set()
+    unique_subdomains: set[str] = set()
     for item in data:
         unique_subdomains.update(item.splitlines())
     return "\n".join(unique_subdomains)

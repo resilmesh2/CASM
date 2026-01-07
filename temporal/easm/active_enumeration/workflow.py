@@ -4,7 +4,6 @@ from typing import Any
 
 from temporalio.common import RetryPolicy
 
-from config import AppConfig
 from temporal.easm.active_enumeration.activities import ActiveEnumerationActivities
 from temporalio import workflow
 
@@ -31,7 +30,7 @@ class ActiveEnumeratonWorkflow:
         # Active bruteforce
         dnsx_result_uuid = await workflow.execute_activity(
             ActiveEnumerationActivities.run_dnsx_bruteforce,
-            args=[passive_scan_domains_uuid, wordlist, threads],
+            args=(passive_scan_domains_uuid, wordlist, threads),
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=2,
@@ -44,7 +43,7 @@ class ActiveEnumeratonWorkflow:
 
         alterx_uuid = await workflow.execute_activity(
             ActiveEnumerationActivities.run_alterx,
-            args=[dnsx_result_uuid],
+            dnsx_result_uuid,
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=2,
@@ -57,7 +56,7 @@ class ActiveEnumeratonWorkflow:
 
         return await workflow.execute_activity(
             ActiveEnumerationActivities.run_dnsx_resolver,
-            args=[alterx_uuid],
+            alterx_uuid,
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=2,
@@ -70,6 +69,5 @@ class ActiveEnumeratonWorkflow:
 
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
-        config = AppConfig.get()
-        activities = ActiveEnumerationActivities(config.redis)
+        activities = ActiveEnumerationActivities()
         return [*activities.get_activities()]

@@ -1,4 +1,5 @@
 import asyncio
+from typing import Any, Awaitable, Callable
 
 from temporalio.client import Client
 from temporalio.worker import Worker
@@ -19,7 +20,7 @@ async def main() -> None:
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url)
     workflows = [NmapBasicWorkflow, NmapTopologyWorkflow, NucleiWorkflow]
-    activities = []
+    activities: list[Callable[..., Awaitable[Any]]] = []
     for workflow in workflows:
         activities += workflow.get_activities()
     workflow_runner = SandboxedWorkflowRunner(

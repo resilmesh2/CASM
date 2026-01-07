@@ -46,7 +46,7 @@ def parse_nmap_results(nmap_results: str, target: str, my_ip: str, logger: Any) 
     :param logger: Logger instance for error and warning messages.
     :return: List of ConnectionData objects, each containing a destination IP and its hop path.
              Returns an empty list if XML parsing fails or no hosts are found.
-     """
+    """
     connections_data: list[dtos.ConnectionData] = []
     root = ET.ElementTree(ET.fromstring(nmap_results)).getroot()  # noqa: S314
 

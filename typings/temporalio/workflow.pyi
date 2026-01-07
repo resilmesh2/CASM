@@ -1257,23 +1257,23 @@ class MethodAsyncNParam(Protocol[ProtocolSelfType, ProtocolParamType, ProtocolRe
 
 
 @overload
-async def execute_activity(activity: CallableAsyncNoParam[ReturnType], *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ..., summary: Optional[str] = ..., priority: temporalio.common.Priority = ...) -> ReturnType:
+async def execute_activity(activity: CallableAsyncNoParam[ReturnType], *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
     ...
 
 @overload
-async def execute_activity(activity: CallableSyncNoParam[ReturnType], *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ..., summary: Optional[str] = ..., priority: temporalio.common.Priority = ...) -> ReturnType:
+async def execute_activity(activity: CallableSyncNoParam[ReturnType], *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
     ...
 
 @overload
-async def execute_activity(activity: CallableAsyncSingleParam[ParamType, ReturnType], arg: ParamType, *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ..., summary: Optional[str] = ..., priority: temporalio.common.Priority = ...) -> ReturnType:
+async def execute_activity(activity: CallableAsyncSingleParam[ParamType, ReturnType], arg: ParamType, *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
     ...
 
 @overload
-async def execute_activity(activity: CallableSyncSingleParam[ParamType, ReturnType], arg: ParamType, *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ..., summary: Optional[str] = ..., priority: temporalio.common.Priority = ...) -> ReturnType:
+async def execute_activity(activity: CallableSyncSingleParam[ParamType, ReturnType], arg: ParamType, *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
     ...
 
 @overload
-async def execute_activity(activity: Callable[..., Awaitable[ReturnType]], *, args: Sequence[Any], task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ..., summary: Optional[str] = ..., priority: temporalio.common.Priority = ...) -> ReturnType:
+async def execute_activity(activity: MethodAsyncNoParam[Any, ReturnType], *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
     ...
 
 @overload
@@ -1281,15 +1281,19 @@ async def execute_activity(activity: MethodSyncNoParam[Any, ReturnType], *, task
     ...
 
 @overload
-async def execute_activity(activity: Callable[..., ReturnType], *, args: Sequence[Any], task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ..., summary: Optional[str] = ..., priority: temporalio.common.Priority = ...) -> ReturnType:
-    ...
-
-@overload
 async def execute_activity(activity: MethodAsyncSingleParam[Any, ParamType, ReturnType], arg: ParamType, *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
     ...
 
 @overload
-async def execute_activity(activity: MethodAsyncNParam[Any, Ts, ReturnType], *, args: Sequence[Any], task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
+async def execute_activity(activity: Callable[[Any, ParamType], Awaitable[ReturnType]], arg: ParamType, *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
+    ...
+
+@overload
+async def execute_activity(activity: MethodSyncSingleParam[Any, ParamType, ReturnType], arg: ParamType, *, task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
+    ...
+
+@overload
+async def execute_activity(activity: MethodAsyncNParam[Any, Ts, ReturnType], *, args: Sequence[Ts], task_queue: Optional[str] = ..., schedule_to_close_timeout: Optional[timedelta] = ..., schedule_to_start_timeout: Optional[timedelta] = ..., start_to_close_timeout: Optional[timedelta] = ..., heartbeat_timeout: Optional[timedelta] = ..., retry_policy: Optional[temporalio.common.RetryPolicy] = ..., cancellation_type: ActivityCancellationType = ..., activity_id: Optional[str] = ..., versioning_intent: Optional[VersioningIntent] = ...) -> ReturnType:
     ...
 
 @overload

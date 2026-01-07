@@ -22,6 +22,7 @@ class OutputEntry(TypedDict):
     name: str  # original input token (e.g., "Apache:httpd 2.4" or "nginx:1.24")
     version: str  # concrete CPE 2.3 string
 
+
 @dataclass
 class EasyEASMParsedResult:
     """
@@ -135,7 +136,6 @@ WAPPALYZERGO_FINGERPRINTS_URL = (
 )
 
 
-
 def fetch_fingerprints(url: str = WAPPALYZERGO_FINGERPRINTS_URL, timeout_s: float = 10.0) -> Fingerprints:
     """
     Download the WappalyzerGo fingerprints database and return it as a mapping.
@@ -221,7 +221,7 @@ def _make_cpe23_app(vendor: str, product: str, version: str | None) -> str:
     :param version: Optional product version; if None, a wildcard is used.
     :return: A normalized CPE 2.3 string, e.g., "cpe:2.3:a:nginx:nginx:1.24:*:*:*:*:*:*:*".
     """
-    v = version if version else "*"
+    v = version or "*"
     return f"cpe:2.3:a:{vendor}:{product}:{v}:*:*:*:*:*:*:*"
 
 

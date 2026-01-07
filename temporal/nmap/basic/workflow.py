@@ -2,9 +2,9 @@ import asyncio
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
-from logging import getLogger
 from typing import Any
 
+from structlog import getLogger
 from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
@@ -40,7 +40,7 @@ class NmapBasicWorkflow:
 
         nmap_results = await workflow.execute_activity(
             NmapBasicActivities.run_basic_nmap_scan,
-            args=[nmap_config.targets, nmap_config.arguments],
+            args=(nmap_config.targets, nmap_config.arguments),
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=5,
@@ -53,7 +53,7 @@ class NmapBasicWorkflow:
 
         parsed_nmap_results = await workflow.execute_activity(
             NmapBasicActivities.parse_nmap_xml,
-            args=[nmap_results, nmap_config.tag],
+            args=(nmap_results, nmap_config.tag),
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=5,
@@ -111,9 +111,7 @@ async def main() -> None:
         id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
     )
     workflow_description = await workflow_handle.describe()
-    logger.info(
-        f"Workflow start requested. workflow_id={workflow_description.id}, run_id={workflow_description.run_id}"
-    )
+    logger.info("Workflow start requested.", workflow_id=workflow_description.id, run_id=workflow_description.run_id)
 
 
 if __name__ == "__main__":

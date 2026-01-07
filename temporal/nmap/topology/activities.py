@@ -6,9 +6,9 @@ import httpx
 
 from config import ISIMConfig, NmapTopologyConfig
 from temporal.lib import util
+from temporal.nmap.topology import dtos
 from temporal.nmap.topology.scanner import topology_scan_neo
 from temporalio import activity
-from temporal.nmap.topology import dtos
 
 
 class NmapTopologyActivities:
