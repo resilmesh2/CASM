@@ -47,6 +47,8 @@ from cve_connector.nvd_cve.toneo4j import (
 )
 from temporalio import activity, workflow
 
+from temporal.lib import redis_handler
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -341,6 +343,9 @@ async def main() -> None:
         loop.add_signal_handler(sig, handle_shutdown, loop, shutdown_event)
 
     logging.info("Starting Temporal Worker...")
+
+    redis_handler.init_redis()
+
     worker = Worker(
         client,
         task_queue="cve-update-task-queue",

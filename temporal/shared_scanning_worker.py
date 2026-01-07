@@ -5,6 +5,7 @@ from temporalio.worker import Worker
 from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxRestrictions
 
 from config import AppConfig
+from temporal.lib import redis_handler
 from temporal.nmap.basic.workflow import NmapBasicWorkflow
 from temporal.nmap.topology.workflow import NmapTopologyWorkflow
 from temporal.nuclei.workflow import NucleiWorkflow
@@ -26,6 +27,7 @@ async def main() -> None:
             "temporal.nmap.basic", "temporal.nmap.topology", "temporal.nuclei", "config"
         )
     )
+    redis_handler.init_redis()
 
     worker = Worker(
         client=client,
