@@ -46,7 +46,7 @@ class SLPEnrichmentWorkflow:
 
         domains_ips_for_storing = await workflow.execute_activity(
             SLPEnrichmentActivities.get_data_from_slp,
-            args=[asset_info, slp_enrichment_config.x_api_key],
+            args=(asset_info, slp_enrichment_config.x_api_key),
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=5,
