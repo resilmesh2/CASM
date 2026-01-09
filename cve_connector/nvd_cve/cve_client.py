@@ -24,7 +24,10 @@ import time
 from datetime import datetime, timedelta
 from typing import Any
 
+import msgspec
 import requests
+
+from cve_connector.nvd_cve.nvd_types import NvdCvesApiResponse
 
 
 def search_cve_by_date_range(
@@ -61,8 +64,8 @@ def search_cve_by_date_range(
         # the official documentation recommends 6-second-long sleep
         time.sleep(6)
         if response.status_code == 200:
-            data = response.json()
-            return [vuln["cve"] for vuln in data.get("vulnerabilities", [])]
+            data = msgspec.json.decode(response.content, type=NvdCvesApiResponse)
+            return [vuln.cve for vuln in data.vulnerabilities]
         if response.status_code == 429:
             logging.error("Rate limit exceeded (HTTP 429)")
             return None
@@ -105,8 +108,8 @@ def search_cve_by_id(cve_id: str, api_key: str | None = None) -> list[dict[str, 
         # the official documentation recommends 6-second-long sleep
         time.sleep(6)
         if response.status_code == 200:
-            data = response.json()
-            return [data["vulnerabilities"][0]["cve"]] if data.get("vulnerabilities") else []
+            data = msgspec.json.decode(response.content, type=NvdCvesApiResponse)
+            return [data.vulnerabilities[0].cve] if data.vulnerabilities else []
         if response.status_code == 429:
             logging.error(f"Rate limit exceeded for {cve_id} (HTTP 429)")
             return None
@@ -131,7 +134,7 @@ def search_cve_by_version(
     is_vulnerable: bool = False,
     last_mod_start_date: datetime | None = None,
     last_mod_end_date: datetime | None = None,
-) -> list[dict[str, Any]] | None:
+) -> NvdCvesApiResponse | None:
     """
     Searches for CVEs associated with a specific product and version using the NVD API.
 
@@ -157,16 +160,16 @@ def search_cve_by_version(
         raise ValueError("Part must be 'a', 'h', or 'o'")
 
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
-    params_dict: dict[str, Any] = {"cpeName": f"cpe:2.3:{part}:{version}", "startIndex": start_index}
+    params: dict[str, str] = {"cpeName": f"cpe:2.3:{part}:{version}", "startIndex": str(start_index)}
     if is_vulnerable:
-        params_dict["isVulnerable"] = None
+        # NVD API treats this as a flag parameter.
+        params["isVulnerable"] = ""
     if last_mod_start_date:
-        params_dict["lastModStartDate"] = last_mod_start_date.replace("+", "%2B")
+        params["lastModStartDate"] = last_mod_start_date.isoformat().replace("+", "%2B")
     if last_mod_end_date:
-        params_dict["lastModEndDate"] = last_mod_end_date.replace("+", "%2B")
+        params["lastModEndDate"] = last_mod_end_date.isoformat().replace("+", "%2B")
     elif last_mod_start_date:
-        params_dict["lastModEndDate"] = (datetime.now() + timedelta(hours=1)).isoformat().replace("+", "%2B")
-    params: str = "&".join([key if value is None else f"{key}={value}" for key, value in params_dict.items()])
+        params["lastModEndDate"] = (datetime.now() + timedelta(hours=1)).isoformat().replace("+", "%2B")
     headers = {"apiKey": api_key} if api_key else {}
     logging.info(f"Searching for CVEs for {version} (part: {part}). Last timestamp is {last_mod_start_date}.")
 
@@ -175,8 +178,10 @@ def search_cve_by_version(
         # the official documentation recommends 6-second-long sleep
         time.sleep(6)
         if response.status_code == 200:
-            data = response.json()
-            logging.info(f"Total results: {data['totalResults']}")
+            data = msgspec.json.decode(response.content, type=NvdCvesApiResponse)
+            total_results = data.totalResults
+            if total_results is not None:
+                logging.info(f"Total results: {total_results}")
             return data
         if response.status_code == 429:
             logging.error(f"Rate limit exceeded for version {version} (HTTP 429)")

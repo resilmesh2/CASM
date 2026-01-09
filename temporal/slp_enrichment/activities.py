@@ -3,9 +3,9 @@ from typing import Any, Literal
 
 import httpx
 import msgspec
+from temporalio import activity
 
 from config import ISIMConfig
-from temporalio import activity
 
 
 # ISIM API models via msgspec.Struct
