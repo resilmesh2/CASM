@@ -209,7 +209,7 @@ async def run_nuclei_on_all_targets(valkey_client: Valkey, services_with_nuclei_
     return cve_status_uuid
 
 
-def _determine_cve_status_from_nuclei_scan_results(  # noqa: C901
+def _determine_cve_status_from_nuclei_scan_results(
     stdout: str, service_data: dtos.ServiceTemplateData, cve_status: dict[str, str]
 ) -> None:
     """
