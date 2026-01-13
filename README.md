@@ -44,7 +44,7 @@ redis:
   port: 6379
 
 isim:
-  url: "http://isim:8000"
+  url: "http://resilmesh_sap_isim:8000"
 
 nmap_basic:
   targets:
