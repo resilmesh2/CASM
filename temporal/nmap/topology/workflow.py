@@ -5,12 +5,12 @@ from datetime import timedelta
 from typing import Any
 
 from structlog import getLogger
+from temporalio import workflow
 from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
 from config import AppConfig
 from temporal.nmap.topology.activities import NmapTopologyActivities
-from temporalio import workflow
 
 
 @workflow.defn(name="NmapTopologyWorkflow")

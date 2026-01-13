@@ -37,7 +37,9 @@ class NetworkService:
 @dataclass
 class DomainName:
     """Represents a domain name"""
+
     domain_name: str
+
 
 @dataclass
 class IPAddress:

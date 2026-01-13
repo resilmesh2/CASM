@@ -1,9 +1,5 @@
-import argparse
 import ipaddress
-import sys
-from pathlib import Path
 from xml.etree.ElementTree import Element
-import xml.etree.ElementTree as ET
 
 from temporal.nmap.basic.dtos import Application, Device, Host, NmapResults, SoftwareVersion, Subnet
 
@@ -248,10 +244,3 @@ def parse_nmap_xml(nmap_output: Element, tag: list[str]) -> NmapResults:
     results.applications.extend(applications)
 
     return results
-
-
-if __name__ == "__main__":
-    path = Path(__file__).parent / "nmap_out.xml"
-    nmap_output = ET.parse(path).getroot()
-    result = parse_nmap_xml(nmap_output, ["test"])
-    print(result)
