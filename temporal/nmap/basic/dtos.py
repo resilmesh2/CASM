@@ -31,7 +31,10 @@ class SoftwareVersion:
     version: str
     description: str
     ip_addresses: list[str]
-    tag: list[str]
+    tag: list[str] = field(default_factory=list)
+    service: str | None = None
+    protocol: str | None = None
+    port: int | None = None
 
 
 @dataclass
