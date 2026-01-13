@@ -3,10 +3,10 @@ from typing import Any, Literal, TypedDict
 
 import httpx
 import msgspec
+from temporalio import activity
 
 from config import ISIMConfig
 from temporal.slp_enrichment import dtos
-from temporalio import activity
 
 #  TODO: This needs a further rework because ISIM api responses aren't clearly typed
 ISIMIpsResponse = tuple[dtos.ISIMIpItem, dtos.ISIMSubnetItem | None, dtos.ISIMDomainItem | None, Any, Any]
@@ -20,8 +20,7 @@ class SLPRecordTD(TypedDict):
     tag: Literal["SLP", "SLP_no"]
 
 
-class SLPApiError(Exception):
-    ...
+class SLPApiError(Exception): ...
 
 
 class SLPEnrichmentActivities:
@@ -52,9 +51,7 @@ class SLPEnrichmentActivities:
             if len(decoded) < limit:
                 last_item_found = True
             unprocessed_addresses += [
-                item
-                for item in decoded
-                if not (item[0].tag is not None and "SLP" in item[0].tag)
+                item for item in decoded if not (item[0].tag is not None and "SLP" in item[0].tag)
             ][: 100 - len(unprocessed_addresses)]
             offset += limit
         return unprocessed_addresses

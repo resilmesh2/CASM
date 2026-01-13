@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 import httpx
 import yaml
+from temporalio import activity
 from temporalio.client import (
     Client,
     Schedule,
@@ -18,7 +19,6 @@ from temporalio.client import (
 from temporalio.worker import Worker
 
 from component_calculation import ComponentCalculationWorkflow, RiskFormulaCalculationWorkflow
-from temporalio import activity
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

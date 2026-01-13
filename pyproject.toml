@@ -118,7 +118,6 @@ max-line-length = 200
 max-complexity = 10
 
 [tool.ruff.lint.extend-per-file-ignores]
-[tool.ruff.lint.extend-per-file-ignores]
 "__init__.py" = ["F401"]
 "tests/**/*.py" = [
     # at least this three should be fine in tests:

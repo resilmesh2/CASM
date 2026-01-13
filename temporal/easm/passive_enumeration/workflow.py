@@ -23,7 +23,7 @@ class PassiveEnumerationWorkflow:
                     start_to_close_timeout=timedelta(minutes=10),
                     retry_policy=RetryPolicy(
                         maximum_attempts=1,
-                    )
+                    ),
                 )
             )
             amass_task = tg.create_task(

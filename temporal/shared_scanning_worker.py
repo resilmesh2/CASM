@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Awaitable, Callable
+from typing import TYPE_CHECKING, Any
 
 from temporalio.client import Client
 from temporalio.worker import Worker
@@ -10,6 +10,9 @@ from temporal.lib import redis_handler
 from temporal.nmap.basic.workflow import NmapBasicWorkflow
 from temporal.nmap.topology.workflow import NmapTopologyWorkflow
 from temporal.nuclei.workflow import NucleiWorkflow
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
 
 
 async def main() -> None:

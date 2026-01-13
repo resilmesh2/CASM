@@ -413,7 +413,11 @@ def get_software_versions_from_neo4j(
 
 
 def update_timestamp_for_software_version(
-    software_version: str, timestamp: str, neo4j_passwd: str, bolt: str = "bolt://resilmesh_sap_neo4j:7687", user: str = "neo4j"
+    software_version: str,
+    timestamp: str,
+    neo4j_passwd: str,
+    bolt: str = "bolt://resilmesh_sap_neo4j:7687",
+    user: str = "neo4j",
 ) -> None:
     """
     Creates or updates a timestamp for software version.

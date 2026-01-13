@@ -61,11 +61,6 @@ class NmapTopologyConfig:
     arguments: str
 
 
-# @dataclass
-# class NucleiConfig: ...
-#     arguments: str
-
-
 @dataclass
 class EasmScannerConfig:
     domains: list[str]
@@ -113,7 +108,6 @@ class Config:
     easm_scanner: EasmScannerConfig
     slp_enrichment: SLPEnrichmentConfig
     cve_connector: CveConnectorConfig
-    # nuclei: NucleiConfig
 
 
 class AppConfig:

@@ -21,7 +21,9 @@ class ProductSoftwareRow(msgspec.Struct, frozen=True):
 
 
 class CVEConnectorClient(AbstractClient):
-    def __init__(self, password: str, bolt: str = "bolt://resilmesh_sap_neo4j:7687", user: str = "neo4j", **kwargs: Any) -> None:
+    def __init__(
+        self, password: str, bolt: str = "bolt://resilmesh_sap_neo4j:7687", user: str = "neo4j", **kwargs: Any
+    ) -> None:
         """
         Initializes the CVEConnectorClient with Neo4j connection parameters.
 
