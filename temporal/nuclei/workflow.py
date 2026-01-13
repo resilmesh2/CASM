@@ -10,37 +10,19 @@ from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
 from config import AppConfig
-from temporal.nmap.basic.activities import NmapBasicActivities
+from temporal.nuclei.activities import NucleiActivities
 
 
-@workflow.defn(name="NmapBasicWorkflow")
-class NmapBasicWorkflow:
+@workflow.defn(name="NucleiWorkflow")
+class NucleiWorkflow:
     """
-    Workflow that runs a basic nmap scan, parses the XML, and publishes results to ISIM.
+    Workflow that runs a nuclei scan for each network service and updates the vulnerability status in neo4j.
     """
 
     @workflow.run
-    async def run(self, input_: dict[str, Any] | None = None) -> None:
-        """
-        Execute the basic nmap workflow end-to-end.
-
-        :param input_: Optional mapping compatible with NmapBasicConfig to override defaults.
-        :return: None
-        """
-        config = AppConfig.get()
-        nmap_config = config.nmap_basic
-
-        if input_ is not None:
-            nmap_config = await workflow.execute_activity(
-                NmapBasicActivities.nmap_basic_validate_input,
-                arg=input_,
-                retry_policy=RetryPolicy(maximum_attempts=1),
-                start_to_close_timeout=timedelta(minutes=5),
-            )
-
-        nmap_results = await workflow.execute_activity(
-            NmapBasicActivities.run_basic_nmap_scan,
-            args=[nmap_config.targets, nmap_config.arguments],
+    async def run(self) -> None:
+        await workflow.execute_activity(
+            NucleiActivities.update_nuclei,
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=5,
@@ -51,9 +33,34 @@ class NmapBasicWorkflow:
             start_to_close_timeout=timedelta(minutes=5),
         )
 
-        parsed_nmap_results = await workflow.execute_activity(
-            NmapBasicActivities.parse_nmap_xml,
-            args=[nmap_results, nmap_config.tag],
+        network_service_data_uuid = await workflow.execute_activity(
+            NucleiActivities.get_network_service_data,
+            retry_policy=RetryPolicy(
+                backoff_coefficient=2.0,
+                maximum_attempts=5,
+                initial_interval=timedelta(seconds=1),
+                maximum_interval=timedelta(seconds=2),
+                non_retryable_error_types=["ValueError", "NmapExecutionError"],
+            ),
+            start_to_close_timeout=timedelta(minutes=5),
+        )
+
+        service_data_for_nuclei_uuid = await workflow.execute_activity(
+            NucleiActivities.parse_network_service_data_for_nuclei_run,
+            network_service_data_uuid,
+            retry_policy=RetryPolicy(
+                backoff_coefficient=2.0,
+                maximum_attempts=5,
+                initial_interval=timedelta(seconds=1),
+                maximum_interval=timedelta(seconds=2),
+                non_retryable_error_types=["ValueError"],
+            ),
+            start_to_close_timeout=timedelta(minutes=5),
+        )
+
+        cves_status_uuid = await workflow.execute_activity(
+            NucleiActivities.run_nuclei,
+            service_data_for_nuclei_uuid,
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=5,
@@ -65,8 +72,8 @@ class NmapBasicWorkflow:
         )
 
         await workflow.execute_activity(
-            NmapBasicActivities.send_result_to_api,
-            parsed_nmap_results,
+            NucleiActivities.update_cve_lifecycle_info,
+            cves_status_uuid,
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=5,
@@ -80,18 +87,18 @@ class NmapBasicWorkflow:
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
         """
-        Collect all activity callables used by the basic nmap workflow.
+        Collect all activity callables used by nuclei workflow.
 
         :return: A flat sequence of activity functions to be registered with a worker.
         """
         config = AppConfig.get()
-        activities = NmapBasicActivities(config.isim)
+        activities = NucleiActivities(config.isim, config.isim_graphql, config.redis, config.neo4j)
         return [*activities.get_activities()]
 
 
 async def main() -> None:
     """
-    Convenience entry point to start the NmapBasicWorkflow from the CLI.
+    Convenience entry point to start the NucleiWorkflow from the CLI.
 
     Connects to the Temporal server, starts a workflow run on the configured task
     queue, and logs basic information about the request.
@@ -104,7 +111,7 @@ async def main() -> None:
     workflow_id = uuid.uuid4().hex
     # noinspection PyTypeChecker
     workflow_handle = await client.start_workflow(
-        NmapBasicWorkflow.run,
+        NucleiWorkflow.run,
         args=(),
         id=workflow_id,
         task_queue=config.temporal.scanning_task_queue,

@@ -23,7 +23,7 @@ class TemporalConfig:
     url: str = TEMPORAL_URL
     namespace: str = TEMPORAL_NAMESPACE
     easm_task_queue: str = "easm"
-    nmap_task_queue: str = "nmap"
+    scanning_task_queue: str = "scanning"
     cve_connector_task_queue: str = "cve_connector"
     slp_enrichment_task_queue: str = "slp_enrichment"
 
@@ -31,6 +31,7 @@ class TemporalConfig:
 @dataclass
 class RedisConfig:
     host: str
+    db: int
     username: str | None = None
     password: str | None = None
     port: int = 6379
@@ -46,6 +47,11 @@ class NmapBasicConfig:
 
 @dataclass
 class ISIMConfig:
+    url: str
+
+
+@dataclass
+class ISIMGraphqlConfig:
     url: str
 
 
@@ -98,6 +104,7 @@ class Config:
     nmap_basic: NmapBasicConfig
     nmap_topology: NmapTopologyConfig
     isim: ISIMConfig
+    isim_graphql: ISIMGraphqlConfig
     easm_scanner: EasmScannerConfig
     slp_enrichment: SLPEnrichmentConfig
     cve_connector: CveConnectorConfig

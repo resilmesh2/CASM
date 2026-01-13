@@ -2,11 +2,11 @@ from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
 import httpx
+from temporalio import activity
 
 from config import ISIMConfig, NmapTopologyConfig
 from temporal.lib import util
 from temporal.nmap.topology.scanner import topology_scan_neo
-from temporalio import activity
 
 
 class NmapTopologyActivities:

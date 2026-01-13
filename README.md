@@ -160,7 +160,7 @@ There should also be workers for Nmap and CVE connector available in your list o
 > Be aware that the point of this project is to run scans against live domain names. This means that you should select your
 > targets **VERY** carefully. Generally, it is advised against running the workflow against random targets available on the Internet.
 > 
-> The workflow was tested against _vulnweb.com_ domain name very cautiously. The target was selected because it 
+> The workflow was tested against _vulnweb.com_ domain name very cautiously. The target was selected because it
 > hosts intentionally vulnerable web applications and is made for testing purposes.
 
 This project provides user with a prepared client that can connect to Temporal and trigger workflow on selected targets. If you want
@@ -271,7 +271,7 @@ Then, build and start the ISIM application similarly and ensure the `external: t
 When everything is up and running, you can run the nmap demo by running:
 
 ```bash
-docker exec -it nmap-worker python -m temporal.nmap.topology.workflow && docker exec -it nmap-worker python -m temporal.nmap.basic.workflow
+docker exec -it resilmesh_sap_casm_scanning-worker python -m temporal.nmap.topology.workflow && docker exec -it resilmesh_sap_casm_scanning-worker python -m temporal.nmap.basic.workflow
 ```
 
 You can check the workflow progress in the Temporal server GUI http://localhost:8080/namespaces/default/workflows.
@@ -288,6 +288,43 @@ You can leave the first `Use Policy` option and click `Trigger`.
 
 Again, you can check the workflow progress in the Temporal server GUI http://localhost:8080/namespaces/default/workflows.
 When the cve-connector workflow finishes successfully, you can check the populated neo4j database on http://localhost:7474/browser/
+
+## Vulnerability Confirmation with Nuclei
+
+This functionality validates vulnerabilities discovered by the CVE connector using **Nuclei**.
+
+### Overview
+When the Nuclei workflow is executed, it performs an automated verification process against the assets stored in the Neo4j database. 
+Its goal is to determine whether reported CVEs are actually exploitable on the discovered network services.
+
+### Workflow Details
+1. **Data Collection**
+   - Retrieves all network services from Neo4j.
+   - For each service, loads the associated CVEs identified by the CVE connector.
+
+2. **Template Matching**
+   - For every CVE, attempts to locate a corresponding Nuclei template.
+   - If no matching template exists, the CVE cannot be actively tested.
+
+3. **Execution**
+   - Runs the matching Nuclei templates against the target services.
+   - Collects and evaluates the scan results.
+
+4. **Vulnerability Status Assignment**
+   - `confirmed` — Nuclei successfully validated the vulnerability.
+   - `unconfirmed` — A template was executed, but exploitation could not be verified.
+   - `not_found` — Nuclei template for the given CVE was not found.
+
+### Notes
+- Most CVEs will probably not have a corresponding Nuclei template (at least in our demo).
+- Absence of a template does **not** imply the vulnerability is invalid—only that it could not be confirmed automatically.
+
+### Running the Workflow
+Execute the following command to start the Nuclei workflow:
+
+```bash
+docker exec -it resilmesh_sap_casm_scanning-worker python -m temporal.nuclei.workflow
+```
 
 # Tests
 Tests are available in `test` folder. 

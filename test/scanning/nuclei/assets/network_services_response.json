@@ -1,0 +1,235 @@
+{
+  "data": {
+    "hosts": [
+      {
+        "network_services": [
+          {
+            "protocol": "tcp",
+            "port": 631,
+            "service": "ipp",
+            "software_versions": [
+              {
+                "vulnerabilities": [
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2022-26691",
+                      "cpe_type": [
+                        "o",
+                        "a"
+                      ]
+                    }
+                  },
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2018-4300",
+                      "cpe_type": [
+                        "a"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "protocol": "tcp",
+            "port": 80,
+            "service": "http",
+            "software_versions": [
+              {
+                "vulnerabilities": [
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2025-53020",
+                      "cpe_type": [
+                        "a"
+                      ]
+                    }
+                  },
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2024-27316",
+                      "cpe_type": [
+                        "o",
+                        "a"
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "vulnerabilities": [
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2022-22719",
+                      "cpe_type": [
+                        "o",
+                        "a"
+                      ]
+                    }
+                  },
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2025-49812",
+                      "cpe_type": [
+                        "a"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "protocol": "tcp",
+            "port": 22,
+            "service": "ssh",
+            "software_versions": [
+              {
+                "vulnerabilities": [
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2023-51767",
+                      "cpe_type": [
+                        "o",
+                        "a"
+                      ]
+                    }
+                  },
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2023-51385",
+                      "cpe_type": [
+                        "o",
+                        "a"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "protocol": "tcp",
+            "port": 21,
+            "service": "ftp",
+            "software_versions": [
+              {
+                "vulnerabilities": [
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2023-51713",
+                      "cpe_type": [
+                        "a"
+                      ]
+                    }
+                  },
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2023-48795",
+                      "cpe_type": [
+                        "o",
+                        "a"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "node": {
+          "ips": [
+            {
+              "domain_names": [
+                {
+                  "domain_name": "metasploitable3.resilmesh_network"
+                },
+                {
+                  "domain_name": "resilmesh_sap_casm_metasploitable3"
+                }
+              ],
+              "address": "172.19.0.4"
+            }
+          ]
+        }
+      },
+      {
+        "network_services": [
+          {
+            "protocol": "tcp",
+            "port": 80,
+            "service": "http",
+            "software_versions": [
+              {
+                "vulnerabilities": [
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2025-53020",
+                      "cpe_type": [
+                        "a"
+                      ]
+                    }
+                  },
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2024-27316",
+                      "cpe_type": [
+                        "o",
+                        "a"
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "vulnerabilities": [
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2022-22719",
+                      "cpe_type": [
+                        "o",
+                        "a"
+                      ]
+                    }
+                  },
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2025-49812",
+                      "cpe_type": [
+                        "a"
+                      ]
+                    }
+                  },
+                  {
+                    "cve": {
+                      "cve_id": "CVE-2024-47252",
+                      "cpe_type": [
+                        "a"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "node": {
+          "ips": [
+            {
+              "domain_names": [
+                {
+                  "domain_name": "dvwa.resilmesh_network"
+                },
+                {
+                  "domain_name": "resilmesh_sap_casm_dvwa"
+                }
+              ],
+              "address": "172.19.0.5"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

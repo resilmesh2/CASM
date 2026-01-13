@@ -103,7 +103,7 @@ def convert_cpe_to_version_2_3(cpe: str) -> str | None:
     return "cpe:2.3:" + ":".join(fields)
 
 
-def _create_software_version(service: Element, ip: str, tag: list[str]) -> SoftwareVersion | None:
+def _create_software_version(service: Element, ip: str, tag: list[str], port: str, protocol: str) -> SoftwareVersion | None:
     """
     Create a SoftwareVersion entry from a <service> element if a valid CPE exists.
 
@@ -119,7 +119,15 @@ def _create_software_version(service: Element, ip: str, tag: list[str]) -> Softw
     if not (cpe and (cpe := convert_cpe_to_version_2_3(cpe))):
         return None
 
-    return SoftwareVersion(version=cpe, description=_build_version_description(service), ip_addresses=[ip], tag=tag)
+    return SoftwareVersion(
+        version=cpe,
+        service=service.attrib.get("name", ""),
+        protocol=protocol,
+        port=int(port),
+        description=_build_version_description(service),
+        ip_addresses=[ip],
+        tag=tag,
+    )
 
 
 def _create_application(service: Element, port_num: str, protocol: str, device_name: str) -> Application:
@@ -169,7 +177,7 @@ def _process_ports_and_services(
         state = port.find("state")
         service = port.find("service")
         if state is not None and state.attrib.get("state") == "open" and service is not None:
-            if software_version := _create_software_version(service, ip, tag):
+            if software_version := _create_software_version(service, ip, tag, port_num, protocol):
                 software_versions.append(software_version)
             if service.attrib.get("name"):
                 applications.append(_create_application(service, port_num, protocol, device_name))

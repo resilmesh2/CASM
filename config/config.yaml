@@ -18,6 +18,9 @@ redis:
 isim:
   url: "http://resilmesh-sap-isim-automation:5000"
 
+isim_graphql:
+  url: "http://localhost:4001"
+
 nmap_basic:
   targets:
     - localhost
