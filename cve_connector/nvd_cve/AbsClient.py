@@ -7,7 +7,7 @@ class AbstractClient:
     """
 
     def __init__(
-        self, bolt="bolt://localhost:7687", user="neo4j", password=None, driver=None, lifetime=200, encrypted=False
+        self, bolt="bolt://resilmesh_sap_neo4j:7687", user="neo4j", password=None, driver=None, lifetime=200, encrypted=False
     ) -> None:
         self._user = user
         if driver is None:

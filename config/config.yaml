@@ -1,5 +1,5 @@
 temporal:
-  url: "resilmesh_sap_wo_temporal:7233"
+  url: "resilmesh_sop_wo_temporal:7233"
   namespace: default
   easm_task_queue: easm
   nmap_task_queue: nmap

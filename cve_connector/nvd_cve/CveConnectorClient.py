@@ -2,7 +2,7 @@ from cve_connector.nvd_cve.AbsClient import AbstractClient
 
 
 class CVEConnectorClient(AbstractClient):
-    def __init__(self, password: str, bolt="bolt://localhost:7687", user="neo4j", **kwargs) -> None:
+    def __init__(self, password: str, bolt="bolt://resilmesh_sap_neo4j:7687", user="neo4j", **kwargs) -> None:
         """
         Initializes the CVEConnectorClient with Neo4j connection parameters.
 
