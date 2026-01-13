@@ -1,5 +1,5 @@
 temporal:
-  url: "resilmesh_sap_wo_temporal:7233"
+  url: "resilmesh_sop_wo_temporal:7233"
   namespace: default
   easm_task_queue: easm
   nmap_task_queue: nmap
@@ -17,7 +17,10 @@ redis:
   db: 3
 
 isim:
-  url: "http://isim:8000"
+  url: "http://resilmesh_sap_isim:8000"
+
+isim_graphql:
+  url: "http://resilmesh_sap_isim_graphql:4001/graphql"
 
 isim_graphql:
   url: "http://resilmesh_sap_isim_graphql:4001/graphql"

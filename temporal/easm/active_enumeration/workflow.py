@@ -2,10 +2,10 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from typing import Any
 
+from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 from temporal.easm.active_enumeration.activities import ActiveEnumerationActivities
-from temporalio import workflow
 
 
 @workflow.defn

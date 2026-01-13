@@ -2,6 +2,7 @@ import asyncio
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
+from logging import getLogger
 from typing import Any
 
 from structlog import getLogger

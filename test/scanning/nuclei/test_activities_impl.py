@@ -208,6 +208,7 @@ class TestParseDataForNucleiScan:
         mocker.patch("temporal.nuclei.activities_impl.search_nuclei_templates", return_value=[])
         activities_impl.parse_data_for_nuclei_scan(mock_valkey, "test-uuid")
 
+
         stored_data = json.loads(mock_valkey.set.call_args[0][1])
         assert stored_data == snapshot
 

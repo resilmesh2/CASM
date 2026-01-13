@@ -12,7 +12,7 @@ class AbstractClient:
 
     def __init__(
         self,
-        bolt: str = "bolt://localhost:7687",
+        bolt: str = "bolt://resilmesh_sap_neo4j:7687",
         user: str = "neo4j",
         password: str | None = None,
         driver: Driver | None = None,

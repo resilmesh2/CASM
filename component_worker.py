@@ -23,7 +23,7 @@ from temporalio import activity
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-TEMPORAL_HOST = os.environ.get("TEMPORAL_HOST", "resilmesh_sap_wo_temporal")
+TEMPORAL_HOST = os.environ.get("TEMPORAL_HOST", "resilmesh_sop_wo_temporal")
 TEMPORAL_PORT = os.environ.get("TEMPORAL_PORT", "7233")
 TEMPORAL_NAMESPACE = os.environ.get("TEMPORAL_NAMESPACE", "default")
 TEMPORAL_ADDRESS = f"{TEMPORAL_HOST}:{TEMPORAL_PORT}"

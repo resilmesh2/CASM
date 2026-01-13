@@ -22,6 +22,7 @@ services:
       - resilmesh_network
 
   resilmesh_sap_casm_component-calculation-worker:
+    container_name: resilmesh_sap_casm_component-calculation-worker
     build:
       context: .
       dockerfile: Dockerfile
@@ -30,7 +31,7 @@ services:
       - ./docker/config.yaml:/app/config/config.yaml
       - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
 #    depends_on:
-#      resilmesh_sap_wo_temporal:
+#      resilmesh_sop_wo_temporal:
 #        condition: service_healthy
     networks:
       - resilmesh_network
@@ -43,7 +44,7 @@ services:
       - ./docker/config.yaml:/app/config/config.yaml
       - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
 #    depends_on:
-#      resilmesh_sap_wo_temporal:
+#      resilmesh_sop_wo_temporal:
 #        condition: service_healthy
     networks:
       - resilmesh_network
@@ -117,12 +118,12 @@ services:
       - ./logs:/app/logs
       - ../ISIM/config:/config:ro  # Mount ISIM's config as read-only
 #    depends_on:
-#      resilmesh_sap_wo_temporal:
+#      resilmesh_sop_wo_temporal:
 #        condition: service_healthy
     networks:
       - resilmesh_network
     environment:
-      - TEMPORAL_HOST=resilmesh_sap_wo_temporal
+      - TEMPORAL_HOST=resilmesh_sop_wo_temporal
       - TEMPORAL_PORT=7233
       - TEMPORAL_NAMESPACE=default
       - RISK_API_URL=http://resilmesh_sap_isim_automation:5000
@@ -138,13 +139,13 @@ services:
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
 #    depends_on:
-#      resilmesh_sap_wo_temporal:
+#      resilmesh_sop_wo_temporal:
 #        condition: service_healthy
     networks:
       - resilmesh_network
     environment:
       - NVD_KEY
-      - TEMPORAL_HOST=resilmesh_sap_wo_temporal
+      - TEMPORAL_HOST=resilmesh_sop_wo_temporal
       - TEMPORAL_PORT=7233
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=supertestovaciheslo
@@ -158,14 +159,14 @@ services:
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
 #    depends_on:
-#      resilmesh_sap_wo_temporal:
+#      resilmesh_sop_wo_temporal:
 #        condition: service_healthy
      # neo4j:
     networks:
       - resilmesh_network
     environment:
       - NVD_KEY
-      - TEMPORAL_HOST=resilmesh_sap_wo_temporal
+      - TEMPORAL_HOST=resilmesh_sop_wo_temporal
       - TEMPORAL_PORT=7233
       - TEMPORAL_NAMESPACE=default
       - RISK_API_URL=http://resilmesh_sap_isim_automation:5000
@@ -183,7 +184,7 @@ services:
     networks:
       - resilmesh_network
     environment:
-      - TEMPORAL_HOST=resilmesh_sap_wo_temporal
+      - TEMPORAL_HOST=resilmesh_sop_wo_temporal
       - TEMPORAL_PORT=7233
 
 # volumes:
