@@ -33,7 +33,7 @@ class NmapBasicWorkflow:
         if input_ is not None:
             nmap_config = await workflow.execute_activity(
                 NmapBasicActivities.nmap_basic_validate_input,
-                args=[input_],
+                arg=input_,
                 retry_policy=RetryPolicy(maximum_attempts=1),
                 start_to_close_timeout=timedelta(minutes=5),
             )

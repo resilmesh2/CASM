@@ -22,9 +22,6 @@ isim:
 isim_graphql:
   url: "http://resilmesh_sap_isim_graphql:4001/graphql"
 
-isim_graphql:
-  url: "http://resilmesh_sap_isim_graphql:4001/graphql"
-
 nmap_basic:
   targets:
     - resilmesh_sap_casm_metasploitable3
