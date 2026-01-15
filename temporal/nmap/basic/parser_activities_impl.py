@@ -249,9 +249,3 @@ def parse_nmap_xml(nmap_output: Element, tag: list[str]) -> NmapResults:
     results.applications.extend(applications)
 
     return results
-
-
-if __name__ == "__main__":
-    path = Path(__file__).parent / "nmap_out.xml"
-    nmap_output = ET.parse(path).getroot()
-    result = parse_nmap_xml(nmap_output, ["test"])
