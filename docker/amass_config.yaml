@@ -1,2 +1,2 @@
 options:
-  database: "postgres://postgres:postgres@resilmesh_sap_casm_postgres:5432/amass"
+  database: "postgres://postgres:postgres@resilmesh-sap-casm-postgres:5432/amass"

@@ -1,5 +1,5 @@
 temporal:
-  url: "resilmesh_sop_wo_temporal:7233"
+  url: "resilmesh-sop-wo-temporal:7233"
   namespace: default
   easm_task_queue: easm
   nmap_task_queue: nmap
@@ -8,15 +8,15 @@ temporal:
 
 neo4j:
   password: supertestovaciheslo
-  bolt: bolt://resilmesh_sap_neo4j:7687
+  bolt: bolt://resilmesh-sap-neo4j:7687
   user: neo4j
 
 redis:
-  host: resilmesh_sap_wo_redis
+  host: resilmesh-sap-wo-redis
   port: 6379
 
 isim:
-  url: "http://resilmesh_sap_isim_automation:5000"
+  url: "http://resilmesh-sap-isim-automation:5000"
 
 nmap_basic:
   targets:

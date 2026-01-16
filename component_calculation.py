@@ -6,7 +6,7 @@ import os
 
 logger = logging.getLogger(__name__)
 
-RISK_API_URL = os.environ.get("RISK_API_URL", "http://resilmesh_sap_isim_automation:5000")
+RISK_API_URL = os.environ.get("RISK_API_URL", "http://resilmesh-sap-isim-automation:5000")
 
 @workflow.defn
 class ComponentCalculationWorkflow:

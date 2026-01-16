@@ -6,7 +6,7 @@ from dacite import from_dict
 
 BASE_DIR = Path(__file__).resolve().parent
 
-TEMPORAL_URL = "resilmesh_sop_wo_temporal:7233"
+TEMPORAL_URL = "resilmesh-sop-wo-temporal:7233"
 TEMPORAL_NAMESPACE = "default"
 HTTPX_PATH_DOCKER = "/app/go/bin/httpx"
 
@@ -14,7 +14,7 @@ HTTPX_PATH_DOCKER = "/app/go/bin/httpx"
 @dataclass
 class Neo4jConfig:
     password: str = "supertestovaciheslo"
-    bolt: str = "bolt://resilmesh_sap_neo4j:7687"
+    bolt: str = "bolt://resilmesh-sap-neo4j:7687"
     user: str = "neo4j"
 
 

@@ -40,7 +40,7 @@ def move_cve_data_to_neo4j(
     cpe: str,
     neo4j_passwd: str,
     nvd_api_key: str | None = None,
-    bolt: str = "bolt://resilmesh_sap_neo4j:7687",
+    bolt: str = "bolt://resilmesh-sap-neo4j:7687",
     user: str = "neo4j",
 ) -> None:
     """
@@ -53,7 +53,7 @@ def move_cve_data_to_neo4j(
     :param cpe: String representation of CPE identifier.
     :param neo4j_passwd: Password for Neo4j authentication.
     :param nvd_api_key: Neo4j API key. Defaults to None.
-    :param bolt: Bolt connection string. Defaults to "bolt://resilmesh_sap_neo4j:7687".
+    :param bolt: Bolt connection string. Defaults to "bolt://resilmesh-sap-neo4j:7687".
     :param user: Username for Neo4j. Defaults to "neo4j".
     :return: None
     """
@@ -385,13 +385,13 @@ def process_nvd_cpe(
 
 
 def get_software_versions_from_neo4j(
-    neo4j_passwd: str, bolt: str = "bolt://resilmesh_sap_neo4j:7687", user: str = "neo4j"
+    neo4j_passwd: str, bolt: str = "bolt://resilmesh-sap-neo4j:7687", user: str = "neo4j"
 ) -> list[dict[str, Any]]:
     """
     Retrieves all software versions stored in the Neo4j database.
 
     :param neo4j_passwd: Password for Neo4j authentication.
-    :param bolt: Bolt connection string. Defaults to "bolt://resilmesh_sap_neo4j:7687".
+    :param bolt: Bolt connection string. Defaults to "bolt://resilmesh-sap-neo4j:7687".
     :param user: Username for Neo4j. Defaults to "neo4j".
     :return: List of software version strings.
     """
@@ -400,7 +400,7 @@ def get_software_versions_from_neo4j(
 
 
 def update_timestamp_for_software_version(
-    software_version: str, timestamp: str, neo4j_passwd: str, bolt: str = "bolt://resilmesh_sap_neo4j:7687", user: str = "neo4j"
+    software_version: str, timestamp: str, neo4j_passwd: str, bolt: str = "bolt://resilmesh-sap-neo4j:7687", user: str = "neo4j"
 ) -> None:
     """
     Creates or updates a timestamp for software version.
@@ -408,7 +408,7 @@ def update_timestamp_for_software_version(
     :param software_version: Software version that will be updated.
     :param timestamp: Timestamp of the last retrieval of CVEs from the NVD.
     :param neo4j_passwd: Password to Neo4j database.
-    :param bolt: Bolt connection string. Defaults to "bolt://resilmesh_sap_neo4j:7687".
+    :param bolt: Bolt connection string. Defaults to "bolt://resilmesh-sap-neo4j:7687".
     :param user: Username for Neo4j. Defaults to "neo4j".
     :return: None
     """

@@ -14,11 +14,11 @@ from component_calculation import ComponentCalculationWorkflow, RiskFormulaCalcu
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-TEMPORAL_HOST = os.environ.get("TEMPORAL_HOST", "resilmesh_sop_wo_temporal")
+TEMPORAL_HOST = os.environ.get("TEMPORAL_HOST", "resilmesh-sop-wo-temporal")
 TEMPORAL_PORT = os.environ.get("TEMPORAL_PORT", "7233")
 TEMPORAL_NAMESPACE = os.environ.get("TEMPORAL_NAMESPACE", "default")
 TEMPORAL_ADDRESS = f"{TEMPORAL_HOST}:{TEMPORAL_PORT}"
-RISK_API_URL = os.environ.get("RISK_API_URL", "http://resilmesh_sap_isim_automation:5000")
+RISK_API_URL = os.environ.get("RISK_API_URL", "http://resilmesh-sap-isim-automation:5000")
 COMPONENT_CONFIG_PATH = "/config/component_automation_config.yaml"
 
 def load_component_config():
