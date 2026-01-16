@@ -1,13 +1,18 @@
 import asyncio
+from typing import TYPE_CHECKING, Any
 
 from temporalio.client import Client
 from temporalio.worker import Worker
 from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxRestrictions
 
 from config import AppConfig
+from temporal.lib import redis_handler
 from temporal.nmap.basic.workflow import NmapBasicWorkflow
 from temporal.nmap.topology.workflow import NmapTopologyWorkflow
 from temporal.nuclei.workflow import NucleiWorkflow
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
 
 
 async def main() -> None:
@@ -18,7 +23,7 @@ async def main() -> None:
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url)
     workflows = [NmapBasicWorkflow, NmapTopologyWorkflow, NucleiWorkflow]
-    activities = []
+    activities: list[Callable[..., Awaitable[Any]]] = []
     for workflow in workflows:
         activities += workflow.get_activities()
     workflow_runner = SandboxedWorkflowRunner(
@@ -26,6 +31,7 @@ async def main() -> None:
             "temporal.nmap.basic", "temporal.nmap.topology", "temporal.nuclei", "config"
         )
     )
+    redis_handler.init_redis()
 
     worker = Worker(
         client=client,

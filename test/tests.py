@@ -25,7 +25,9 @@ class TestMethods(unittest.IsolatedAsyncioTestCase):
         redis_client.close()
 
         # Call a method for storing the data
-        activities = EasyEasmActivities(RedisConfig(config.redis.host), Neo4jConfig(config.neo4j.password))
+        activities = EasyEasmActivities(
+            RedisConfig(config.redis.host, config.redis.db), Neo4jConfig(config.neo4j.password)
+        )
         await activities.store_result_to_neo4j(scan_uuid, ["example.com", "www.example.com", "scanme.nmap.org"])
 
         # Check the content of the Neo4j database

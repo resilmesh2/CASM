@@ -86,7 +86,7 @@ def search_nuclei_templates(cve_id: str, service: str) -> list[str]:
     :return: List of matching template file paths as strings
     :raises NucleiTemplatesNotFoundError: If nuclei template directories don't exist
     """
-    matching_templates = []
+    matching_templates: list[str] = []
 
     # Determine which template paths to search
     search_paths = (
@@ -136,7 +136,7 @@ def parse_data_for_nuclei_scan(valkey_client: Valkey, service_data_uuid: str) ->
     """
     service_data_json = valkey_client.get(service_data_uuid)
 
-    scan_data = dacite.from_dict(dtos.NetworkServiceData, json.loads(service_data_json)["data"])
+    scan_data = dacite.from_dict(dtos.NetworkServiceData, json.loads(str(service_data_json))["data"])
     result: dict[str, dict[str, str | list[str]]] = {}
 
     for _host_idx, host in enumerate(scan_data.hosts):
@@ -151,8 +151,8 @@ def parse_data_for_nuclei_scan(valkey_client: Valkey, service_data_uuid: str) ->
 
         for service in host.network_services:
             service_key = f"{target}:{service.service}:{service.port}"
-            all_templates = []
-            all_cves = []
+            all_templates: list[str] = []
+            all_cves: list[str] = []
 
             # Collect all CVEs for this service
             for sw_version in service.software_versions:
@@ -197,7 +197,7 @@ async def run_nuclei_on_all_targets(valkey_client: Valkey, services_with_nuclei_
     """
     cve_status: dict[str, str] = {}
 
-    services_with_nuclei_templates = json.loads(valkey_client.get(services_with_nuclei_templates_uuid))
+    services_with_nuclei_templates = json.loads(str(valkey_client.get(services_with_nuclei_templates_uuid)))
     for service_data in services_with_nuclei_templates.values():
         service_template_data = dacite.from_dict(dtos.ServiceTemplateData, service_data)
         result = await run_nuclei_scan(service_template_data, cve_status)
@@ -209,7 +209,7 @@ async def run_nuclei_on_all_targets(valkey_client: Valkey, services_with_nuclei_
     return cve_status_uuid
 
 
-def _determine_cve_status_from_nuclei_scan_results(  # noqa: C901
+def _determine_cve_status_from_nuclei_scan_results(
     stdout: str, service_data: dtos.ServiceTemplateData, cve_status: dict[str, str]
 ) -> None:
     """
@@ -250,7 +250,7 @@ def _determine_cve_status_from_nuclei_scan_results(  # noqa: C901
         )
 
 
-async def run_nuclei_scan(service_data: dtos.ServiceTemplateData, cve_status: dict) -> str | None:
+async def run_nuclei_scan(service_data: dtos.ServiceTemplateData, cve_status: dict[str, str]) -> str | None:
     """
     Execute Nuclei scan for a specific service using its CVE templates.
 
@@ -304,7 +304,7 @@ def update_vulnerability_status(neo4j_config: Neo4jConfig, valkey_client: Valkey
     :param cve_status_uuid: UUID key for accessing CVE status dictionary in Valkey
     :return: None
     """
-    cve_status = json.loads(valkey_client.get(cve_status_uuid))
+    cve_status = json.loads(str(valkey_client.get(cve_status_uuid)))
     logger.info(f"Updating vulnerabilities status in Neo4j: {cve_status}")
     neo4j_client = GraphDatabase.driver(
         neo4j_config.bolt, auth=basic_auth(neo4j_config.user, password=neo4j_config.password)

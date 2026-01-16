@@ -6,12 +6,12 @@ from typing import Any
 
 import structlog
 from structlog import getLogger
-from temporalio import workflow
 from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
 from config import AppConfig
 from temporal.slp_enrichment.activities import SLPEnrichmentActivities
+from temporalio import workflow
 
 logger = structlog.get_logger()
 
@@ -46,7 +46,7 @@ class SLPEnrichmentWorkflow:
 
         domains_ips_for_storing = await workflow.execute_activity(
             SLPEnrichmentActivities.get_data_from_slp,
-            args=[asset_info, slp_enrichment_config.x_api_key],
+            args=(asset_info, slp_enrichment_config.x_api_key),
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=5,

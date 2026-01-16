@@ -6,6 +6,7 @@ from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxR
 
 from config import AppConfig
 from easyeasm_demo.workflow import EasyEasmWorkflow
+from temporal.lib import redis_handler
 
 
 async def main() -> None:
@@ -18,6 +19,7 @@ async def main() -> None:
     workflow_runner = SandboxedWorkflowRunner(
         restrictions=SandboxRestrictions.default.with_passthrough_modules("easyeasm_demo", "config")
     )
+    redis_handler.init_redis()
 
     worker = Worker(
         client=client,

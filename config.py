@@ -42,7 +42,7 @@ class NmapBasicConfig:
     targets: list[str]
     arguments: str
     org_unit_name: str = "Internal IT"
-    tag: list[str] = field(default_factory=list)
+    tag: list[str] = field(default_factory=list[str])
 
 
 @dataclass

@@ -1,49 +1,63 @@
-[tool.poetry]
+[project]
 name = "easyeasm-demo"
 version = "0.1.0"
 description = ""
-authors = ["Michal Čech <445431@mail.muni.cz>"]
+authors = [
+    {name = "Michal Čech", email = "445431@mail.muni.cz"}
+]
 readme = "README.md"
+requires-python = ">=3.11"
 
-[tool.poetry.dependencies]
-python = "^3.11"
-temporalio = "^1.8.0"
-pyyaml = "^6.0.2"
-dacite = "^1.8.1"
-neo4j = "^5.25.0"
-validators = "^0.34.0"
-structlog = "^24.4.0"
-httpx = "^0.28.1"
-syrupy = "^5.0.0"
-pytest = "^9.0.1"
-valkey = "^6.1.1"
-pytest-mock = "^3.15.1"
+dependencies = [
+    "temporalio>=1.8.0,<2.0.0",
+    "pyyaml>=6.0.2,<7.0.0",
+    "dacite>=1.8.1,<2.0.0",
+    "neo4j>=5.25.0,<6.0.0",
+    "validators>=0.34.0,<0.35.0",
+    "structlog>=24.4.0,<25.0.0",
+    "httpx[http2]>=0.27.0",
+    "valkey>=6.1.1,<7.0.0",
+    "msgspec>=0.19.0",
+]
 
-[tool.poetry.group.dev.dependencies]
-ruff = ">=0.0.261"
+[dependency-groups]
+dev = [
+    "ruff>=0.0.261",
+    "pyright>=1.1.382,<1.1.399",
+    "pytest-mock>=3.15.1,<4.0.0",
+    "pytest>=9.0.1,<10.0.0",
+    "syrupy>=5.0.0,<6.0.0",
+]
 
-[tool.poetry.group.cve-connector.dependencies]
-certifi = "2024.8.30"
-charset-normalizer = "3.3.2"
-idna = "3.10"
-pytz = "2024.2"
-requests = "2.32.3"
-setuptools = "75.1.0"
-urllib3 = "2.2.3"
-packaging = "25.0"
+cve-connector = [
+    "certifi==2024.8.30",
+    "charset-normalizer==3.3.2",
+    "idna==3.10",
+    "pytz==2024.2",
+    "requests==2.32.3",
+    "setuptools==75.1.0",
+    "urllib3==2.2.3",
+    "packaging==25.0",
+]
 
-[tool.poetry.group.nmap.dependencies]
-python3-nmap = "^1.9.1"
-
+nmap = [
+    "python3-nmap (==1.9.1)",
+]
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+########## POETRY ##########
+[tool.poetry]
+requires-poetry = ">=2.0.0,<3.0.0"
 
 ########## RUFF ##########
 [tool.ruff]
 line-length = 120
-target-version = 'py312'
+target-version = "py312"
+
+extend-exclude = ["typings"]
 
 [tool.ruff.lint]
 preview = true
@@ -88,16 +102,10 @@ select = [
     "FURB", # Refurb
     "RUF", # Ruf Extras
 ]
-ignore = [
-    "ANN101", # Self type anntation
-    "ANN102", # cls type anntation
-    "ANN401", # disallowing any type
-]
-fixable = ["ALL"] # Allow fix for all enabled rules
-
+ignore = ["ANN101","ANN102","ANN401"]
+fixable = ["ALL"]
 
 [tool.ruff.format]
-# ported from black
 quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
@@ -109,8 +117,6 @@ max-line-length = 200
 [tool.ruff.lint.mccabe]
 max-complexity = 10
 
-
-[tool.ruff.lint.per-file-ignores]
 [tool.ruff.lint.extend-per-file-ignores]
 "__init__.py" = ["F401"]
 "tests/**/*.py" = [
@@ -122,3 +128,19 @@ max-complexity = 10
 ]
 
 
+########## PYRIGHT ##########
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+useLibraryCodeForTypes = true
+reportMissingImports = true
+reportImportCycles = true
+reportMissingTypeStubs = true
+reportMissingModuleSource = false
+venvPath = "."
+venv = ".venv"
+exclude = [
+    "**/__pycache__","**/.*",
+    ".venv/",
+    "typings/"
+]
