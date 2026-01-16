@@ -8,8 +8,31 @@ from temporalio import activity
 from config import ISIMConfig
 from temporal.slp_enrichment import dtos
 
+
+class ISIMIpItemTD(TypedDict):
+    address: str
+    tag: list[str] | None
+
+
+class ISIMSubnetItemTD(TypedDict):
+    range: str | None
+
+
+class ISIMDomainItemTD(TypedDict):
+    domain_name: str | None
+    tag: list[str] | None
+
+
+class ISIMOrganizationUnitItemTD(TypedDict):
+    name: str
+
+
+class ISIMUriItemTD(TypedDict):
+    identifier: str
+
+
 #  TODO: This needs a further rework because ISIM api responses aren't clearly typed
-ISIMIpsResponse = tuple[dtos.ISIMIpItem, dtos.ISIMSubnetItem | None, dtos.ISIMDomainItem | None, Any, Any]
+ISIMIpsResponseType = tuple[ISIMIpItemTD, ISIMSubnetItemTD | None, ISIMDomainItemTD | None, ISIMOrganizationUnitItemTD | None, ISIMUriItemTD | None]
 
 
 class SLPRecordTD(TypedDict):
@@ -32,13 +55,13 @@ class SLPEnrichmentActivities:
         self.isim_config = isim_config
 
     @activity.defn
-    async def get_asset_info(self) -> list[ISIMIpsResponse]:
+    async def get_asset_info(self) -> list[ISIMIpsResponseType]:
         """
         This method gets information about assets necessary for obtaining data from SLP.
         The most important are IP addresses, domain names, and subnets.
         :return: a list of assets from the ISIM's REST API
         """
-        unprocessed_addresses: list[ISIMIpsResponse] = []
+        unprocessed_addresses: list[dtos.ISIMIpsResponse] = []
         last_item_found: bool = False
         offset: int = 0
         limit: int = 100
@@ -47,19 +70,42 @@ class SLPEnrichmentActivities:
             params: dict[str, int] = {"limit": limit, "offset": offset}
             response = httpx.get(f"{self.isim_config.url}/ips", params=params)  # noqa: ASYNC210
             # Decode into typed structs
-            decoded: list[ISIMIpsResponse] = msgspec.json.decode(response.content, type=list[ISIMIpsResponse])
+            decoded = msgspec.json.decode(response.content, type=list[dtos.ISIMIpsResponse])
             if len(decoded) < limit:
                 last_item_found = True
             unprocessed_addresses += [
                 item for item in decoded if not (item[0].tag is not None and "SLP" in item[0].tag)
             ][: 100 - len(unprocessed_addresses)]
             offset += limit
-        return unprocessed_addresses
+
+        return msgspec.to_builtins(unprocessed_addresses)
+
 
     @activity.defn
-    async def get_data_from_slp(self, response_json: list[ISIMIpsResponse], x_api_key: str) -> list[SLPRecordTD]:
-        """Obtains enrichment data from SLP - IP addresses, domain names, risk score, and subnets."""
-        domains_ips_from_database = self._build_ip_domain_mapping(response_json)
+    async def get_data_from_slp(self, response_json: list[ISIMIpsResponseType], x_api_key: str) -> list[SLPRecordTD]:
+        """
+        Obtain enrichment data from Silent Push (SLP) for a set of assets and return the
+        combined result.
+
+        Workflow:
+        - Convert the loosely-typed `response_json` (coming from ISIM) into typed structs.
+        - Build a mapping of IP -> potential domain candidates from ISIM data.
+        - Query SLP bulk API for enrichment (domain `PTR`, subnet, risk score) for all IPs.
+        - Mark domains that SLP confirmed as found.
+        - Merge SLP records with any still-unmatched domain candidates so that every input
+          IP/domain is represented in the output (unmatched items are tagged `SLP_no`).
+
+        :param response_json: List of ISIM assets in tuple form
+                              `(ISIMIpItemTD, ISIMSubnetItemTD | None, ISIMDomainItemTD | None,
+                               ISIMOrganizationUnitItemTD | None, ISIMUriItemTD | None)`.
+        :param x_api_key: API key for SLP passed as `X-API-KEY` header.
+        :return: List of SLP records ready to be stored back to ISIM. Each record contains
+                 `ip`, `domain`, `subnet`, `sp_risk_score`, and `tag` (either `SLP` for
+                 SLP-confirmed or `SLP_no` for items not found by SLP).
+        :raises SLPApiError: If the SLP API returns a non-200 status or an error payload.
+        """
+        isim_response_struct = msgspec.convert(response_json, type=list[dtos.ISIMIpsResponse])
+        domains_ips_from_database = self._build_ip_domain_mapping(isim_response_struct)
         ip_addresses = list(domains_ips_from_database.keys())
 
         slp_records = await self._fetch_slp_data(ip_addresses, x_api_key)
@@ -67,8 +113,20 @@ class SLPEnrichmentActivities:
 
         return self._merge_records(slp_records, domains_ips_from_database)
 
-    def _build_ip_domain_mapping(self, response_json: list[ISIMIpsResponse]) -> dict[str, list[dtos.DomainItem]]:
-        """Builds mapping of IP addresses to domain items from response."""
+    def _build_ip_domain_mapping(self, response_json: list[dtos.ISIMIpsResponse]) -> dict[str, list[dtos.DomainItem]]:
+        """
+        Build a mapping of IP addresses to candidate domain items derived from ISIM data.
+
+        For each asset tuple, the method:
+        - Skips loopback `127.0.0.1` as it is not a real external asset.
+        - Uses the IP address as the key.
+        - Extracts the domain name (may be empty string if absent) and subnet (defaults to `0.0.0.0/0`).
+        - Initializes each domain candidate as not found (`found=False`).
+
+        :param response_json: Typed list of ISIM asset tuples as `dtos.ISIMIpsResponse`.
+        :return: Dict mapping `ip -> list[DomainItem]` where each `DomainItem` holds
+                 `domain_name`, `found` flag, and `subnet`.
+        """
         mapping: dict[str, list[dtos.DomainItem]] = {}
 
         for asset_info in response_json:
@@ -87,7 +145,23 @@ class SLPEnrichmentActivities:
         return mapping
 
     async def _fetch_slp_data(self, ip_addresses: list[str], x_api_key: str) -> list[dtos.SLPRecord]:
-        """Fetches enrichment data from SLP API."""
+        """
+        Fetch enrichment data from the Silent Push bulk IP2ASN endpoint.
+
+        Sends a single bulk request for all provided IPv4 addresses. The response is decoded
+        using `msgspec` into `SLPBulkResponse`, validated for HTTP and payload errors, and then
+        converted to a list of `dtos.SLPRecord` items (normalized for downstream storage).
+
+        Notes:
+        - `sp_risk_score` is preserved when present; otherwise the string "null" is used.
+        - `subnet` defaults to `0.0.0.0/0` if not provided by SLP.
+        - `domain` is sourced from `ip_ptr` field of the SLP response record.
+
+        :param ip_addresses: List of IPv4 addresses to enrich.
+        :param x_api_key: API key to be used in the `X-API-KEY` header when calling SLP.
+        :return: List of normalized `dtos.SLPRecord` objects with `tag` set to `"SLP"`.
+        :raises SLPApiError: When HTTP status is not 200 or payload contains `error`/`errors`.
+        """
         headers = {"Content-Type": "application/json", "X-API-KEY": x_api_key}
         data = {"ips": ip_addresses}
         url = "https://api.silentpush.com/api/v1/merge-api/explore/bulk/ip2asn/ipv4"
@@ -125,7 +199,17 @@ class SLPEnrichmentActivities:
         slp_records: list[dtos.SLPRecord],
         domains_mapping: dict[str, list[dtos.DomainItem]],
     ) -> None:
-        """Marks domains as found if they exist in SLP records."""
+        """
+        Update the domain mapping by marking candidates that SLP confirmed as present.
+
+        For each record returned by SLP (already normalized to `dtos.SLPRecord`), if the
+        record's `ip` exists in the `domains_mapping`, the matching `DomainItem` (matched by
+        exact `domain_name`) is marked with `found=True`.
+
+        :param slp_records: Records returned from SLP enrichment (tagged as `SLP`).
+        :param domains_mapping: Mapping `ip -> list[DomainItem]` built from ISIM inputs.
+        :return: None. The `domains_mapping` is updated in-place.
+        """
         for record in slp_records:
             if not record.ip or record.ip not in domains_mapping:
                 continue
@@ -139,7 +223,21 @@ class SLPEnrichmentActivities:
         slp_records: list[dtos.SLPRecord],
         domains_mapping: dict[str, list[dtos.DomainItem]],
     ) -> list[SLPRecordTD]:
-        """Merges SLP records with unfound domains from mapping."""
+        """
+        Merge SLP-confirmed records with any remaining domain candidates not found by SLP.
+
+        The result ensures that every input IP/domain candidate is represented:
+        - All records returned by SLP are included and tagged `SLP`.
+        - For each IP in `domains_mapping`, if a domain candidate has not been marked as found,
+          create a synthetic record with `tag='SLP_no'`, `sp_risk_score='null'`, and the
+          subnet from the candidate. Duplicate records are avoided.
+        - Loopback IP `127.0.0.1` is ignored.
+
+        :param slp_records: Records obtained from SLP (already normalized to `dtos.SLPRecord`).
+        :param domains_mapping: Mapping `ip -> list[DomainItem]` with `found` flags updated.
+        :return: List of records suitable for persistence, converted to built-in types
+                 via `msgspec.to_builtins`.
+        """
         result = slp_records.copy()
 
         for ip_address, domain_items in domains_mapping.items():

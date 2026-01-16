@@ -6,6 +6,7 @@ import msgspec
 class ISIMIpItem(msgspec.Struct):
     address: str
     tag: list[str] | None = None
+    version: int | None = None
 
 
 class ISIMSubnetItem(msgspec.Struct):
@@ -17,8 +18,15 @@ class ISIMDomainItem(msgspec.Struct):
     tag: list[str] | None = None
 
 
-#  TODO: This needs a further rework because ISIM api responses aren't clearly typed
-ISIMIpsResponse = tuple[ISIMIpItem, ISIMSubnetItem | None, ISIMDomainItem | None, Any, Any]
+class ISIMOrganizationUnitItem(msgspec.Struct):
+    name: str
+
+
+class ISIMUriItem(msgspec.Struct):
+    identifier: str
+
+
+ISIMIpsResponse = tuple[ISIMIpItem, ISIMSubnetItem | None, ISIMDomainItem | None, ISIMUriItem | None, ISIMOrganizationUnitItem | None]
 
 
 # Local aggregation structure for linking domains to IPs from DB
