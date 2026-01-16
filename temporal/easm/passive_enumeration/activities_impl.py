@@ -1,13 +1,10 @@
 import uuid
 
-from valkey import Valkey
-
-from config import RedisConfig
-from temporal.lib import exceptions, util
+from temporal.lib import exceptions, redis_handler, util
 from temporal.lib.exceptions import NoDomainsFoundError
 
 
-async def run_subfinder(domains: list[str], redis_config: RedisConfig) -> str:
+async def run_subfinder(domains: list[str]) -> str:
     """
     Execute subfinder to passively enumerate subdomains for the given roots.
 
@@ -30,14 +27,13 @@ async def run_subfinder(domains: list[str], redis_config: RedisConfig) -> str:
             f"subfinder run failed with status code {return_code} and error {std_err}, command={command}",
         )
 
-    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
+    redis_client = redis_handler.get_redis()
     redis_client.set(subfinder_scan_uuid, std_out)
-    redis_client.close()
 
     return subfinder_scan_uuid
 
 
-async def run_amass(domains: list[str], redis_config: RedisConfig) -> str:
+async def run_amass(domains: list[str]) -> str:
     """
     Execute amass in passive mode for the given root domains and store results in Redis.
 
@@ -59,14 +55,13 @@ async def run_amass(domains: list[str], redis_config: RedisConfig) -> str:
         )
 
     # Store results in Redis
-    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
+    redis_client = redis_handler.get_redis()
     redis_client.set(amass_scan_uuid, std_out)
-    redis_client.close()
 
     return amass_scan_uuid
 
 
-async def get_unique_subdomains(redis_config: RedisConfig, data_redis_uuids: list[str]) -> str:
+async def get_unique_subdomains(data_redis_uuids: list[str]) -> str:
     """
     Build a unique set of subdomains from multiple Redis keys and store the result.
 
@@ -75,12 +70,12 @@ async def get_unique_subdomains(redis_config: RedisConfig, data_redis_uuids: lis
     :return: Redis key where the unique, merged subdomains are stored.
     :raises temporal.lib.exceptions.NoDomainsFoundError: If the merged set is empty.
     """
-    unique_subdomains = set()
-    redis_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
+    unique_subdomains: set[str] = set()
+    redis_client = redis_handler.get_redis()
     for uuid_item in data_redis_uuids:
-        data = redis_client.get(uuid_item)
+        data = str(redis_client.get(uuid_item))
         if data:
-            unique_subdomains.update(data.decode("utf-8").splitlines())
+            unique_subdomains.update(data.splitlines())
 
     str_unique_subdomains = "\n".join(unique_subdomains)
 
@@ -90,5 +85,4 @@ async def get_unique_subdomains(redis_config: RedisConfig, data_redis_uuids: lis
 
     unique_subdomains_uuid = f"unique_subdomains-{uuid.uuid4()!s}"
     redis_client.set(unique_subdomains_uuid, str_unique_subdomains)
-    redis_client.close()
     return unique_subdomains_uuid

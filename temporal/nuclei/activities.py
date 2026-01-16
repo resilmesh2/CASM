@@ -1,11 +1,10 @@
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
-from temporalio import activity
-from valkey import Valkey
-
 from config import ISIMConfig, ISIMGraphqlConfig, Neo4jConfig, RedisConfig
+from temporal.lib import redis_handler
 from temporal.nuclei import activities_impl
+from temporalio import activity
 
 
 class NucleiActivities:
@@ -24,7 +23,7 @@ class NucleiActivities:
         self.isim_graphql_config = isim_graphql_config
         self.redis_config = redis_config
         self.neo4j_config = neo4j_config
-        self.valkey_client = Valkey(host=redis_config.host, port=redis_config.port, db=3)
+        self.valkey_client = redis_handler.get_redis()
 
     @activity.defn
     async def update_nuclei(self) -> None:

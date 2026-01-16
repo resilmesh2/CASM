@@ -3,11 +3,10 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from typing import Any
 
-from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from config import AppConfig
 from temporal.easm.passive_enumeration.activities import PassiveEnumerationActivities
+from temporalio import workflow
 
 
 @workflow.defn
@@ -58,6 +57,5 @@ class PassiveEnumerationWorkflow:
 
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
-        config = AppConfig.get()
-        activities = PassiveEnumerationActivities(config.redis)
+        activities = PassiveEnumerationActivities()
         return [*activities.get_activities()]

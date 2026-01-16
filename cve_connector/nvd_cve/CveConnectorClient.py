@@ -1,8 +1,29 @@
+from __future__ import annotations
+
+from typing import Any
+
+import msgspec
+
 from cve_connector.nvd_cve.AbsClient import AbstractClient
 
 
+class SoftwareVersionRow(msgspec.Struct, frozen=True):
+    version: str
+    cve_timestamp: str | None
+
+
+class SoftwareVersionNode(msgspec.Struct, frozen=True):
+    version: str
+
+
+class ProductSoftwareRow(msgspec.Struct, frozen=True):
+    software: SoftwareVersionNode
+
+
 class CVEConnectorClient(AbstractClient):
-    def __init__(self, password: str, bolt="bolt://resilmesh-sap-neo4j:7687", user="neo4j", **kwargs) -> None:
+    def __init__(
+        self, password: str, bolt: str = "bolt://resilmesh-sap-neo4j:7687", user: str = "neo4j", **kwargs: Any
+    ) -> None:
         """
         Initializes the CVEConnectorClient with Neo4j connection parameters.
 
@@ -35,18 +56,19 @@ class CVEConnectorClient(AbstractClient):
             )
             return record.single() is not None
 
-    def get_all_software_versions(self) -> list[str]:
+    def get_all_software_versions(self) -> list[SoftwareVersionRow]:
         """
         Retrieves all software versions from the Neo4j database.
 
         :return: List of software version strings.
         """
         with self._driver.session() as session:
-            result = session.run(
+            result: list[dict[str, Any]] = session.run(
                 "MATCH (v:SoftwareVersion) RETURN v.version AS version, v.cve_timestamp AS cve_timestamp"
             ).data()
             return [
-                {"version": record["version"], "cve_timestamp": record.get("cve_timestamp", None)} for record in result
+                SoftwareVersionRow(version=str(record["version"]), cve_timestamp=record.get("cve_timestamp"))
+                for record in result
             ]
 
     def create_new_vulnerability(self, description: str, vulnerability_type: str | None = None) -> None:
@@ -81,71 +103,71 @@ class CVEConnectorClient(AbstractClient):
 
     def create_cve_from_nvd(
         self,
-        cve_id,
-        description,
-        cwe,
-        vector_string_v2,
-        access_vector_v2,
-        access_complexity_v2,
-        authentication_v2,
-        confidentiality_impact_v2,
-        integrity_impact_v2,
-        availability_impact_v2,
-        base_score_v2,
-        base_severity_v2,
-        exploitability_score_v2,
-        impact_score_v2,
-        ac_insuf_info_v2,
-        obtain_all_privilege_v2,
-        obtain_user_privilege_v2,
-        obtain_other_privilege_v2,
-        user_interaction_required_v2,
-        vector_string_v30,
-        attack_vector_v30,
-        attack_complexity_v30,
-        privileges_required_v30,
-        user_interaction_v30,
-        scope_v30,
-        confidentiality_impact_v30,
-        integrity_impact_v30,
-        availability_impact_v30,
-        base_score_v30,
-        base_severity_v30,
-        exploitability_score_v30,
-        impact_score_v30,
-        vector_string_v31,
-        attack_vector_v31,
-        attack_complexity_v31,
-        privileges_required_v31,
-        user_interaction_v31,
-        scope_v31,
-        confidentiality_impact_v31,
-        integrity_impact_v31,
-        availability_impact_v31,
-        base_score_v31,
-        base_severity_v31,
-        exploitability_score_v31,
-        impact_score_v31,
-        vector_string_v40,
-        attack_vector_v40,
-        attack_complexity_v40,
-        attack_requirements_v40,
-        privileges_required_v40,
-        user_interaction_v40,
-        vulnerable_system_confidentiality_v40,
-        vulnerable_system_integrity_v40,
-        vulnerable_system_availability_v40,
-        subsequent_system_confidentiality_v40,
-        subsequent_system_integrity_v40,
-        subsequent_system_availability_v40,
-        exploit_maturity_v40,
-        base_score_v40,
-        base_severity_v40,
-        cpe_type,
-        ref_tags,
-        published,
-        last_modified,
-        result_impacts,
+        cve_id: str,
+        description: str,
+        cwe: list[str],
+        vector_string_v2: str | None,
+        access_vector_v2: str | None,
+        access_complexity_v2: str | None,
+        authentication_v2: str | None,
+        confidentiality_impact_v2: str | None,
+        integrity_impact_v2: str | None,
+        availability_impact_v2: str | None,
+        base_score_v2: float | None,
+        base_severity_v2: str | None,
+        exploitability_score_v2: float | None,
+        impact_score_v2: float | None,
+        ac_insuf_info_v2: bool | None,
+        obtain_all_privilege_v2: bool | None,
+        obtain_user_privilege_v2: bool | None,
+        obtain_other_privilege_v2: bool | None,
+        user_interaction_required_v2: bool | None,
+        vector_string_v30: str | None,
+        attack_vector_v30: str | None,
+        attack_complexity_v30: str | None,
+        privileges_required_v30: str | None,
+        user_interaction_v30: str | None,
+        scope_v30: str | None,
+        confidentiality_impact_v30: str | None,
+        integrity_impact_v30: str | None,
+        availability_impact_v30: str | None,
+        base_score_v30: float | None,
+        base_severity_v30: str | None,
+        exploitability_score_v30: float | None,
+        impact_score_v30: float | None,
+        vector_string_v31: str | None,
+        attack_vector_v31: str | None,
+        attack_complexity_v31: str | None,
+        privileges_required_v31: str | None,
+        user_interaction_v31: str | None,
+        scope_v31: str | None,
+        confidentiality_impact_v31: str | None,
+        integrity_impact_v31: str | None,
+        availability_impact_v31: str | None,
+        base_score_v31: float | None,
+        base_severity_v31: str | None,
+        exploitability_score_v31: float | None,
+        impact_score_v31: float | None,
+        vector_string_v40: str | None,
+        attack_vector_v40: str | None,
+        attack_complexity_v40: str | None,
+        attack_requirements_v40: str | None,
+        privileges_required_v40: str | None,
+        user_interaction_v40: str | None,
+        vulnerable_system_confidentiality_v40: str | None,
+        vulnerable_system_integrity_v40: str | None,
+        vulnerable_system_availability_v40: str | None,
+        subsequent_system_confidentiality_v40: str | None,
+        subsequent_system_integrity_v40: str | None,
+        subsequent_system_availability_v40: str | None,
+        exploit_maturity_v40: str | None,
+        base_score_v40: float | None,
+        base_severity_v40: str | None,
+        cpe_type: list[str],
+        ref_tags: list[str],
+        published: str,
+        last_modified: str,
+        result_impacts: list[str],
     ) -> None:
         """
         Creates a new CVE node along with associated CVSS metrics.
@@ -394,71 +416,71 @@ class CVEConnectorClient(AbstractClient):
 
     def update_cve_from_nvd(
         self,
-        cve_id,
-        description,
-        cwe,
-        vector_string_v2,
-        access_vector_v2,
-        access_complexity_v2,
-        authentication_v2,
-        confidentiality_impact_v2,
-        integrity_impact_v2,
-        availability_impact_v2,
-        base_score_v2,
-        base_severity_v2,
-        exploitability_score_v2,
-        impact_score_v2,
-        ac_insuf_info_v2,
-        obtain_all_privilege_v2,
-        obtain_user_privilege_v2,
-        obtain_other_privilege_v2,
-        user_interaction_required_v2,
-        vector_string_v30,
-        attack_vector_v30,
-        attack_complexity_v30,
-        privileges_required_v30,
-        user_interaction_v30,
-        scope_v30,
-        confidentiality_impact_v30,
-        integrity_impact_v30,
-        availability_impact_v30,
-        base_score_v30,
-        base_severity_v30,
-        exploitability_score_v30,
-        impact_score_v30,
-        vector_string_v31,
-        attack_vector_v31,
-        attack_complexity_v31,
-        privileges_required_v31,
-        user_interaction_v31,
-        scope_v31,
-        confidentiality_impact_v31,
-        integrity_impact_v31,
-        availability_impact_v31,
-        base_score_v31,
-        base_severity_v31,
-        exploitability_score_v31,
-        impact_score_v31,
-        vector_string_v40,
-        attack_vector_v40,
-        attack_complexity_v40,
-        attack_requirements_v40,
-        privileges_required_v40,
-        user_interaction_v40,
-        vulnerable_system_confidentiality_v40,
-        vulnerable_system_integrity_v40,
-        vulnerable_system_availability_v40,
-        subsequent_system_confidentiality_v40,
-        subsequent_system_integrity_v40,
-        subsequent_system_availability_v40,
-        exploit_maturity_v40,
-        base_score_v40,
-        base_severity_v40,
-        cpe_type,
-        ref_tags,
-        published,
-        last_modified,
-        result_impacts,
+        cve_id: str,
+        description: str,
+        cwe: list[str],
+        vector_string_v2: str | None,
+        access_vector_v2: str | None,
+        access_complexity_v2: str | None,
+        authentication_v2: str | None,
+        confidentiality_impact_v2: str | None,
+        integrity_impact_v2: str | None,
+        availability_impact_v2: str | None,
+        base_score_v2: float | None,
+        base_severity_v2: str | None,
+        exploitability_score_v2: float | None,
+        impact_score_v2: float | None,
+        ac_insuf_info_v2: bool | None,
+        obtain_all_privilege_v2: bool | None,
+        obtain_user_privilege_v2: bool | None,
+        obtain_other_privilege_v2: bool | None,
+        user_interaction_required_v2: bool | None,
+        vector_string_v30: str | None,
+        attack_vector_v30: str | None,
+        attack_complexity_v30: str | None,
+        privileges_required_v30: str | None,
+        user_interaction_v30: str | None,
+        scope_v30: str | None,
+        confidentiality_impact_v30: str | None,
+        integrity_impact_v30: str | None,
+        availability_impact_v30: str | None,
+        base_score_v30: float | None,
+        base_severity_v30: str | None,
+        exploitability_score_v30: float | None,
+        impact_score_v30: float | None,
+        vector_string_v31: str | None,
+        attack_vector_v31: str | None,
+        attack_complexity_v31: str | None,
+        privileges_required_v31: str | None,
+        user_interaction_v31: str | None,
+        scope_v31: str | None,
+        confidentiality_impact_v31: str | None,
+        integrity_impact_v31: str | None,
+        availability_impact_v31: str | None,
+        base_score_v31: float | None,
+        base_severity_v31: str | None,
+        exploitability_score_v31: float | None,
+        impact_score_v31: float | None,
+        vector_string_v40: str | None,
+        attack_vector_v40: str | None,
+        attack_complexity_v40: str | None,
+        attack_requirements_v40: str | None,
+        privileges_required_v40: str | None,
+        user_interaction_v40: str | None,
+        vulnerable_system_confidentiality_v40: str | None,
+        vulnerable_system_integrity_v40: str | None,
+        vulnerable_system_availability_v40: str | None,
+        subsequent_system_confidentiality_v40: str | None,
+        subsequent_system_integrity_v40: str | None,
+        subsequent_system_availability_v40: str | None,
+        exploit_maturity_v40: str | None,
+        base_score_v40: float | None,
+        base_severity_v40: str | None,
+        cpe_type: list[str],
+        ref_tags: list[str],
+        published: str,
+        last_modified: str,
+        result_impacts: list[str],
     ) -> None:
         """
         Updates an existing CVE node in the database with new details, including associated CVSS metrics.
@@ -691,7 +713,7 @@ class CVEConnectorClient(AbstractClient):
             result_impacts=result_impacts,
         )
 
-    def get_versions_of_product(self, vendor_and_product: str) -> list[str]:
+    def get_versions_of_product(self, vendor_and_product: str) -> list[ProductSoftwareRow]:
         """
         Retrieves software versions for a given vendor and product.
 
@@ -700,11 +722,15 @@ class CVEConnectorClient(AbstractClient):
         """
         product_string = vendor_and_product + ":"
         with self._driver.session() as session:
-            return session.run(
+            result: list[dict[str, Any]] = session.run(
                 "MATCH (s:SoftwareVersion) WHERE s.version STARTS WITH $product_string "
                 "RETURN {version: s.version} AS software",
                 product_string=product_string,
             ).data()
+            return [
+                ProductSoftwareRow(software=SoftwareVersionNode(version=str(row["software"]["version"])))
+                for row in result
+            ]
 
     def update_timestamp_of_software_version(self, version: str, cve_timestamp: str) -> None:
         """

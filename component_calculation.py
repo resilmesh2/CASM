@@ -1,12 +1,14 @@
-from temporalio import workflow
-from temporalio.common import RetryPolicy
-from datetime import timedelta
 import logging
 import os
+from datetime import timedelta
+
+from temporalio import workflow
+from temporalio.common import RetryPolicy
 
 logger = logging.getLogger(__name__)
 
 RISK_API_URL = os.environ.get("RISK_API_URL", "http://resilmesh-sap-isim-automation:5000")
+
 
 @workflow.defn
 class ComponentCalculationWorkflow:
@@ -14,11 +16,11 @@ class ComponentCalculationWorkflow:
 
     @workflow.run
     async def run(self, component_data: dict) -> dict:
-        component_id = component_data.get('component_id')
-        component_name = component_data.get('component_name')
-        
+        component_data.get("component_id")
+        component_name = component_data.get("component_name")
+
         workflow.logger.info(f"Starting component calculation workflow for {component_name}")
-        
+
         result = await workflow.execute_activity(
             "calculate_component_score",
             component_data,
@@ -38,7 +40,7 @@ class ComponentCalculationWorkflow:
 @workflow.defn
 class RiskFormulaCalculationWorkflow:
     """Runs a saved risk formula automation via the API."""
-    
+
     @workflow.run
     async def run(self, data: dict) -> dict:
         automation_id = data.get("automation_id")

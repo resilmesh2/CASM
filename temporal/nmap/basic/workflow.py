@@ -2,15 +2,15 @@ import asyncio
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
-from logging import getLogger
 from typing import Any
 
-from temporalio import workflow
+from structlog import getLogger
 from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
 from config import AppConfig
 from temporal.nmap.basic.activities import NmapBasicActivities
+from temporalio import workflow
 
 
 @workflow.defn(name="NmapBasicWorkflow")
@@ -40,7 +40,7 @@ class NmapBasicWorkflow:
 
         nmap_results = await workflow.execute_activity(
             NmapBasicActivities.run_basic_nmap_scan,
-            args=[nmap_config.targets, nmap_config.arguments],
+            args=(nmap_config.targets, nmap_config.arguments),
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=5,
@@ -53,7 +53,7 @@ class NmapBasicWorkflow:
 
         parsed_nmap_results = await workflow.execute_activity(
             NmapBasicActivities.parse_nmap_xml,
-            args=[nmap_results, nmap_config.tag],
+            args=(nmap_results, nmap_config.tag),
             retry_policy=RetryPolicy(
                 backoff_coefficient=2.0,
                 maximum_attempts=5,

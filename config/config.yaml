@@ -14,6 +14,7 @@ neo4j:
 redis:
   host: resilmesh-redis
   port: 6379
+  db: 3
 
 isim:
   url: "http://resilmesh-sap-isim-automation:5000"

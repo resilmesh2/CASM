@@ -6,7 +6,7 @@ class CVE:
     """Represents a CVE entry"""
 
     cve_id: str
-    cpe_type: list[str] = field(default_factory=list)
+    cpe_type: list[str] = field(default_factory=list[str])
     status: str = "unconfirmed"  # unconfirmed, confirmed, not_found
 
 
@@ -21,7 +21,7 @@ class Vulnerability:
 class SoftwareVersion:
     """Represents a software version with vulnerabilities"""
 
-    vulnerabilities: list[Vulnerability] = field(default_factory=list)
+    vulnerabilities: list[Vulnerability] = field(default_factory=list[Vulnerability])
 
 
 @dataclass
@@ -31,7 +31,7 @@ class NetworkService:
     protocol: str
     port: int
     service: str
-    software_versions: list[SoftwareVersion] = field(default_factory=list)
+    software_versions: list[SoftwareVersion] = field(default_factory=list[SoftwareVersion])
 
 
 @dataclass
@@ -46,21 +46,21 @@ class IPAddress:
     """Represents an IP address with domain names"""
 
     address: str
-    domain_names: list[DomainName] = field(default_factory=list)
+    domain_names: list[DomainName] = field(default_factory=list[DomainName])
 
 
 @dataclass
 class Node:
     """Represents a node with IP addresses"""
 
-    ips: list[IPAddress] = field(default_factory=list)
+    ips: list[IPAddress] = field(default_factory=list[IPAddress])
 
 
 @dataclass
 class Host:
     """Represents a host with network services and node info"""
 
-    network_services: list[NetworkService] = field(default_factory=list)
+    network_services: list[NetworkService] = field(default_factory=list[NetworkService])
     node: Node | None = None
 
 
@@ -68,7 +68,7 @@ class Host:
 class NetworkServiceData:
     """Main scan data structure"""
 
-    hosts: list[Host] = field(default_factory=list)
+    hosts: list[Host] = field(default_factory=list[Host])
 
 
 @dataclass
@@ -80,5 +80,5 @@ class ServiceTemplateData:
     port: int
     service: str
     protocol: str
-    cves: list[str] = field(default_factory=list)
-    templates: list[str] = field(default_factory=list)
+    cves: list[str] = field(default_factory=list[str])
+    templates: list[str] = field(default_factory=list[str])

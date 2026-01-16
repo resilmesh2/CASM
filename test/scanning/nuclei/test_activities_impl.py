@@ -1,16 +1,16 @@
 # ruff: noqa: SLF001
+# pyright: reportPrivateUsage=false
 
 import json
 from pathlib import Path
 from typing import Any
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 from pytest_mock import MockerFixture
-from syrupy import SnapshotAssertion
+from syrupy.assertion import SnapshotAssertion
 
-from temporal.nuclei import dtos, exceptions
-from temporal.nuclei import activities_impl
+from temporal.nuclei import activities_impl, dtos, exceptions
 
 
 @pytest.fixture
@@ -60,7 +60,7 @@ class TestSearchNucleiTemplates:
         assert len(result) == 1
         assert str(template_file) in result
 
-    def test_search_non_http_service_with_existing_template(self, mock_network_cves_path) -> None:
+    def test_search_non_http_service_with_existing_template(self, mock_network_cves_path: Path) -> None:
         """Test searching for non-HTTP service CVE template that exists."""
         network_cve_path = mock_network_cves_path / "2020"
         network_cve_path.mkdir(parents=True)
@@ -127,7 +127,9 @@ class TestParseDataForNucleiScan:
             for key, value in sorted(input_dict.items())
         }
 
-    def test_parse_valid_service_data(self, network_services_response: str, mocker: MockerFixture, snapshot: SnapshotAssertion) -> None:
+    def test_parse_valid_service_data(
+        self, network_services_response: str, mocker: MockerFixture, snapshot: SnapshotAssertion
+    ) -> None:
         """Test parsing valid network service data with CVEs."""
         mock_valkey = Mock()
         mock_valkey.get.return_value = network_services_response
@@ -151,7 +153,7 @@ class TestParseDataForNucleiScan:
 
     def test_parse_service_data_with_no_domain_name(self, mocker: MockerFixture, snapshot: SnapshotAssertion) -> None:
         """Test parsing service data when domain name is not available, uses IP."""
-        service_data = {
+        service_data = {  # pyright: ignore
             "data": {
                 "hosts": [
                     {
@@ -206,7 +208,6 @@ class TestParseDataForNucleiScan:
         mocker.patch("temporal.nuclei.activities_impl.search_nuclei_templates", return_value=[])
         activities_impl.parse_data_for_nuclei_scan(mock_valkey, "test-uuid")
 
-
         stored_data = json.loads(mock_valkey.set.call_args[0][1])
         assert stored_data == snapshot
 
@@ -235,7 +236,7 @@ class TestDetermineCveStatusFromNucleiScanResults:
             templates=["/path/template.yaml"],
         )
 
-        cve_status = {}
+        cve_status: dict[str, str] = {}
         activities_impl._determine_cve_status_from_nuclei_scan_results(stdout, service_data, cve_status)
 
         assert cve_status["CVE-2021-12345"] == activities_impl.VulnerabilityStatus.CONFIRMED.value
@@ -261,7 +262,7 @@ class TestDetermineCveStatusFromNucleiScanResults:
             templates=["/path/template.yaml"],
         )
 
-        cve_status = {}
+        cve_status: dict[str, str] = {}
         activities_impl._determine_cve_status_from_nuclei_scan_results(stdout, service_data, cve_status)
 
         assert cve_status["CVE-2021-12345"] == activities_impl.VulnerabilityStatus.UNCONFIRMED.value
@@ -286,7 +287,7 @@ class TestDetermineCveStatusFromNucleiScanResults:
             templates=[],
         )
 
-        cve_status = {}
+        cve_status: dict[str, str] = {}
         activities_impl._determine_cve_status_from_nuclei_scan_results(stdout, service_data, cve_status)
 
         assert cve_status["CVE-2021-11111"] == activities_impl.VulnerabilityStatus.CONFIRMED.value
@@ -308,7 +309,7 @@ class TestDetermineCveStatusFromNucleiScanResults:
             templates=[],
         )
 
-        cve_status = {}
+        cve_status: dict[str, str] = {}
         activities_impl._determine_cve_status_from_nuclei_scan_results(stdout, service_data, cve_status)
 
         assert cve_status["CVE-2021-12345"] == activities_impl.VulnerabilityStatus.CONFIRMED.value
@@ -329,7 +330,7 @@ class TestDetermineCveStatusFromNucleiScanResults:
             templates=[],
         )
 
-        cve_status = {}
+        cve_status: dict[str, str] = {}
         activities_impl._determine_cve_status_from_nuclei_scan_results(stdout, service_data, cve_status)
 
         # Should still process the valid line
@@ -349,7 +350,7 @@ class TestDetermineCveStatusFromNucleiScanResults:
             templates=[],
         )
 
-        cve_status = {}
+        cve_status: dict[str, str] = {}
         activities_impl._determine_cve_status_from_nuclei_scan_results(stdout, service_data, cve_status)
 
         assert cve_status["CVE-2021-12345"] == activities_impl.VulnerabilityStatus.UNCONFIRMED.value
@@ -368,7 +369,7 @@ class TestDetermineCveStatusFromNucleiScanResults:
             templates=[],
         )
 
-        cve_status = {}
+        cve_status: dict[str, str] = {}
         activities_impl._determine_cve_status_from_nuclei_scan_results(stdout, service_data, cve_status)
 
         assert cve_status["CVE-2021-12345"] == activities_impl.VulnerabilityStatus.UNCONFIRMED.value

@@ -48,7 +48,7 @@ def _extract_hostnames(host: Element) -> list[str]:
     :param host: XML element for a host containing optional <hostnames>/<hostname> children.
     :return: List of hostname strings, empty if none are present.
     """
-    hostnames = []
+    hostnames: list[str] = []
     if (hostnames_elem := host.find("hostnames")) is not None:
         hostnames.extend(
             name for hostname in hostnames_elem.findall("hostname") if (name := hostname.attrib.get("name"))
@@ -79,7 +79,7 @@ def _build_version_description(service: Element) -> str:
     return full_version.strip() or name
 
 
-def _get_service_cpe(service: Element) -> str:
+def _get_service_cpe(service: Element) -> str | None:
     cpe_elem = service.find("cpe")
     return cpe_elem.text if cpe_elem is not None else service.attrib.get("cpe", "")
 
@@ -103,7 +103,9 @@ def convert_cpe_to_version_2_3(cpe: str) -> str | None:
     return "cpe:2.3:" + ":".join(fields)
 
 
-def _create_software_version(service: Element, ip: str, tag: list[str], port: str, protocol: str) -> SoftwareVersion | None:
+def _create_software_version(
+    service: Element, ip: str, tag: list[str], port: str, protocol: str
+) -> SoftwareVersion | None:
     """
     Create a SoftwareVersion entry from a <service> element if a valid CPE exists.
 
@@ -196,7 +198,7 @@ def _extract_host_subnets(ip_addresses: list[str], subnet_set: set[str]) -> list
     :param subnet_set: Set an accumulator of unique CIDR subnets across all hosts.
     :return: List of CIDR subnet strings associated with the given host IPs.
     """
-    host_subnets = []
+    host_subnets: list[str] = []
     for ip in ip_addresses:
         if subnet := extract_subnet(ip):
             subnet_set.add(subnet)
@@ -231,8 +233,9 @@ def parse_nmap_xml(nmap_output: Element, tag: list[str]) -> NmapResults:
         host_subnets = _extract_host_subnets(ip_addresses, subnet_set)
         hostnames = _extract_hostnames(host)
         primary_ip = ip_addresses[0]
-        results.hosts.append(Host(ip_address=primary_ip, tag=tag, domain_names=hostnames, uris=[], subnets=host_subnets)
-)
+        results.hosts.append(
+            Host(ip_address=primary_ip, tag=tag, domain_names=hostnames, uris=[], subnets=host_subnets)
+        )
 
         for ip in ip_addresses:
             device_name = hostnames[0] if hostnames else ip
