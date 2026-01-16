@@ -3,10 +3,10 @@ from typing import Any, Literal, TypedDict
 
 import httpx
 import msgspec
-from temporalio import activity
 
 from config import ISIMConfig
 from temporal.slp_enrichment import dtos
+from temporalio import activity
 
 
 class ISIMIpItemTD(TypedDict):
@@ -32,7 +32,13 @@ class ISIMUriItemTD(TypedDict):
 
 
 #  TODO: This needs a further rework because ISIM api responses aren't clearly typed
-ISIMIpsResponseType = tuple[ISIMIpItemTD, ISIMSubnetItemTD | None, ISIMDomainItemTD | None, ISIMOrganizationUnitItemTD | None, ISIMUriItemTD | None]
+ISIMIpsResponseType = tuple[
+    ISIMIpItemTD,
+    ISIMSubnetItemTD | None,
+    ISIMDomainItemTD | None,
+    ISIMOrganizationUnitItemTD | None,
+    ISIMUriItemTD | None,
+]
 
 
 class SLPRecordTD(TypedDict):
@@ -79,7 +85,6 @@ class SLPEnrichmentActivities:
             offset += limit
 
         return msgspec.to_builtins(unprocessed_addresses)
-
 
     @activity.defn
     async def get_data_from_slp(self, response_json: list[ISIMIpsResponseType], x_api_key: str) -> list[SLPRecordTD]:

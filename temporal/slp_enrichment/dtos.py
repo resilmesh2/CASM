@@ -26,7 +26,9 @@ class ISIMUriItem(msgspec.Struct):
     identifier: str
 
 
-ISIMIpsResponse = tuple[ISIMIpItem, ISIMSubnetItem | None, ISIMDomainItem | None, ISIMUriItem | None, ISIMOrganizationUnitItem | None]
+ISIMIpsResponse = tuple[
+    ISIMIpItem, ISIMSubnetItem | None, ISIMDomainItem | None, ISIMUriItem | None, ISIMOrganizationUnitItem | None
+]
 
 
 # Local aggregation structure for linking domains to IPs from DB

@@ -1,6 +1,4 @@
 import ipaddress
-import xml.etree.ElementTree as ET
-from pathlib import Path
 from xml.etree.ElementTree import Element
 
 from temporal.nmap.basic.dtos import Application, Device, Host, NmapResults, SoftwareVersion, Subnet
