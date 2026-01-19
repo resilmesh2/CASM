@@ -2,6 +2,7 @@ import logging
 import os
 from datetime import timedelta
 
+from temporalio.client import Schedule, ScheduleActionStartWorkflow, ScheduleSpec, ScheduleState
 from temporalio.common import RetryPolicy
 
 from temporalio import workflow
@@ -12,21 +13,19 @@ RISK_API_URL = os.environ.get("RISK_API_URL", "http://resilmesh_sap_isim_automat
 
 
 @workflow.defn
-class RiskFormulaCalculationWorkflow:
-    """Runs a saved risk formula automation via the API."""
+class ComponentScoreCalculationWorkflow:
+    """Workflow for calculating component scores on a schedule"""
 
     @workflow.run
-    async def run(self, data: dict) -> dict:
-        automation_id = data.get("automation_id")
-        if not automation_id:
-            workflow.logger.error("RiskFormulaCalculationWorkflow missing automation_id")
-            return {"success": False, "error": "automation_id required"}
+    async def run(self, component_data: dict) -> dict:
+        component_data.get("component_id")
+        component_name = component_data.get("component_name")
 
-        workflow.logger.info(f"Executing risk formula automation '{automation_id}'")
+        workflow.logger.info(f"Starting component calculation workflow for {component_name}")
 
         result = await workflow.execute_activity(
-            "execute_risk_formula",
-            automation_id,
+            "calculate_component_score",
+            component_data,
             start_to_close_timeout=timedelta(seconds=300),
             retry_policy=RetryPolicy(
                 initial_interval=timedelta(seconds=1),
@@ -36,11 +35,9 @@ class RiskFormulaCalculationWorkflow:
             ),
         )
 
-        workflow.logger.info(f"Risk formula automation complete: {result}")
+        workflow.logger.info(f"Component calculation workflow complete: {result}")
         return result
-
-
-async def initialize_core_component_schedules(self, client: Client) -> None:
+async def initialize_core_component_schedules(client: Client) -> None:
     """Initialize schedules for core risk components"""
     logger.info("Initializing core component schedules...")
 
@@ -85,7 +82,7 @@ async def initialize_core_component_schedules(self, client: Client) -> None:
 
         schedule = Schedule(
             action=ScheduleActionStartWorkflow(
-                "ComponentCalculationWorkflow",
+                ComponentScoreCalculationWorkflow.run,
                 args=[workflow_input],
                 id=f"component-calc-{component['component_id']}",
                 task_queue="component-calculations",

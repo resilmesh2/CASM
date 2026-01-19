@@ -2,9 +2,8 @@ import logging
 import os
 from datetime import timedelta
 
-from temporalio.common import RetryPolicy
-
 from temporalio import workflow
+from temporalio.common import RetryPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -12,19 +11,21 @@ RISK_API_URL = os.environ.get("RISK_API_URL", "http://resilmesh_sap_isim_automat
 
 
 @workflow.defn
-class ComponentScoreCalculationWorkflow:
-    """Workflow for calculating component scores on a schedule"""
+class RiskFormulaCalculationWorkflow:
+    """Runs a saved risk formula automation via the API."""
 
     @workflow.run
-    async def run(self, component_data: dict) -> dict:
-        component_data.get("component_id")
-        component_name = component_data.get("component_name")
+    async def run(self, data: dict) -> dict:
+        automation_id = data.get("automation_id")
+        if not automation_id:
+            workflow.logger.error("RiskFormulaCalculationWorkflow missing automation_id")
+            return {"success": False, "error": "automation_id required"}
 
-        workflow.logger.info(f"Starting component calculation workflow for {component_name}")
+        workflow.logger.info(f"Executing risk formula automation '{automation_id}'")
 
         result = await workflow.execute_activity(
-            "calculate_component_score",
-            component_data,
+            "execute_risk_formula",
+            automation_id,
             start_to_close_timeout=timedelta(seconds=300),
             retry_policy=RetryPolicy(
                 initial_interval=timedelta(seconds=1),
@@ -34,8 +35,9 @@ class ComponentScoreCalculationWorkflow:
             ),
         )
 
-        workflow.logger.info(f"Component calculation workflow complete: {result}")
+        workflow.logger.info(f"Risk formula automation complete: {result}")
         return result
+
 
 
 async def initialize_base_risk_schedule(self, client: Client) -> None:
