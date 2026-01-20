@@ -1,9 +1,8 @@
 import logging
-import pathlib
-from datetime import datetime
+from collections.abc import Awaitable, Callable, Sequence
+from typing import Any
 
 import httpx
-import yaml
 
 from temporalio import activity
 
@@ -14,34 +13,8 @@ logger = logging.getLogger(__name__)
 class ComponentRiskFormulaActivities:
     """Activities for passive component calculations"""
 
-    def load_component_config(self):
-        """Load or create component configuration"""
-        try:
-            with pathlib.Path(COMPONENT_CONFIG_PATH).open() as file:
-                config = yaml.safe_load(file)
-                if config is None:
-                    config = {}
-        except FileNotFoundError:
-            config = {}
-
-        if "active_component_automations" not in config:
-            config["active_component_automations"] = {}
-
-        return config
-
-    def save_component_config(self, config) -> bool | None:
-        """Save component configuration"""
-        try:
-            pathlib.Path(pathlib.Path(COMPONENT_CONFIG_PATH).parent).mkdir(exist_ok=True, parents=True)
-            with pathlib.Path(COMPONENT_CONFIG_PATH).open("w") as file:
-                yaml.dump(config, file, default_flow_style=False)
-            return True
-        except Exception as e:
-            logger.debug(f"Could not save config (non-fatal): {e}")
-            return False
-
     @activity.defn
-    async def execute_risk_formula(self, automation_id: str) -> dict:
+    async def execute_risk_formula(self, automation_id: str) -> dict[str, Any]:
         """Execute a risk formula automation via the API"""
 
         try:
@@ -59,3 +32,6 @@ class ComponentRiskFormulaActivities:
         except Exception as e:
             logger.exception(f"Risk formula '{automation_id}' failed: {e}")
             return {"success": False, "automation_id": automation_id, "error": str(e)}
+
+    def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
+        return [self.execute_risk_formula]

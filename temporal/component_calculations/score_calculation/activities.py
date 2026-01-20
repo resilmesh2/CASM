@@ -1,19 +1,21 @@
 import logging
+from collections.abc import Awaitable, Callable, Sequence
 from datetime import datetime
+from typing import Any
+
+from pytz import UTC
 
 from temporalio import activity
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-COMPONENT_CONFIG_PATH = "/config/component_automation_config.yaml"
-
 
 class ComponentScoreCalculationActivities:
     """Activities for passive component calculations"""
 
     @activity.defn
-    async def calculate_component_score(self, component_data: dict) -> dict:
+    async def calculate_component_score(self, component_data: dict[str, Any]) -> dict[str, Any]:
         """Calculate score for a single component by calling the risk API"""
         import requests
 
@@ -45,7 +47,7 @@ class ComponentScoreCalculationActivities:
                     "component_name": component_name,
                     "nodes_updated": api_result.get("nodes_updated", 0),
                     "avg_value": api_result.get("avg_value", 0),
-                    "timestamp": datetime.now().isoformat(),
+                    "timestamp": datetime.now(tz=UTC).isoformat(),
                 }
 
                 logger.info(f"Component {component_name} calculation complete: {result['nodes_updated']} nodes updated")
@@ -69,3 +71,6 @@ class ComponentScoreCalculationActivities:
                 "error": str(e),
                 "timestamp": datetime.now().isoformat(),
             }
+
+    def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
+        return [self.calculate_component_score]

@@ -1,10 +1,21 @@
 import logging
 import os
+from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
+from typing import Any
 
-from temporalio.client import Schedule, ScheduleActionStartWorkflow, ScheduleSpec, ScheduleState
+from temporalio.client import (
+    Client,
+    Schedule,
+    ScheduleActionStartWorkflow,
+    ScheduleAlreadyRunningError,
+    ScheduleIntervalSpec,
+    ScheduleSpec,
+    ScheduleState,
+)
 from temporalio.common import RetryPolicy
 
+from temporal.component_calculations.score_calculation.activities import ComponentScoreCalculationActivities
 from temporalio import workflow
 
 logger = logging.getLogger(__name__)
@@ -17,15 +28,15 @@ class ComponentScoreCalculationWorkflow:
     """Workflow for calculating component scores on a schedule"""
 
     @workflow.run
-    async def run(self, component_data: dict) -> dict:
+    async def run(self, component_data: dict[str, Any]) -> dict[str, Any]:
         component_data.get("component_id")
         component_name = component_data.get("component_name")
 
         workflow.logger.info(f"Starting component calculation workflow for {component_name}")
 
         result = await workflow.execute_activity(
-            "calculate_component_score",
-            component_data,
+            ComponentScoreCalculationActivities.calculate_component_score,
+            arg=component_data,
             start_to_close_timeout=timedelta(seconds=300),
             retry_policy=RetryPolicy(
                 initial_interval=timedelta(seconds=1),
@@ -37,6 +48,13 @@ class ComponentScoreCalculationWorkflow:
 
         workflow.logger.info(f"Component calculation workflow complete: {result}")
         return result
+
+    @classmethod
+    def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
+        activities = ComponentScoreCalculationActivities()
+        return [*activities.get_activities()]
+
+
 async def initialize_core_component_schedules(client: Client) -> None:
     """Initialize schedules for core risk components"""
     logger.info("Initializing core component schedules...")
