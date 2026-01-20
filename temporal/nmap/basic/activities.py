@@ -6,7 +6,7 @@ from xml.etree import ElementTree
 import httpx
 import nmap3
 
-from config import ISIMConfig, NmapBasicConfig
+from config import ISIMUrlsConfig, NmapBasicConfig
 from temporal.lib import util
 from temporal.nmap.basic import parser_activities_impl
 from temporal.nmap.basic.dtos import NmapResults
@@ -18,7 +18,7 @@ class NmapBasicActivities:
     Activities to run a basic nmap scan, parse results, and publish them to ISIM.
     """
 
-    def __init__(self, isim_config: ISIMConfig) -> None:
+    def __init__(self, isim_config: ISIMUrlsConfig) -> None:
         self.isim_config = isim_config
 
     @activity.defn
@@ -75,7 +75,7 @@ class NmapBasicActivities:
         headers = {"Content-Type": "application/json"}
 
         async with httpx.AsyncClient() as conn:
-            return (await conn.post(f"{self.isim_config.url}/assets", json=payload, headers=headers)).text
+            return (await conn.post(f"{self.isim_config.rest_url}/assets", json=payload, headers=headers)).text
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
         return [self.parse_nmap_xml, self.run_basic_nmap_scan, self.send_result_to_api, self.nmap_basic_validate_input]

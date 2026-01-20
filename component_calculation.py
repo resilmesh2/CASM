@@ -2,8 +2,9 @@ import logging
 import os
 from datetime import timedelta
 
-from temporalio import workflow
 from temporalio.common import RetryPolicy
+
+from temporalio import workflow
 
 logger = logging.getLogger(__name__)
 

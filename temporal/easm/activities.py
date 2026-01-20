@@ -3,14 +3,14 @@ from typing import Any
 
 import httpx
 
-from config import EasmScannerConfig, ISIMConfig, RedisConfig
+from config import EasmScannerConfig, ISIMUrlsConfig, RedisConfig
 from temporal.easm import activities_impl
 from temporal.lib.util import validate_input_domain
 from temporalio import activity
 
 
 class EasmActivities:
-    def __init__(self, redis_config: RedisConfig, isim_config: ISIMConfig) -> None:
+    def __init__(self, redis_config: RedisConfig, isim_config: ISIMUrlsConfig) -> None:
         self.isim_config = isim_config
         self.redis_config = redis_config
 
@@ -64,7 +64,7 @@ class EasmActivities:
         headers = {"Content-Type": "application/json"}
 
         async with httpx.AsyncClient() as conn:
-            return (await conn.post(f"{self.isim_config.url}/easm", json=payload, headers=headers)).text
+            return (await conn.post(f"{self.isim_config.rest_url}/easm", json=payload, headers=headers)).text
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
         return [self.run_httpx, self.parse_result_and_send_to_api, self.validate_input]

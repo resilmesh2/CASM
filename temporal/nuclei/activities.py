@@ -1,7 +1,7 @@
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
-from config import ISIMConfig, ISIMGraphqlConfig, Neo4jConfig, RedisConfig
+from config import ISIMUrlsConfig, ISIMUrlsConfig, Neo4jConfig, RedisConfig
 from temporal.lib import redis_handler
 from temporal.nuclei import activities_impl
 from temporalio import activity
@@ -14,8 +14,8 @@ class NucleiActivities:
 
     def __init__(
         self,
-        isim_config: ISIMConfig,
-        isim_graphql_config: ISIMGraphqlConfig,
+        isim_config: ISIMUrlsConfig,
+        isim_graphql_config: ISIMUrlsConfig,
         redis_config: RedisConfig,
         neo4j_config: Neo4jConfig,
     ) -> None:

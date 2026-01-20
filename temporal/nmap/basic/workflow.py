@@ -85,7 +85,7 @@ class NmapBasicWorkflow:
         :return: A flat sequence of activity functions to be registered with a worker.
         """
         config = AppConfig.get()
-        activities = NmapBasicActivities(config.isim)
+        activities = NmapBasicActivities(config.isim_urls)
         return [*activities.get_activities()]
 
 

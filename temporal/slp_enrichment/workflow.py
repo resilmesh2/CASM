@@ -73,7 +73,7 @@ class SLPEnrichmentWorkflow:
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
         config = AppConfig.get()
-        activities = SLPEnrichmentActivities(config.isim)
+        activities = SLPEnrichmentActivities(config.isim_urls)
         return [*activities.get_activities()]
 
 

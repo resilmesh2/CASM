@@ -75,7 +75,7 @@ class NmapTopologyWorkflow:
         :return: A flat sequence of activity functions to be registered with a worker.
         """
         config = AppConfig.get()
-        activities = NmapTopologyActivities(config.isim)
+        activities = NmapTopologyActivities(config.isim_urls)
         return [*activities.get_activities()]
 
 

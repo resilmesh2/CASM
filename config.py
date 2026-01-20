@@ -46,13 +46,10 @@ class NmapBasicConfig:
 
 
 @dataclass
-class ISIMConfig:
-    url: str
-
-
-@dataclass
-class ISIMGraphqlConfig:
-    url: str
+class ISIMUrlsConfig:
+    rest_url: str
+    graphql_url: str
+    risk_url: str
 
 
 @dataclass
@@ -103,8 +100,7 @@ class Config:
     redis: RedisConfig
     nmap_basic: NmapBasicConfig
     nmap_topology: NmapTopologyConfig
-    isim: ISIMConfig
-    isim_graphql: ISIMGraphqlConfig
+    isim_urls: ISIMUrlsConfig
     easm_scanner: EasmScannerConfig
     slp_enrichment: SLPEnrichmentConfig
     cve_connector: CveConnectorConfig
