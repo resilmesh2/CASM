@@ -17,7 +17,7 @@ from temporalio.client import (
 )
 from temporalio.common import RetryPolicy
 
-from config import AppConfig
+from config import AppConfig, TemporalConfig
 from temporal.component_calculations.risk_formula_calculation.activities import ComponentRiskFormulaActivities
 from temporalio import workflow
 
@@ -86,7 +86,7 @@ class RiskFormulaCalculationWorkflow:
         return result
 
     @classmethod
-    async def initialize_base_risk_schedule(cls, client: Client) -> None:
+    async def initialize_base_risk_schedule(cls, client: Client, temporal_config: TemporalConfig) -> None:
         """
         Create a Temporal schedule for the 'base-risk' formula that runs
         30 minutes after the component schedules (which are every 2 hours).
@@ -101,7 +101,7 @@ class RiskFormulaCalculationWorkflow:
                 RiskFormulaCalculationWorkflow.run,
                 arg=workflow_input,
                 id="risk-formula-calc-base-risk",
-                task_queue="component-calculations",
+                task_queue=temporal_config.shared_task_queue,
             ),
             spec=spec,
             state=ScheduleState(note="Base Risk (Criticality + CVSS + Threat) every 2h, offset 30m", paused=False),

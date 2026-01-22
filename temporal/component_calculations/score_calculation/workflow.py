@@ -98,7 +98,7 @@ class ComponentScoreCalculationWorkflow:
                     ComponentScoreCalculationWorkflow.run,
                     arg=workflow_input,
                     id=f"component-calc-{component['component_id']}",
-                    task_queue="component-calculations",
+                    task_queue=temporal_config.shared_task_queue,
                 ),
                 spec=ScheduleSpec(intervals=[ScheduleIntervalSpec(every=component["interval"])]),
                 state=ScheduleState(note=component["description"], paused=False),

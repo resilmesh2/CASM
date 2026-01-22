@@ -97,7 +97,7 @@ async def main() -> None:
         NmapTopologyWorkflow.run,
         args=(),
         id=workflow_id,
-        task_queue=config.temporal.scanning_task_queue,
+        task_queue=config.temporal.shared_task_queue,
         id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
     )
     workflow_description = await workflow_handle.describe()

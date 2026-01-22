@@ -36,11 +36,11 @@ async def main() -> None:
     redis_handler.init_redis()
 
     await ComponentScoreCalculationWorkflow.initialize_core_component_schedules(client, config.temporal, config.isim_urls)
-    await RiskFormulaCalculationWorkflow.initialize_base_risk_schedule(client)
+    await RiskFormulaCalculationWorkflow.initialize_base_risk_schedule(client, config.temporal)
 
     worker = Worker(
         client=client,
-        task_queue=config.temporal.scanning_task_queue,
+        task_queue=config.temporal.shared_task_queue,
         workflows=workflows,
         activities=activities,
         workflow_runner=workflow_runner,
