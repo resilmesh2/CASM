@@ -17,9 +17,9 @@ redis:
   db: 3
 
 isim_urls:
-  rest: "http://resilmesh_sap_isim_automation:5000"
-  risk: "http://resilmesh_sap_isim_automation:5000"
-  graphql: "http://localhost:4001"
+  rest_url: "http://resilmesh_sap_isim_automation:5000"
+  risk_url: "http://resilmesh_sap_isim_automation:5000"
+  graphql_url: "http://localhost:4001"
 
 nmap_basic:
   targets:

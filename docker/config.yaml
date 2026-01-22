@@ -16,11 +16,10 @@ redis:
   port: 6379
   db: 3
 
-isim:
-  url: "http://resilmesh_sap_isim:8000"
-
-isim_graphql:
-  url: "http://resilmesh_sap_isim_graphql:4001/graphql"
+isim_urls:
+  rest_url: "http://resilmesh_sap_isim_automation:5000"
+  risk_url: "http://resilmesh_sap_isim_automation:5000"
+  graphql_url: "http://localhost:4001"
 
 nmap_basic:
   targets:
