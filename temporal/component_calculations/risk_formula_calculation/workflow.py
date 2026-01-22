@@ -17,6 +17,7 @@ from temporalio.client import (
 )
 from temporalio.common import RetryPolicy
 
+from config import AppConfig
 from temporal.component_calculations.risk_formula_calculation.activities import ComponentRiskFormulaActivities
 from temporalio import workflow
 
@@ -85,11 +86,7 @@ class RiskFormulaCalculationWorkflow:
         return result
 
     @classmethod
-    def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
-        activities = ComponentRiskFormulaActivities()
-        return [*activities.get_activities()]
-
-    async def initialize_base_risk_schedule(self, client: Client) -> None:
+    async def initialize_base_risk_schedule(cls, client: Client) -> None:
         """
         Create a Temporal schedule for the 'base-risk' formula that runs
         30 minutes after the component schedules (which are every 2 hours).
@@ -101,8 +98,8 @@ class RiskFormulaCalculationWorkflow:
 
         schedule = Schedule(
             action=ScheduleActionStartWorkflow(
-                "RiskFormulaCalculationWorkflow",
-                workflow_input,
+                RiskFormulaCalculationWorkflow.run,
+                arg=workflow_input,
                 id="risk-formula-calc-base-risk",
                 task_queue="component-calculations",
             ),
@@ -121,5 +118,8 @@ class RiskFormulaCalculationWorkflow:
         except ScheduleAlreadyRunningError:
             logger.info(f"Schedule '{schedule_id}' already exists, skipping creation")
 
-
-_load_component_config()
+    @classmethod
+    def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
+        config = AppConfig.get()
+        activities = ComponentRiskFormulaActivities(config.isim_urls)
+        return [*activities.get_activities()]

@@ -7,12 +7,17 @@ from pytz import UTC
 
 from temporalio import activity
 
+from config import ISIMUrlsConfig
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class ComponentScoreCalculationActivities:
     """Activities for passive component calculations"""
+
+    def __init__(self, isim_urls: ISIMUrlsConfig) -> None:
+        self.isim_urls = isim_urls
 
     @activity.defn
     async def calculate_component_score(self, component_data: dict[str, Any]) -> dict[str, Any]:
@@ -32,7 +37,7 @@ class ComponentScoreCalculationActivities:
                 api_url = execution_endpoint
                 logger.info(f"Using custom endpoint: {api_url}")
             else:
-                api_url = f"{RISK_API_URL}/api/risk/components/execute/{neo4j_property or component_id}"
+                api_url = f"{self.isim_urls.risk_url}/api/risk/components/execute/{neo4j_property or component_id}"
                 logger.info(f"Using default endpoint: {api_url}")
 
             try:

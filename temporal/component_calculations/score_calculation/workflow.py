@@ -1,5 +1,4 @@
 import logging
-import os
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from typing import Any
@@ -15,12 +14,11 @@ from temporalio.client import (
 )
 from temporalio.common import RetryPolicy
 
+from config import AppConfig, ISIMUrlsConfig, TemporalConfig
 from temporal.component_calculations.score_calculation.activities import ComponentScoreCalculationActivities
 from temporalio import workflow
 
 logger = logging.getLogger(__name__)
-
-RISK_API_URL = os.environ.get("RISK_API_URL", "http://resilmesh_sap_isim_automation:5000")
 
 
 @workflow.defn
@@ -50,74 +48,77 @@ class ComponentScoreCalculationWorkflow:
         return result
 
     @classmethod
-    def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
-        activities = ComponentScoreCalculationActivities()
-        return [*activities.get_activities()]
+    async def initialize_core_component_schedules(
+        cls, client: Client, temporal_config: TemporalConfig, isim_urls: ISIMUrlsConfig
+    ) -> None:
+        """Initialize schedules for core risk components"""
+        logger.info("Initializing core component schedules...")
 
+        core_components = [
+            {
+                "schedule_id": "component-schedule-criticality",
+                "component_id": "criticality",
+                "component_name": "Criticality Score",
+                "neo4j_property": "criticality",
+                "execution_endpoint": f"{isim_urls.risk_url}/api/components/execute/criticality",
+                "interval": timedelta(hours=1),
+                "description": "Calculates criticality based on betweenness and degree centrality",
+            },
+            {
+                "schedule_id": "component-schedule-threatScore",
+                "component_id": "threatScore",
+                "component_name": "Threat Score",
+                "neo4j_property": "threatScore",
+                "execution_endpoint": f"{isim_urls.risk_url}/api/components/execute/threatScore",
+                "interval": timedelta(hours=1),
+                "description": "Retrieves threat scores from Wazuh security platform",
+            },
+            {
+                "schedule_id": "component-schedule-cvss_score",
+                "component_id": "cvss_score",
+                "component_name": "Vulnerability Score (CVSS)",
+                "neo4j_property": "cvss_score",
+                "execution_endpoint": f"{isim_urls.risk_url}/api/components/execute/cvss_score",
+                "interval": timedelta(hours=1),
+                "description": "Calculates CVSS vulnerability scores from CVE data",
+            },
+        ]
 
-async def initialize_core_component_schedules(client: Client) -> None:
-    """Initialize schedules for core risk components"""
-    logger.info("Initializing core component schedules...")
+        for component in core_components:
+            workflow_input = {
+                "component_id": component["component_id"],
+                "component_name": component["component_name"],
+                "neo4j_property": component["neo4j_property"],
+                "execution_endpoint": f"{isim_urls.risk_url}/api/components/execute/{component['component_id']}",
+                "update_frequency": "hourly",
+            }
 
-    core_components = [
-        {
-            "schedule_id": "component-schedule-criticality",
-            "component_id": "criticality",
-            "component_name": "Criticality Score",
-            "neo4j_property": "criticality",
-            "execution_endpoint": f"{RISK_API_URL}/api/components/execute/criticality",
-            "interval": timedelta(hours=1),
-            "description": "Calculates criticality based on betweenness and degree centrality",
-        },
-        {
-            "schedule_id": "component-schedule-threatScore",
-            "component_id": "threatScore",
-            "component_name": "Threat Score",
-            "neo4j_property": "threatScore",
-            "execution_endpoint": f"{RISK_API_URL}/api/components/execute/threatScore",
-            "interval": timedelta(hours=1),
-            "description": "Retrieves threat scores from Wazuh security platform",
-        },
-        {
-            "schedule_id": "component-schedule-cvss_score",
-            "component_id": "cvss_score",
-            "component_name": "Vulnerability Score (CVSS)",
-            "neo4j_property": "cvss_score",
-            "execution_endpoint": f"{RISK_API_URL}/api/components/execute/cvss_score",
-            "interval": timedelta(hours=1),
-            "description": "Calculates CVSS vulnerability scores from CVE data",
-        },
-    ]
-
-    for component in core_components:
-        workflow_input = {
-            "component_id": component["component_id"],
-            "component_name": component["component_name"],
-            "neo4j_property": component["neo4j_property"],
-            "execution_endpoint": f"{RISK_API_URL}/api/components/execute/{component['component_id']}",
-            "update_frequency": "hourly",
-        }
-
-        schedule = Schedule(
-            action=ScheduleActionStartWorkflow(
-                ComponentScoreCalculationWorkflow.run,
-                args=[workflow_input],
-                id=f"component-calc-{component['component_id']}",
-                task_queue="component-calculations",
-            ),
-            spec=ScheduleSpec(intervals=[ScheduleIntervalSpec(every=component["interval"])]),
-            state=ScheduleState(note=component["description"], paused=False),
-        )
-
-        try:
-            await client.create_schedule(component["schedule_id"], schedule)
-            logger.info(f"Created schedule '{component['schedule_id']}' (runs every 2 hours)")
-        except ScheduleAlreadyRunningError:
-            logger.info(f"Schedule '{component['schedule_id']}' already exists, skipping creation")
-        except Exception as e:
-            import traceback
-
-            logger.warning(
-                f"Could not create schedule '{component['schedule_id']}' at {TEMPORAL_ADDRESS} "
-                f"(ns={TEMPORAL_NAMESPACE}): {e}\n{traceback.format_exc()}"
+            schedule = Schedule(
+                action=ScheduleActionStartWorkflow(
+                    ComponentScoreCalculationWorkflow.run,
+                    arg=workflow_input,
+                    id=f"component-calc-{component['component_id']}",
+                    task_queue="component-calculations",
+                ),
+                spec=ScheduleSpec(intervals=[ScheduleIntervalSpec(every=component["interval"])]),
+                state=ScheduleState(note=component["description"], paused=False),
             )
+
+            try:
+                await client.create_schedule(component["schedule_id"], schedule)
+                logger.info(f"Created schedule '{component['schedule_id']}' (runs every 2 hours)")
+            except ScheduleAlreadyRunningError:
+                logger.info(f"Schedule '{component['schedule_id']}' already exists, skipping creation")
+            except Exception as e:
+                import traceback
+
+                logger.warning(
+                    f"Could not create schedule '{component['schedule_id']}' at {temporal_config.url} "
+                    f"(ns={temporal_config.namespace}): {e}\n{traceback.format_exc()}"
+                )
+
+    @classmethod
+    def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:
+        config = AppConfig.get()
+        activities = ComponentScoreCalculationActivities(config.isim_urls)
+        return [*activities.get_activities()]

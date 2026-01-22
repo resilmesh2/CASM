@@ -4,6 +4,7 @@ from typing import Any
 
 import httpx
 
+from config import ISIMUrlsConfig
 from temporalio import activity
 
 logging.basicConfig(level=logging.INFO)
@@ -11,6 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class ComponentRiskFormulaActivities:
+    def __init__(self, isim_urls: ISIMUrlsConfig) -> None:
+        self.isim_urls = isim_urls
+
     """Activities for passive component calculations"""
 
     @activity.defn
@@ -18,7 +22,7 @@ class ComponentRiskFormulaActivities:
         """Execute a risk formula automation via the API"""
 
         try:
-            url = f"{RISK_API_URL}/api/automations/execute/{automation_id}"
+            url = f"{self.isim_urls.risk_url}/api/automations/execute/{automation_id}"
             logger.info(f"Calling risk formula API: {url}")
 
             async with httpx.AsyncClient() as client:
