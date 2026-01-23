@@ -134,7 +134,7 @@ services:
   resilmesh-sap-casm-nmap-worker:
     container_name: resilmesh-sap-casm-nmap-worker
     build:
-      dockerfile: scanning.Dockerfile
+      dockerfile: shared.Dockerfile
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
