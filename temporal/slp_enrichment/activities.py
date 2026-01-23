@@ -4,7 +4,7 @@ from typing import Any, Literal, TypedDict
 import httpx
 import msgspec
 
-from config import ISIMConfig
+from config import ISIMUrlsConfig
 from temporal.slp_enrichment import dtos
 from temporalio import activity
 
@@ -57,7 +57,7 @@ class SLPEnrichmentActivities:
     Activities for performing enrichment of information about assets obtained from SLP.
     """
 
-    def __init__(self, isim_config: ISIMConfig) -> None:
+    def __init__(self, isim_config: ISIMUrlsConfig) -> None:
         self.isim_config = isim_config
 
     @activity.defn
@@ -74,7 +74,7 @@ class SLPEnrichmentActivities:
 
         while len(unprocessed_addresses) < 100 and not last_item_found:
             params: dict[str, int] = {"limit": limit, "offset": offset}
-            response = httpx.get(f"{self.isim_config.url}/ips", params=params)  # noqa: ASYNC210
+            response = httpx.get(f"{self.isim_config.rest_url}/ips", params=params)  # noqa: ASYNC210
             # Decode into typed structs
             decoded = msgspec.json.decode(response.content, type=list[dtos.ISIMIpsResponse])
             if len(decoded) < limit:
@@ -274,7 +274,7 @@ class SLPEnrichmentActivities:
         """
         async with httpx.AsyncClient() as client:
             payload = msgspec.to_builtins(data)
-            response = await client.post(f"{self.isim_config.url}/slp_enrichment", json=payload)
+            response = await client.post(f"{self.isim_config.rest_url}/slp_enrichment", json=payload)
             return response.text
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:

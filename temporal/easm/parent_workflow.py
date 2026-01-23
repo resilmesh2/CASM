@@ -95,7 +95,7 @@ class ParentEasmWorkflow:
         config = AppConfig.get()
         passive_enum_activities = PassiveEnumerationActivities()
         active_enum_activities = ActiveEnumerationActivities()
-        activities = EasmActivities(config.redis, config.isim)
+        activities = EasmActivities(config.redis, config.isim_urls)
         return [
             *passive_enum_activities.get_activities(),
             *active_enum_activities.get_activities(),

@@ -34,5 +34,5 @@ COPY --from=build /venv /venv
 
 EXPOSE 8000
 
-CMD ["/venv/bin/python", "-m", "temporal.shared_scanning_worker"]
+CMD ["/venv/bin/python", "-m", "temporal.shared_worker"]
 

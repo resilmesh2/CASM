@@ -85,7 +85,7 @@ class NmapBasicWorkflow:
         :return: A flat sequence of activity functions to be registered with a worker.
         """
         config = AppConfig.get()
-        activities = NmapBasicActivities(config.isim)
+        activities = NmapBasicActivities(config.isim_urls)
         return [*activities.get_activities()]
 
 
@@ -107,7 +107,7 @@ async def main() -> None:
         NmapBasicWorkflow.run,
         args=(),
         id=workflow_id,
-        task_queue=config.temporal.scanning_task_queue,
+        task_queue=config.temporal.shared_task_queue,
         id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
     )
     workflow_description = await workflow_handle.describe()

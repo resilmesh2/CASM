@@ -93,7 +93,7 @@ class NucleiWorkflow:
         :return: A flat sequence of activity functions to be registered with a worker.
         """
         config = AppConfig.get()
-        activities = NucleiActivities(config.isim, config.isim_graphql, config.redis, config.neo4j)
+        activities = NucleiActivities(config.isim_urls, config.isim_urls, config.redis, config.neo4j)
         return [*activities.get_activities()]
 
 
@@ -115,7 +115,7 @@ async def main() -> None:
         NucleiWorkflow.run,
         args=(),
         id=workflow_id,
-        task_queue=config.temporal.scanning_task_queue,
+        task_queue=config.temporal.shared_task_queue,
         id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
     )
     workflow_description = await workflow_handle.describe()
