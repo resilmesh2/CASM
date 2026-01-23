@@ -14,13 +14,11 @@ class NucleiActivities:
 
     def __init__(
         self,
-        isim_config: ISIMUrlsConfig,
-        isim_graphql_config: ISIMUrlsConfig,
+        isim_urls: ISIMUrlsConfig,
         redis_config: RedisConfig,
         neo4j_config: Neo4jConfig,
     ) -> None:
-        self.isim_config = isim_config
-        self.isim_graphql_config = isim_graphql_config
+        self.isim_urls = isim_urls
         self.redis_config = redis_config
         self.neo4j_config = neo4j_config
         self.valkey_client = redis_handler.get_redis()
@@ -31,7 +29,7 @@ class NucleiActivities:
 
     @activity.defn
     async def get_network_service_data(self) -> str:
-        return await activities_impl.get_network_service_data(self.isim_graphql_config, self.valkey_client)
+        return await activities_impl.get_network_service_data(self.isim_urls, self.valkey_client)
 
     @activity.defn
     async def parse_network_service_data_for_nuclei_run(self, network_service_data_uuid: str) -> str:

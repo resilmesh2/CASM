@@ -31,11 +31,11 @@ class VulnerabilityStatus(Enum):
     NOT_FOUND = "not_found"
 
 
-async def get_network_service_data(isim_graphql_config: ISIMUrlsConfig, valkey_client: Valkey) -> str:
+async def get_network_service_data(isim_urls: ISIMUrlsConfig, valkey_client: Valkey) -> str:
     """
     Fetch network service data with CVEs from ISIM GraphQL API and store in Valkey.
 
-    :param isim_graphql_config: Configuration for ISIM GraphQL endpoint
+    :param isim_urls: Configuration for ISIM GraphQL endpoint
     :param valkey_client: Valkey client for storing service data
     :return: UUID key for accessing stored service data in Valkey
     """
@@ -46,7 +46,7 @@ async def get_network_service_data(isim_graphql_config: ISIMUrlsConfig, valkey_c
     }
 
     async with httpx.AsyncClient(timeout=10) as client:
-        resp = await client.post(isim_graphql_config.graphql_url, json=payload)
+        resp = await client.post(isim_urls.graphql_url, json=payload)
         resp.raise_for_status()
     service_data_uuid = f"service_data-{uuid.uuid4()!s}"
 
