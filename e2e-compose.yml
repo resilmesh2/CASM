@@ -50,6 +50,8 @@ services:
       - 7233:7233
     labels:
       kompose.volume.type: configMap
+    volumes:
+      - ./test/e2e/temporal/dynamicconfig:/etc/temporal/config/dynamicconfig
     networks:
       - resilmesh_network
     healthcheck:
@@ -97,7 +99,7 @@ services:
       resilmesh-sap-neo4j:
         condition: service_healthy
     volumes:
-      - ./config/config_docker.yaml:/app/config/config.yaml
+      - ./docker/config.yaml:/app/config/config.yaml
     restart: unless-stopped
     networks:
       - resilmesh_network
@@ -241,7 +243,7 @@ services:
       - resilmesh_network
 
   resilmesh-sap-casm-redis:
-    container_name: redis
+    container_name: resilmesh-sap-casm-redis
     image: valkey/valkey:7.2
     environment:
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
