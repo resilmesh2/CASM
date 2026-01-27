@@ -196,21 +196,6 @@ services:
     networks:
       - resilmesh_network
 
-  resilmesh-sap-casm-component-calculation-worker:
-    container_name: resilmesh-sap-casm-component-calculation-worker
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    volumes:
-      - ./docker/config.yaml:/app/config/config.yaml
-      - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
-    depends_on:
-      resilmesh-sop-wo-temporal:
-        condition: service_healthy
-    networks:
-      - resilmesh_network
-
   resilmesh-sap-casm-worker:
     container_name: resilmesh-sap-casm-easm-worker
     build: .
@@ -251,7 +236,9 @@ services:
     expose:
       - 6379
     networks:
-      - resilmesh_network
+      resilmesh_network:
+        aliases:
+          - resilmesh-redis
     # health check by Glenn
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
@@ -269,9 +256,9 @@ services:
     volumes:
       - ./logs:/app/logs
       - ../ISIM/config:/config:ro  # Mount ISIM's config as read-only
-    depends_on:
-      resilmesh-sop-wo-temporal:
-        condition: service_healthy
+#    depends_on:
+#      resilmesh-sop-wo-temporal:
+#        condition: service_healthy
     networks:
       - resilmesh_network
     environment:
@@ -283,16 +270,16 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=supertestovaciheslo
 
-  resilmesh-sap-casm-nmap-worker:
-    container_name: resilmesh-sap-casm-nmap-worker
+  resilmesh-sap-casm-shared-worker:
+    container_name: resilmesh-sap-casm-shared-worker
     build:
-      dockerfile: nmap.Dockerfile
+      dockerfile: shared.Dockerfile
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
-    depends_on:
-      resilmesh-sop-wo-temporal:
-        condition: service_healthy
+#    depends_on:
+#      resilmesh-sop-wo-temporal:
+#        condition: service_healthy
     networks:
       - resilmesh_network
     environment:
@@ -310,9 +297,10 @@ services:
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
-    depends_on:
-      resilmesh-sop-wo-temporal:
-        condition: service_healthy
+#    depends_on:
+#      resilmesh-sop-wo-temporal:
+#        condition: service_healthy
+     # neo4j:
     networks:
       - resilmesh_network
     environment:
