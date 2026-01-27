@@ -131,8 +131,8 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=supertestovaciheslo
 
-  resilmesh-sap-casm-nmap-worker:
-    container_name: resilmesh-sap-casm-nmap-worker
+  resilmesh-sap-casm-shared-worker:
+    container_name: resilmesh-sap-casm-shared-worker
     build:
       dockerfile: shared.Dockerfile
     restart: unless-stopped
