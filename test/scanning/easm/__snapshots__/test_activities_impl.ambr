@@ -21,9 +21,6 @@
 # ---
 # name: TestParseHttpxOutput.test_parse_httpx_output_success
   list([
-    dict({
-      'name': 'nginx:1.24',
-      'version': 'cpe:2.3:a:nginx:nginx:1.24:*:*:*:*:*:*:*',
-    }),
+    EasyEASMParsedResult(port=443, protocol='https', service='https', software_versions=[{'name': 'nginx:1.24', 'version': 'cpe:2.3:a:nginx:nginx:1.24:*:*:*:*:*:*:*'}], ip='1.2.3.4', domain_name='example.com'),
   ])
 # ---

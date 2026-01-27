@@ -16,29 +16,36 @@ from temporal.lib import exceptions
 class TestRunHttpx:
     async def test_run_httpx_success(self, mocker: MockerFixture) -> None:
         mock_redis = MagicMock()
-        mock_redis.get.return_value = "example.com\ntest.com"
+        input_data = "example.com\ntest.com"
+        mock_redis.get.return_value = input_data
         mocker.patch("temporal.lib.redis_handler.get_redis", return_value=mock_redis)
 
         mock_run_command = mocker.patch("temporal.lib.util.run_command_with_output", new_callable=AsyncMock)
-        mock_run_command.return_value = ('{"input": "example.com", "host": "1.2.3.4"}\n', "", 0)
+        command_output = '{"input": "example.com", "host": "1.2.3.4"}\n'
+        mock_run_command.return_value = (command_output, "", 0)
 
-        result = await activities_impl.run_httpx("input_uuid", "/usr/bin/httpx")
+        input_uuid = "input_uuid"
+        httpx_path = "/usr/bin/httpx"
+        result = await activities_impl.run_httpx(input_uuid, httpx_path)
 
         assert result.startswith("httpx-")
-        mock_redis.get.assert_called_once_with("input_uuid")
+        mock_redis.get.assert_called_once_with(input_uuid)
         mock_run_command.assert_called_once()
-        mock_redis.set.assert_called_once_with(result, '{"input": "example.com", "host": "1.2.3.4"}\n')
+        mock_redis.set.assert_called_once_with(result, command_output)
 
     async def test_run_httpx_failure(self, mocker: MockerFixture) -> None:
         mock_redis = MagicMock()
-        mock_redis.get.return_value = "example.com"
+        input_data = "example.com"
+        mock_redis.get.return_value = input_data
         mocker.patch("temporal.lib.redis_handler.get_redis", return_value=mock_redis)
 
         mock_run_command = mocker.patch("temporal.lib.util.run_command_with_output", new_callable=AsyncMock)
         mock_run_command.return_value = ("", "error", 1)
 
+        input_uuid = "input_uuid"
+        httpx_path = "/usr/bin/httpx"
         with pytest.raises(exceptions.EnumerationToolError):
-            await activities_impl.run_httpx("input_uuid", "/usr/bin/httpx")
+            await activities_impl.run_httpx(input_uuid, httpx_path)
 
         mock_redis.close.assert_called_once()
 
@@ -53,27 +60,24 @@ class TestParseHttpxOutput:
         mock_redis.get.return_value = httpx_jsonl
         mocker.patch("temporal.lib.redis_handler.get_redis", return_value=mock_redis)
 
+        software_versions = [{"name": "nginx:1.24", "version": "cpe:2.3:a:nginx:nginx:1.24:*:*:*:*:*:*:*"}]
         mock_determine = mocker.patch(
             "temporal.easm.activities_impl.determine_software_versions",
-            return_value=[{"name": "nginx:1.24", "version": "cpe:2.3:a:nginx:nginx:1.24:*:*:*:*:*:*:*"}],
+            return_value=software_versions,
         )
 
-        results = activities_impl.parse_httpx_output("httpx_uuid")
+        httpx_uuid = "httpx_uuid"
+        results = activities_impl.parse_httpx_output(httpx_uuid)
 
-        assert len(results) == 1
-        res = results[0]
-        assert res.domain_name == "example.com"
-        assert res.ip == "1.2.3.4"
-        assert res.port == 443
-        assert res.protocol == "https"
-        assert res.software_versions == snapshot
+        assert results == snapshot
         mock_determine.assert_called_once_with(["nginx:1.24"])
 
 
 class TestFetchFingerprints:
     def test_fetch_fingerprints_success(self, mocker: MockerFixture) -> None:
         mock_response = MagicMock()
-        mock_response.json.return_value = {"apps": {"nginx": {"cpe": "cpe:2.3:a:nginx:nginx"}}}
+        fingerprints_data = {"apps": {"nginx": {"cpe": "cpe:2.3:a:nginx:nginx"}}}
+        mock_response.json.return_value = fingerprints_data
         mock_response.raise_for_status = MagicMock()
 
         mock_client = MagicMock()
@@ -84,7 +88,7 @@ class TestFetchFingerprints:
 
         result = activities_impl.fetch_fingerprints()
 
-        assert result == {"apps": {"nginx": {"cpe": "cpe:2.3:a:nginx:nginx"}}}
+        assert result == fingerprints_data
         mock_client.get.assert_called_once_with(activities_impl.WAPPALYZERGO_FINGERPRINTS_URL)
 
     def test_fetch_fingerprints_error(self, mocker: MockerFixture) -> None:
@@ -139,9 +143,7 @@ class TestDetermineSoftwareVersions:
     def test_determine_software_versions_empty(self) -> None:
         assert activities_impl.determine_software_versions([]) == []
 
-    def test_determine_software_versions_success(
-        self, mocker: MockerFixture, snapshot: SnapshotAssertion
-    ) -> None:
+    def test_determine_software_versions_success(self, mocker: MockerFixture, snapshot: SnapshotAssertion) -> None:
         fingerprints = {
             "apps": {
                 "nginx": {"cpe": "cpe:2.3:a:nginx:nginx"},
