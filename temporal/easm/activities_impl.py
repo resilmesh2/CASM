@@ -189,7 +189,9 @@ def _parse_vendor_product_from_cpe(cpe: str) -> tuple[str, str] | None:
     :param cpe: Input CPE string from the fingerprints database.
     :return: (vendor, product) tuple or None if parsing fails.
     """
-    parts = cpe.split(":")
+    # Normalize cpe:/a:vendor:product to something colon-splittable consistently
+    normalized_cpe = cpe.replace("/", ":")
+    parts = normalized_cpe.split(":")
     if len(parts) < 4:
         return None
 
