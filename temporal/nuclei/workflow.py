@@ -93,7 +93,7 @@ class NucleiWorkflow:
         :return: A flat sequence of activity functions to be registered with a worker.
         """
         config = AppConfig.get()
-        activities = NucleiActivities(config.isim_urls, config.isim_urls, config.redis, config.neo4j)
+        activities = NucleiActivities(config.isim_urls, config.redis, config.neo4j)
         return [*activities.get_activities()]
 
 
