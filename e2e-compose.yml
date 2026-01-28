@@ -40,7 +40,7 @@ services:
       - DB_PORT=5432
       - POSTGRES_USER=temporal
       - POSTGRES_PWD=temporal
-      - POSTGRES_SEEDS=resilmesh-sop-wo-temporal-postgresql
+      - POSTGRES_SEEDS=resilmesh-sop-wo-postgresql
       - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
       - ENABLE_ES=true
       - ES_SEEDS=resilmesh-sop-wo-temporal-elasticsearch
@@ -233,8 +233,8 @@ services:
     environment:
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
       - ALLOW_EMPTY_PASSWORD=yes
-    expose:
-      - 6379
+    ports:
+      - "6379:6379"
     networks:
       resilmesh_network:
         aliases:
@@ -256,9 +256,9 @@ services:
     volumes:
       - ./logs:/app/logs
       - ../ISIM/config:/config:ro  # Mount ISIM's config as read-only
-#    depends_on:
-#      resilmesh-sop-wo-temporal:
-#        condition: service_healthy
+    depends_on:
+      resilmesh-sop-wo-temporal:
+        condition: service_healthy
     networks:
       - resilmesh_network
     environment:
@@ -277,9 +277,9 @@ services:
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
-#    depends_on:
-#      resilmesh-sop-wo-temporal:
-#        condition: service_healthy
+    depends_on:
+      resilmesh-sop-wo-temporal:
+        condition: service_healthy
     networks:
       - resilmesh_network
     environment:
@@ -297,10 +297,9 @@ services:
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml
-#    depends_on:
-#      resilmesh-sop-wo-temporal:
-#        condition: service_healthy
-     # neo4j:
+    depends_on:
+      resilmesh-sop-wo-temporal:
+        condition: service_healthy
     networks:
       - resilmesh_network
     environment:

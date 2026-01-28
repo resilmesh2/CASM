@@ -138,4 +138,3 @@ async def wait_for_workflow_type(
         f"Recent executions: {details}"
     )
     raise TimeoutError(msg)
-
