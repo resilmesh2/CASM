@@ -46,4 +46,15 @@ jobs:
           poetry --version
 
       - name: Run E2E orchestration
-        run: ./scripts/e2e.sh
+        env:
+          E2E_SKIP_CLEANUP: "1"
+        run: python scripts/e2e.py
+
+      - name: Run E2E API snapshot tests
+        env:
+          E2E_API_SNAPSHOT: "1"
+        run: poetry run pytest test/e2e/test_api_snapshots.py
+
+      - name: Tear down E2E stack
+        if: always()
+        run: docker compose -f e2e-compose.yml down -v

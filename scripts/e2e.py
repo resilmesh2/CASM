@@ -11,6 +11,7 @@ from typing import NoReturn
 COMPOSE_FILE: str = os.getenv("E2E_COMPOSE_FILE", "e2e-compose.yml")
 BUILD_FLAG: str = os.getenv("E2E_BUILD_FLAG", "--build")
 WAIT_TIMEOUT_SECONDS: int = int(os.getenv("E2E_WAIT_TIMEOUT_SECONDS", "600"))
+SKIP_CLEANUP: bool = os.getenv("E2E_SKIP_CLEANUP", "0") == "1"
 
 CONTAINERS: list[str] = [
     "resilmesh-sop-wo-temporal",
@@ -97,7 +98,8 @@ def main() -> NoReturn:
         subprocess.run(["poetry", "run", "python", "-m", "test.e2e.run"], check=True)
 
     finally:
-        cleanup()
+        if not SKIP_CLEANUP:
+            cleanup()
 
     sys.exit(0)
 

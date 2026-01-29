@@ -8,7 +8,6 @@ from datetime import UTC, datetime, timedelta
 from temporalio.client import Client
 from temporalio.exceptions import TemporalError
 
-from test.e2e.api_checks import verify_api_state
 from test.e2e.temporal_checks import connect_temporal, trigger_schedule, wait_for_workflow_type
 
 TEMPORAL_ADDRESS = os.getenv("E2E_TEMPORAL_ADDRESS", "localhost:7233")
@@ -174,9 +173,6 @@ async def main() -> None:
     await stage_cve(client)
     await stage_nuclei(client)
     await stage_components(client)
-
-    print("\n== Stage 6: REST API verification ==")
-    verify_api_state()
 
     print("\nE2E orchestration finished successfully.")
 
