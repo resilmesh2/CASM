@@ -162,6 +162,11 @@ async def main() -> None:
         f"- CVE worker: {CVE_WORKER}"
     )
 
+    current_path = Path(__file__).parent
+    update_snapshots = False
+    snapshot_update = "--snapshot-update" if update_snapshots else ""
+
+    pytest.main([str(path), snapshot_update])
     client = await _connect_with_retry(
         TEMPORAL_ADDRESS,
         TEMPORAL_NAMESPACE,
@@ -169,6 +174,7 @@ async def main() -> None:
     )
 
     await stage_nmap(client)
+    await pytest.main()
     await stage_easm(client)
     await stage_cve(client)
     await stage_nuclei(client)
