@@ -5,10 +5,12 @@ import os
 import shlex
 from datetime import UTC, datetime, timedelta
 
+import pytest
 from temporalio.client import Client
 from temporalio.exceptions import TemporalError
 
 from test.e2e.temporal_checks import connect_temporal, trigger_schedule, wait_for_workflow_type
+from test.e2e.test_e2e_loaded_data import TestE2ELoadedData
 
 TEMPORAL_ADDRESS = os.getenv("E2E_TEMPORAL_ADDRESS", "localhost:7233")
 TEMPORAL_NAMESPACE = os.getenv("E2E_TEMPORAL_NAMESPACE", "default")
@@ -162,19 +164,15 @@ async def main() -> None:
         f"- CVE worker: {CVE_WORKER}"
     )
 
-    current_path = Path(__file__).parent
-    update_snapshots = False
-    snapshot_update = "--snapshot-update" if update_snapshots else ""
-
-    pytest.main([str(path), snapshot_update])
     client = await _connect_with_retry(
         TEMPORAL_ADDRESS,
         TEMPORAL_NAMESPACE,
         timeout_seconds=_timeout("E2E_TEMPORAL_CONNECT_TIMEOUT_SECONDS", 300),
     )
 
+    from test.e2e.util import run_test_fce_with_pytest
     await stage_nmap(client)
-    await pytest.main()
+    run_test_fce_with_pytest.run_test_callable(TestE2ELoadedData.test_e2e_asset_info_snapshot)
     await stage_easm(client)
     await stage_cve(client)
     await stage_nuclei(client)
