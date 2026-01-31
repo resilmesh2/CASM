@@ -1,0 +1,12 @@
+query GetVulns {
+    vulnerabilities {
+        description
+        cve {
+            cve_id
+        }
+        software_versions {
+            version
+        }
+        cve_status
+    }
+}
