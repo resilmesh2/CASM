@@ -7,6 +7,6 @@ query GetVulns {
         software_versions {
             version
         }
-        cve_status
+        status
     }
 }

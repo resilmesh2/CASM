@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import httpx
 
 from config import AppConfig
-from pathlib import Path
+
 if TYPE_CHECKING:
     from syrupy.assertion import SnapshotAssertion
 
@@ -21,8 +22,13 @@ class TestE2ELoadedData:
             except ValueError:
                 return response.text
 
-    def _graphql_request(self, payload: dict[str, str]) -> Any:
+    def _graphql_request(self, query: str) -> Any:
         isim_urls = AppConfig.get().isim_urls
+
+        payload = {
+            "query": query,
+        }
+
         with httpx.Client(base_url=isim_urls.graphql_url, timeout=60.0) as client:
             response = client.post("", json=payload)
             try:
@@ -37,8 +43,10 @@ class TestE2ELoadedData:
         Update snapshots intentionally via:
           E2E_API_SNAPSHOT=1 poetry run pytest test/e2e/test_api_snapshots.py --snapshot-update
         """
-        payload = self._rest_request("/asset_info")
-        assert payload == snapshot(name="asset_info")
+        hosts_query = (Path(__file__).parent / "assets" / "get_hosts.graphql").read_text(encoding="utf-8")
+
+        payload = self._graphql_request(hosts_query)
+        assert payload == snapshot(name="nmap")
 
 
     def test_e2e_easm_snapshot(self, snapshot: SnapshotAssertion) -> None:
@@ -48,8 +56,10 @@ class TestE2ELoadedData:
         Update snapshots intentionally via:
           E2E_API_SNAPSHOT=1 poetry run pytest test/e2e/test_api_snapshots.py --snapshot-update
         """
-        payload = self._rest_request("/asset_info")
-        assert payload == snapshot(name="asset_info")
+        nodes_query = (Path(__file__).parent / "assets" / "get_nodes.graphql").read_text(encoding="utf-8")
+
+        payload = self._graphql_request(nodes_query)
+        assert payload == snapshot(name="easm")
 
 
     def test_e2e_cve_connector_snapshot(self, snapshot: SnapshotAssertion) -> None:
@@ -59,8 +69,10 @@ class TestE2ELoadedData:
         Update snapshots intentionally via:
           E2E_API_SNAPSHOT=1 poetry run pytest test/e2e/test_api_snapshots.py --snapshot-update
         """
-        payload = self._rest_request("/cves")
-        assert payload == snapshot(name="cves")
+        cves_query = (Path(__file__).parent / "assets" / "get_cves.graphql").read_text(encoding="utf-8")
+
+        payload = self._graphql_request(cves_query)
+        assert payload == snapshot(name="cve_connector")
 
     def test_e2e_nuclei_snapshot(self, snapshot: SnapshotAssertion) -> None:
         """
@@ -69,10 +81,8 @@ class TestE2ELoadedData:
         Update snapshots intentionally via:
           E2E_API_SNAPSHOT=1 poetry run pytest test/e2e/test_api_snapshots.py --snapshot-update
         """
-        vulns_query_path = (Path(__file__).parent / "assets" / "get_vulnerabilities.graphql").read_text(encoding="utf-8")
-        payload = {
-            "query": vulns_query_path,
-        }
-        payload = self._graphql_request(payload)
-        assert payload == snapshot(name="asset_info")
+        vulns_query = (Path(__file__).parent / "assets" / "get_vulnerabilities.graphql").read_text(encoding="utf-8")
+
+        payload = self._graphql_request(vulns_query)
+        assert payload == snapshot(name="nuclei")
 

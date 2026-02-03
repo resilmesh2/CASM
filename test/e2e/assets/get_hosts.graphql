@@ -1,0 +1,16 @@
+query Hosts {
+    hosts {
+        hostname
+        software_versions {
+            version
+        }
+        components {
+            name
+        }
+        network_services {
+            port
+            protocol
+            service
+        }
+    }
+}

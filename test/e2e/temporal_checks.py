@@ -4,11 +4,14 @@ import asyncio
 import inspect
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any, Iterable
+from typing import TYPE_CHECKING, Any
 
 from temporalio.api.enums.v1 import WorkflowExecutionStatus
 from temporalio.client import Client
 from temporalio.exceptions import TemporalError
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 COMPLETED = WorkflowExecutionStatus.WORKFLOW_EXECUTION_STATUS_COMPLETED
 FAILED = {
