@@ -2,11 +2,18 @@
 """E2E test orchestration script."""
 
 import os
+from pathlib import Path
 import subprocess
 import sys
 import time
+import shutil
 from typing import NoReturn
+import asyncio
 
+# Ensure repo root is on sys.path when running as a script.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 COMPOSE_FILE: str = os.getenv("E2E_COMPOSE_FILE", "e2e-compose.yml")
 BUILD_FLAG: str = os.getenv("E2E_BUILD_FLAG", "--build")
@@ -23,13 +30,29 @@ CONTAINERS: list[str] = [
     "resilmesh-sap-casm-redis",
 ]
 
+def docker_compose_cmd() -> list[str]:
+    """Return docker compose command, falling back to docker-compose if needed."""
+    if shutil.which("docker"):
+        result = subprocess.run(
+            ["docker", "compose", "version"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        if result.returncode == 0:
+            return ["docker", "compose"]
+    if shutil.which("docker-compose"):
+        return ["docker-compose"]
+    return ["docker", "compose"]
+
 
 def cleanup() -> None:
     """Tear down Docker Compose stack."""
+    compose_cmd = docker_compose_cmd()
     print()
-    print(f"[cleanup] docker compose -f {COMPOSE_FILE} down -v")
+    print(f"[cleanup] {' '.join(compose_cmd)} -f {COMPOSE_FILE} down -v")
     subprocess.run(
-        ["docker", "compose", "-f", COMPOSE_FILE, "down", "-v"],
+        [*compose_cmd, "-f", COMPOSE_FILE, "down", "-v"],
         check=False,
     )
 
@@ -80,9 +103,10 @@ def wait_for_container(name: str) -> None:
 def main() -> NoReturn:
     """Run E2E tests."""
     try:
-        print(f"[up] docker compose -f {COMPOSE_FILE} up -d {BUILD_FLAG}")
+        compose_cmd = docker_compose_cmd()
+        print(f"[up] {' '.join(compose_cmd)} -f {COMPOSE_FILE} up -d {BUILD_FLAG}")
         subprocess.run(
-            ["docker", "compose", "-f", COMPOSE_FILE, "up", "-d", BUILD_FLAG],
+            [*compose_cmd, "-f", COMPOSE_FILE, "up", "-d", BUILD_FLAG],
             check=True,
         )
 
@@ -95,8 +119,9 @@ def main() -> NoReturn:
 
         print()
         print("[run] poetry run python -m test.e2e.run")
-        subprocess.run(["poetry", "run", "python", "-m", "test.e2e.run"], check=True)
+        from test.e2e import run as run_e2e
 
+        asyncio.run(run_e2e.main())
     finally:
         if not SKIP_CLEANUP:
             cleanup()

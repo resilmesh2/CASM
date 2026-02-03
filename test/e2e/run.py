@@ -5,12 +5,13 @@ import os
 import shlex
 from datetime import UTC, datetime, timedelta
 
-import pytest
 from temporalio.client import Client
 from temporalio.exceptions import TemporalError
 
 from test.e2e.temporal_checks import connect_temporal, trigger_schedule, wait_for_workflow_type
 from test.e2e.test_e2e_loaded_data import TestE2ELoadedData
+from test.e2e.util import run_test_fce_with_pytest
+from test.e2e.util.run_test_fce_with_pytest import TestRunResult
 
 TEMPORAL_ADDRESS = os.getenv("E2E_TEMPORAL_ADDRESS", "localhost:7233")
 TEMPORAL_NAMESPACE = os.getenv("E2E_TEMPORAL_NAMESPACE", "default")
@@ -18,7 +19,6 @@ TEMPORAL_NAMESPACE = os.getenv("E2E_TEMPORAL_NAMESPACE", "default")
 SHARED_WORKER = os.getenv("E2E_SHARED_WORKER", "resilmesh-sap-casm-shared-worker")
 EASM_WORKER = os.getenv("E2E_EASM_WORKER", "resilmesh-sap-casm-easm-worker")
 CVE_WORKER = os.getenv("E2E_CVE_WORKER", "resilmesh-sap-casm-cve-connector")
-
 CVE_SCHEDULE_ID = "cve-update-scheduled-workflow"
 COMPONENT_SCHEDULE_IDS = [
     "component-schedule-criticality",
@@ -170,13 +170,44 @@ async def main() -> None:
         timeout_seconds=_timeout("E2E_TEMPORAL_CONNECT_TIMEOUT_SECONDS", 300),
     )
 
-    from test.e2e.util import run_test_fce_with_pytest
+    E2E_SNAPSHOT_UPDATE = False
+    results: list[TestRunResult] = []
+
     await stage_nmap(client)
-    run_test_fce_with_pytest.run_test_callable(TestE2ELoadedData.test_e2e_asset_info_snapshot)
+    results.append(
+        run_test_fce_with_pytest.run_test_callable_subprocess(
+            TestE2ELoadedData.test_e2e_nmap_snapshot,
+            update_snapshots=E2E_SNAPSHOT_UPDATE,
+        )
+    )
+
     await stage_easm(client)
+    results.append(
+        run_test_fce_with_pytest.run_test_callable_subprocess(
+            TestE2ELoadedData.test_e2e_easm_snapshot,
+            update_snapshots=E2E_SNAPSHOT_UPDATE,
+        )
+    )
+
     await stage_cve(client)
+    results.append(
+        run_test_fce_with_pytest.run_test_callable_subprocess(
+            TestE2ELoadedData.test_e2e_cve_connector_snapshot,
+            update_snapshots=E2E_SNAPSHOT_UPDATE,
+        )
+    )
+
     await stage_nuclei(client)
+    results.append(
+        run_test_fce_with_pytest.run_test_callable_subprocess(
+            TestE2ELoadedData.test_e2e_nuclei_snapshot,
+            update_snapshots=E2E_SNAPSHOT_UPDATE,
+        )
+    )
+
     await stage_components(client)
+
+    run_test_fce_with_pytest.finish(results)
 
     print("\nE2E orchestration finished successfully.")
 
