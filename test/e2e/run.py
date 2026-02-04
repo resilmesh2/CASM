@@ -4,14 +4,18 @@ import asyncio
 import os
 import shlex
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
-from temporalio.client import Client
 from temporalio.exceptions import TemporalError
 
 from test.e2e.temporal_checks import connect_temporal, trigger_schedule, wait_for_workflow_type
 from test.e2e.test_e2e_loaded_data import TestE2ELoadedData
 from test.e2e.util import run_test_fce_with_pytest
-from test.e2e.util.run_test_fce_with_pytest import TestRunResult
+
+if TYPE_CHECKING:
+    from temporalio.client import Client
+
+    from test.e2e.util.run_test_fce_with_pytest import TestRunResult
 
 TEMPORAL_ADDRESS = os.getenv("E2E_TEMPORAL_ADDRESS", "localhost:7233")
 TEMPORAL_NAMESPACE = os.getenv("E2E_TEMPORAL_NAMESPACE", "default")
