@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
   push:
-    branches: [48-e2e-tests-ci]
+    branches: [48-add-e2e-tests-ci]
 
 jobs:
   e2e:
