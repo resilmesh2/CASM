@@ -170,7 +170,7 @@ async def main() -> None:
         timeout_seconds=_timeout("E2E_TEMPORAL_CONNECT_TIMEOUT_SECONDS", 300),
     )
 
-    E2E_SNAPSHOT_UPDATE = True
+    E2E_SNAPSHOT_UPDATE = False
     results: list[TestRunResult] = []
 
     await stage_nmap(client)

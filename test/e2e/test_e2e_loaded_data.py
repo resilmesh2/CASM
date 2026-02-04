@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -36,6 +37,25 @@ class TestE2ELoadedData:
             except ValueError:
                 return response.text
 
+    def _canon_json(self, value: Any) -> str:
+        return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+    def normalize_for_snapshot(self, value: Any) -> Any:
+        """
+        Key-agnostic normalization:
+        - dicts: keys sorted
+        - lists: elements normalized, then sorted by canonical JSON of each element
+        This makes snapshots stable when list order is nondeterministic.
+        """
+        if isinstance(value, dict):
+            return {k: self.normalize_for_snapshot(v) for k, v in sorted(value.items())}
+
+        if isinstance(value, list):
+            normalized = [self.normalize_for_snapshot(v) for v in value]
+            return sorted(normalized, key=self._canon_json)
+
+        return value
+
     def test_e2e_nmap_snapshot(self, snapshot: SnapshotAssertion) -> None:
         """
         Snapshot the asset info endpoint (Nmap + EASM results).
@@ -46,7 +66,7 @@ class TestE2ELoadedData:
         hosts_query = (Path(__file__).parent / "assets" / "get_hosts.graphql").read_text(encoding="utf-8")
 
         payload = self._graphql_request(hosts_query)
-        assert payload == snapshot(name="nmap")
+        assert self.normalize_for_snapshot(payload) == snapshot(name="nmap")
 
 
     def test_e2e_easm_snapshot(self, snapshot: SnapshotAssertion) -> None:
@@ -59,8 +79,7 @@ class TestE2ELoadedData:
         nodes_query = (Path(__file__).parent / "assets" / "get_nodes.graphql").read_text(encoding="utf-8")
 
         payload = self._graphql_request(nodes_query)
-        assert payload == snapshot(name="easm")
-
+        assert self.normalize_for_snapshot(payload) == snapshot(name="easm")
 
     def test_e2e_cve_connector_snapshot(self, snapshot: SnapshotAssertion) -> None:
         """
@@ -72,7 +91,7 @@ class TestE2ELoadedData:
         cves_query = (Path(__file__).parent / "assets" / "get_cves.graphql").read_text(encoding="utf-8")
 
         payload = self._graphql_request(cves_query)
-        assert payload == snapshot(name="cve_connector")
+        assert self.normalize_for_snapshot(payload) == snapshot(name="cve_connector")
 
     def test_e2e_nuclei_snapshot(self, snapshot: SnapshotAssertion) -> None:
         """
@@ -84,5 +103,5 @@ class TestE2ELoadedData:
         vulns_query = (Path(__file__).parent / "assets" / "get_vulnerabilities.graphql").read_text(encoding="utf-8")
 
         payload = self._graphql_request(vulns_query)
-        assert payload == snapshot(name="nuclei")
+        assert self.normalize_for_snapshot(payload) == snapshot(name="nuclei")
 
