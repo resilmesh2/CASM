@@ -325,7 +325,9 @@ def _compute_next_status(current_status: list[str], nuclei_status: str) -> list[
     return [next_primary]
 
 
-def _graphql_request(client: httpx.Client, graphql_url: str, query: str, variables: dict[str, object]) -> dict[str, object]:
+def _graphql_request(
+    client: httpx.Client, graphql_url: str, query: str, variables: dict[str, object]
+) -> dict[str, object]:
     resp = client.post(graphql_url, json={"query": query, "variables": variables})
     resp.raise_for_status()
     payload = resp.json()

@@ -4,7 +4,7 @@
 import json
 from pathlib import Path
 from typing import Any
-from unittest.mock import Mock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from pytest_mock import MockerFixture
@@ -394,3 +394,84 @@ class TestDetermineCveStatusFromNucleiScanResults:
         # Existing status should be preserved
         assert cve_status["CVE-2021-99999"] == activities_impl.VulnerabilityStatus.CONFIRMED.value
         assert cve_status["CVE-2021-12345"] == activities_impl.VulnerabilityStatus.CONFIRMED.value
+
+
+class TestStatusUpdateHelpers:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            (None, []),
+            ("confirmed", ["confirmed"]),
+            (["confirmed", "assessed"], ["confirmed", "assessed"]),
+            (["confirmed", None], ["confirmed"]),
+            (123, ["123"]),
+        ],
+    )
+    def test_normalize_status(self, value: object, expected: list[str]) -> None:
+        assert activities_impl._normalize_status(value) == expected
+
+    @pytest.mark.parametrize(
+        "current_status, nuclei_status, expected",
+        [
+            (["confirmed", "assessed"], "confirmed", ["confirmed", "assessed"]),
+            (["confirmed", "reassessed"], "unconfirmed", ["closed"]),
+            (["resolved"], "confirmed", ["resolved"]),
+            ([], "unconfirmed", ["unconfirmed"]),
+        ],
+    )
+    def test_compute_next_status(
+        self, current_status: list[str], nuclei_status: str, expected: list[str]
+    ) -> None:
+        assert activities_impl._compute_next_status(current_status, nuclei_status) == expected
+
+
+class TestUpdateVulnerabilityStatus:
+    def test_update_vulnerability_status_updates_graphql(self, mocker: MockerFixture) -> None:
+        mock_valkey = Mock()
+        mock_valkey.get.return_value = json.dumps({"CVE-1": "unconfirmed"})
+
+        query_response = Mock()
+        query_response.raise_for_status = Mock()
+        query_response.json.return_value = {"data": {"vulnerabilities": [{"status": ["confirmed"]}]}}
+
+        mutation_response = Mock()
+        mutation_response.raise_for_status = Mock()
+        mutation_response.json.return_value = {"data": {"updateVulnerabilities": {"vulnerabilities": [{"status": []}]}}}
+
+        mock_client = MagicMock()
+        mock_client.post.side_effect = [query_response, mutation_response]
+        mock_client.__enter__.return_value = mock_client
+
+        mocker.patch("temporal.nuclei.activities_impl.httpx.Client", return_value=mock_client)
+
+        activities_impl.update_vulnerability_status(
+            isim_urls=Mock(graphql_url="http://example/graphql"),
+            valkey_client=mock_valkey,
+            cve_status_uuid="uuid",
+        )
+
+        assert mock_client.post.call_count == 2
+        mutation_payload = mock_client.post.call_args_list[1].kwargs["json"]
+        assert mutation_payload["variables"]["status"] == ["closed"]
+
+    def test_update_vulnerability_status_skips_missing(self, mocker: MockerFixture) -> None:
+        mock_valkey = Mock()
+        mock_valkey.get.return_value = json.dumps({"CVE-404": "confirmed"})
+
+        query_response = Mock()
+        query_response.raise_for_status = Mock()
+        query_response.json.return_value = {"data": {"vulnerabilities": []}}
+
+        mock_client = MagicMock()
+        mock_client.post.return_value = query_response
+        mock_client.__enter__.return_value = mock_client
+
+        mocker.patch("temporal.nuclei.activities_impl.httpx.Client", return_value=mock_client)
+
+        activities_impl.update_vulnerability_status(
+            isim_urls=Mock(graphql_url="http://example/graphql"),
+            valkey_client=mock_valkey,
+            cve_status_uuid="uuid",
+        )
+
+        assert mock_client.post.call_count == 1

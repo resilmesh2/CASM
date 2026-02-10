@@ -1,10 +1,11 @@
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
-from config import ISIMUrlsConfig, ISIMUrlsConfig, Neo4jConfig, RedisConfig
+from temporalio import activity
+
+from config import ISIMUrlsConfig, Neo4jConfig, RedisConfig
 from temporal.lib import redis_handler
 from temporal.nuclei import activities_impl
-from temporalio import activity
 
 
 class NucleiActivities:
