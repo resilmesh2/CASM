@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
+import httpx
 import msgspec
 
 from cve_connector.nvd_cve.AbsClient import AbstractClient
+from cve_connector.nvd_cve.nvd_types import VulnerabilityStatus
 
 
 class SoftwareVersionRow(msgspec.Struct, frozen=True):
@@ -71,18 +74,22 @@ class CVEConnectorClient(AbstractClient):
                 for record in result
             ]
 
-    def create_new_vulnerability(self, description: str, vulnerability_type: str | None = None) -> None:
+    def create_new_vulnerability(
+        self, description: str, vulnerability_type: str | None = None, status: list[str] | None = None
+    ) -> None:
         """
         Creates a Vulnerability node in the database.
 
         :param description: Vulnerability description.
         :param vulnerability_type: Optional vulnerability type.
+        :param status: Optional list of vulnerability statuses.
         :return: None
         """
         self._run_query(
-            "CREATE (vul:Vulnerability {description: $description, type: $type})",
+            "CREATE (vul:Vulnerability {description: $description, type: $type, status: $status})",
             description=description,
             type=vulnerability_type,
+            status=status,
         )
 
     def create_relationship_between_vulnerability_and_software_version(self, description: str, version: str) -> None:
@@ -413,6 +420,127 @@ class CVEConnectorClient(AbstractClient):
             cve_id=cve_id,
             description=vulnerability_description,
         )
+
+    def get_cve_last_modified(self, cve_id: str) -> str | None:
+        """
+        Retrieves the last_modified value for a CVE node.
+
+        :param cve_id: CVE identifier.
+        :return: Last modified timestamp, or None if not found.
+        """
+        with self._driver.session() as session:
+            record = session.run(
+                "MATCH (cve:CVE {cve_id: $cve_id}) RETURN cve.last_modified AS last_modified",
+                cve_id=cve_id,
+            ).single()
+            if record is None:
+                return None
+            return record.get("last_modified")
+
+    def _normalize_status(self, value: object) -> list[str]:
+        if value is None:
+            return []
+        if isinstance(value, list):
+            return [str(item) for item in value if item is not None]
+        if isinstance(value, str):
+            return [value]
+        return [str(value)]
+
+    def _compute_next_status(
+        self,
+        current_status: list[str],
+        primary_status: str | None,
+        secondary_status: str | None,
+        set_primary: bool,
+    ) -> list[str]:
+        current_primary = current_status[0] if current_status else None
+        secondary_values = {VulnerabilityStatus.ASSESSED.value, VulnerabilityStatus.REASSESSED.value}
+        current_secondary = next((status for status in current_status if status in secondary_values), None)
+
+        match (set_primary, primary_status, current_primary):
+            case (True, status, _) if status is not None:
+                next_primary = status
+            case (_, status, None) if status is not None:
+                next_primary = status
+            case _:
+                next_primary = current_primary
+
+        match secondary_status:
+            case VulnerabilityStatus.REASSESSED.value:
+                next_secondary = VulnerabilityStatus.REASSESSED.value
+            case VulnerabilityStatus.ASSESSED.value if current_secondary == VulnerabilityStatus.REASSESSED.value:
+                next_secondary = VulnerabilityStatus.REASSESSED.value
+            case VulnerabilityStatus.ASSESSED.value:
+                next_secondary = VulnerabilityStatus.ASSESSED.value
+            case _:
+                next_secondary = current_secondary
+
+        if next_primary is None:
+            return []
+        match next_primary:
+            case VulnerabilityStatus.CLOSED.value | VulnerabilityStatus.RESOLVED.value:
+                return [next_primary]
+            case _:
+                if next_secondary is None:
+                    return [next_primary]
+                return [next_primary, next_secondary]
+
+    def _graphql_request(
+        self, client: httpx.Client, graphql_url: str, query: str, variables: dict[str, object]
+    ) -> dict[str, object]:
+        resp = client.post(graphql_url, json={"query": query, "variables": variables})
+        resp.raise_for_status()
+        payload = resp.json()
+        if payload.get("errors"):
+            raise ValueError(f"GraphQL request failed: {payload['errors']}")
+        return payload
+
+    def update_vulnerability_status_for_cve(
+        self,
+        cve_id: str,
+        primary_status: str | None = None,
+        secondary_status: str | None = None,
+        set_primary: bool = False,
+        graphql_url: str | None = None,
+    ) -> None:
+        """
+        Updates the Vulnerability status for a CVE, preserving primary status when managed elsewhere.
+
+        :param cve_id: CVE identifier.
+        :param primary_status: Primary status to set when missing or forced.
+        :param secondary_status: Secondary status (assessed or reassessed) to merge.
+        :param set_primary: Whether to force the primary status update.
+        :param graphql_url: GraphQL endpoint for ISIM API.
+        :return: None
+        """
+        if not graphql_url:
+            raise ValueError("graphql_url is required to update vulnerability status via GraphQL.")
+
+        assets_dir = Path(__file__).resolve().parent / "assets"
+        status_query = (assets_dir / "get_vulnerability_status.graphql").read_text(encoding="utf-8")
+        status_mutation = (assets_dir / "update_vulnerability_status.graphql").read_text(encoding="utf-8")
+
+        with httpx.Client(timeout=10) as client:
+            query_payload = self._graphql_request(
+                client,
+                graphql_url,
+                status_query,
+                {"cve_id": cve_id},
+            )
+            vulnerabilities = query_payload.get("data", {}).get("vulnerabilities", [])
+            if not vulnerabilities:
+                return
+
+            current_status = self._normalize_status(vulnerabilities[0].get("status"))
+            next_status = self._compute_next_status(current_status, primary_status, secondary_status, set_primary)
+            if not next_status:
+                return
+            self._graphql_request(
+                client,
+                graphql_url,
+                status_mutation,
+                {"cve_id": cve_id, "status": next_status},
+            )
 
     def update_cve_from_nvd(
         self,

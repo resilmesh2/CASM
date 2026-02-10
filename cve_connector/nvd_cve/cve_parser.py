@@ -14,6 +14,7 @@ import logging
 from typing import Any
 
 from cve_connector.nvd_cve.categorization.classifier import classifier
+from cve_connector.nvd_cve.nvd_types import VulnerabilityStatus
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
 
@@ -165,6 +166,17 @@ def parse_vulnerabilities(data: list[dict[str, Any]]) -> list[Vulnerability]:
                 vulnerability.ref_tag.add(tag)
 
         vulnerability.result_impacts = list(set(classifier(vulnerability)))
+        assessment_tags = {"Exploit", "Patch"}
+        has_assessment_data = bool(
+            vulnerability.cvssv2
+            or vulnerability.cvssv30
+            or vulnerability.cvssv31
+            or vulnerability.cvssv40
+            or (vulnerability.ref_tag & assessment_tags)
+        )
+        vulnerability.status = [VulnerabilityStatus.ESTIMATED.value]
+        if has_assessment_data:
+            vulnerability.status.append(VulnerabilityStatus.ASSESSED.value)
         vulnerabilities.append(vulnerability)
 
     return vulnerabilities

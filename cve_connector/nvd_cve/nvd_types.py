@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import StrEnum
 from typing import Any
 
 import msgspec
@@ -14,3 +15,14 @@ class NvdCvesApiResponse(msgspec.Struct, frozen=True):
     startIndex: int | None = None
     resultsPerPage: int | None = None
     totalResults: int | None = None
+
+
+class VulnerabilityStatus(StrEnum):
+    ESTIMATED = "estimated"
+    CONFIRMED = "confirmed"
+    UNCONFIRMED = "unconfirmed"
+    ASSESSED = "assessed"
+    REASSESSED = "reassessed"
+    RESOLVED = "resolved"
+    CLOSED = "closed"
+    NOT_FOUND = "not_found"
