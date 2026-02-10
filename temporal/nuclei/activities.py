@@ -41,7 +41,7 @@ class NucleiActivities:
 
     @activity.defn
     async def update_cve_lifecycle_info(self, cve_status_uuid: str) -> None:
-        activities_impl.update_vulnerability_status(self.neo4j_config, self.valkey_client, cve_status_uuid)
+        activities_impl.update_vulnerability_status(self.isim_urls, self.valkey_client, cve_status_uuid)
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
         return [
