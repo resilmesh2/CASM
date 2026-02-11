@@ -40,7 +40,7 @@ services:
       - DB_PORT=5432
       - POSTGRES_USER=temporal
       - POSTGRES_PWD=temporal
-      - POSTGRES_SEEDS=resilmesh-sop-wo-temporal-postgresql
+      - POSTGRES_SEEDS=resilmesh-sop-wo-postgresql
       - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
       - ENABLE_ES=true
       - ES_SEEDS=resilmesh-sop-wo-temporal-elasticsearch
@@ -196,21 +196,6 @@ services:
     networks:
       - resilmesh_network
 
-  resilmesh-sap-casm-component-calculation-worker:
-    container_name: resilmesh-sap-casm-component-calculation-worker
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    volumes:
-      - ./docker/config.yaml:/app/config/config.yaml
-      - ./docker/amass_config.yaml:/app/.config/amass/config.yaml
-    depends_on:
-      resilmesh-sop-wo-temporal:
-        condition: service_healthy
-    networks:
-      - resilmesh_network
-
   resilmesh-sap-casm-worker:
     container_name: resilmesh-sap-casm-easm-worker
     build: .
@@ -248,10 +233,12 @@ services:
     environment:
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
       - ALLOW_EMPTY_PASSWORD=yes
-    expose:
-      - 6379
+    ports:
+      - "6379:6379"
     networks:
-      - resilmesh_network
+      resilmesh_network:
+        aliases:
+          - resilmesh-redis
     # health check by Glenn
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
@@ -283,10 +270,10 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=supertestovaciheslo
 
-  resilmesh-sap-casm-nmap-worker:
-    container_name: resilmesh-sap-casm-nmap-worker
+  resilmesh-sap-casm-shared-worker:
+    container_name: resilmesh-sap-casm-shared-worker
     build:
-      dockerfile: nmap.Dockerfile
+      dockerfile: shared.Dockerfile
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml

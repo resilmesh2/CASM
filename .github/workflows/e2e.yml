@@ -1,0 +1,57 @@
+name: e2e
+
+on:
+  workflow_dispatch:
+#  pull_request:
+#  push:
+#    branches: [main]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      NVD_KEY: ${{ secrets.NVD_KEY }}
+      E2E_COMPOSE_FILE: e2e-compose.yml
+      E2E_BUILD_FLAG: --build
+      E2E_WAIT_TIMEOUT_SECONDS: 900
+      E2E_TEMPORAL_ADDRESS: localhost:7233
+      E2E_TEMPORAL_NAMESPACE: default
+      E2E_TEMPORAL_CONNECT_TIMEOUT_SECONDS: 600
+      E2E_SCHEDULE_TIMEOUT_SECONDS: 900
+      E2E_NMAP_TIMEOUT_SECONDS: 2400
+      E2E_EASM_TIMEOUT_SECONDS: 5400
+      E2E_CVE_TIMEOUT_SECONDS: 3600
+      E2E_NUCLEI_TIMEOUT_SECONDS: 2400
+      E2E_COMPONENT_TIMEOUT_SECONDS: 2400
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Show Docker versions
+        run: |
+          docker --version
+          docker compose version || docker-compose --version
+
+      - name: Build docker infra
+        run: docker compose -f e2e-compose.yml up -d --build
+
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+          poetry --version
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run E2E orchestration
+        run: poetry run python -m test.e2e.run
+
+      - name: Tear down E2E stack
+        if: always()
+        run: docker compose -f e2e-compose.yml down -v
