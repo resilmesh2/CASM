@@ -1,0 +1,6 @@
+query CVEs {
+    cves {
+        description
+        cve_id
+    }
+}

@@ -19,7 +19,7 @@ redis:
 isim_urls:
   rest_url: "http://localhost:8000"
   risk_url: "http://localhost:5000"
-  graphql_url: "http://localhost:4001"
+  graphql_url: "http://localhost:4001/graphql"
 
 nmap_basic:
   targets:
