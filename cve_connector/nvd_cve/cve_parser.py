@@ -174,7 +174,6 @@ def parse_vulnerabilities(data: list[dict[str, Any]]) -> list[Vulnerability]:
             or vulnerability.cvssv40
             or (vulnerability.ref_tag & assessment_tags)
         )
-        vulnerability.status = [VulnerabilityStatus.ESTIMATED.value]
         if has_assessment_data:
             vulnerability.status.append(VulnerabilityStatus.ASSESSED.value)
         vulnerabilities.append(vulnerability)

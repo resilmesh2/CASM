@@ -89,9 +89,9 @@ def cve_version(
     :return: None
     :raises Exception: If Neo4j operations fail due to connection or query issues.
     """
-    cve_connector_client = CVEConnectorClient(password=neo4j_passwd, bolt=neo4j_bolt, user=neo4j_user)
+    cve_connector_client = CVEConnectorClient(password=neo4j_password, bolt=neo4j_bolt, user=neo4j_user)
     try:
-        versions_and_timestamps = cve_connector_client.get_software_versions_from_neo4j()
+        versions_and_timestamps = cve_connector_client.get_all_software_versions()
     except Exception as e:
         logging.exception(f"Failed to retrieve software versions from Neo4j: {type(e).__name__}: {e}")
         raise
@@ -102,7 +102,7 @@ def cve_version(
 
     logging.info(f"Versions {len(versions_and_timestamps)}")
 
-    max_retries = 5
+    max_retries = 1
     retry_delay = 6
 
     def _parse_timestamp(timestamp: str | None) -> datetime | None:
@@ -202,7 +202,7 @@ def cve_version(
                 else:
                     obtained_all_results = True
 
-        client.update_timestamp_of_software_version(
+        cve_connector_client.update_timestamp_of_software_version(
             version,
             workflow_start.isoformat(),
         )
