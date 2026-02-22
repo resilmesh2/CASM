@@ -1,26 +1,19 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 import httpx
 import msgspec
 
 from cve_connector.nvd_cve.AbsClient import AbstractClient
-from cve_connector.nvd_cve.nvd_types import VulnerabilityStatus
+from cve_connector.nvd_cve.structs import (
+    GetVulnerabilityStatusResponse,
+    UpdateVulnerabilityStatusResponse,
+    VulnerabilityStatus, SoftwareVersionRow, SoftwareVersionNode, ProductSoftwareRow,
+)
 
-
-class SoftwareVersionRow(msgspec.Struct, frozen=True):
-    version: str
-    cve_timestamp: str | None
-
-
-class SoftwareVersionNode(msgspec.Struct, frozen=True):
-    version: str
-
-
-class ProductSoftwareRow(msgspec.Struct, frozen=True):
-    software: SoftwareVersionNode
+GraphqlResponseT = TypeVar("GraphqlResponseT", GetVulnerabilityStatusResponse, UpdateVulnerabilityStatusResponse)
 
 
 class CVEConnectorClient(AbstractClient):
@@ -437,15 +430,6 @@ class CVEConnectorClient(AbstractClient):
                 return None
             return record.get("last_modified")
 
-    def _normalize_status(self, value: object) -> list[str]:
-        if value is None:
-            return []
-        if isinstance(value, list):
-            return [str(item) for item in value if item is not None]
-        if isinstance(value, str):
-            return [value]
-        return [str(value)]
-
     def _compute_next_status(
         self,
         current_status: list[str],
@@ -486,13 +470,18 @@ class CVEConnectorClient(AbstractClient):
                 return [next_primary, next_secondary]
 
     def _graphql_request(
-        self, client: httpx.Client, graphql_url: str, query: str, variables: dict[str, object]
-    ) -> dict[str, object]:
+        self,
+        client: httpx.Client,
+        graphql_url: str,
+        query: str,
+        variables: dict[str, object],
+        response_type: type[GraphqlResponseT],
+    ) -> GraphqlResponseT:
         resp = client.post(graphql_url, json={"query": query, "variables": variables})
         resp.raise_for_status()
-        payload = resp.json()
-        if payload.get("errors"):
-            raise ValueError(f"GraphQL request failed: {payload['errors']}")
+        payload = msgspec.json.decode(resp.content, type=response_type)
+        if payload.errors:
+            raise ValueError(f"GraphQL request failed: {payload.errors}")
         return payload
 
     def update_vulnerability_status_for_cve(
@@ -526,13 +515,13 @@ class CVEConnectorClient(AbstractClient):
                 graphql_url,
                 status_query,
                 {"cve_id": cve_id},
+                GetVulnerabilityStatusResponse,
             )
-            vulnerabilities = query_payload.get("data", {}).get("vulnerabilities", [])
+            vulnerabilities = query_payload.data.vulnerabilities if query_payload.data else []
             if not vulnerabilities:
                 return
 
-            current_status = self._normalize_status(vulnerabilities[0].get("status"))
-            next_status = self._compute_next_status(current_status, primary_status, secondary_status, set_primary)
+            next_status = self._compute_next_status(vulnerabilities[0].status, primary_status, secondary_status, set_primary)
             if not next_status:
                 return
             self._graphql_request(
@@ -540,6 +529,7 @@ class CVEConnectorClient(AbstractClient):
                 graphql_url,
                 status_mutation,
                 {"cve_id": cve_id, "status": next_status},
+                UpdateVulnerabilityStatusResponse,
             )
 
     def update_cve_from_nvd(
