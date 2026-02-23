@@ -85,7 +85,9 @@ async def list_workflows_of_type(client: Client, workflow_type: str) -> list[Wor
     return results
 
 
-def _recent(executions: Iterable[WorkflowSummary], started_after: datetime, slack_seconds: int = 30) -> list[WorkflowSummary]:
+def _recent(
+    executions: Iterable[WorkflowSummary], started_after: datetime, slack_seconds: int = 30
+) -> list[WorkflowSummary]:
     cutoff = started_after - timedelta(seconds=slack_seconds)
     return [e for e in executions if e.start_time >= cutoff]
 
@@ -136,8 +138,5 @@ async def wait_for_workflow_type(
         await asyncio.sleep(poll_interval)
 
     details = ", ".join(f"{wf.workflow_id}:{wf.status.name}" for wf in last_seen) or "none"
-    msg = (
-        f"Timed out waiting for workflow type '{workflow_type}' to complete. "
-        f"Recent executions: {details}"
-    )
+    msg = f"Timed out waiting for workflow type '{workflow_type}' to complete. Recent executions: {details}"
     raise TimeoutError(msg)

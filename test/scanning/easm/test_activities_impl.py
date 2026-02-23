@@ -129,14 +129,8 @@ class TestHelperFunctions:
         assert activities_impl._parse_vendor_product_from_cpe(cpe) == expected
 
     def test_make_cpe23_app(self) -> None:
-        assert (
-            activities_impl._make_cpe23_app("nginx", "nginx", "1.24")
-            == "cpe:2.3:a:nginx:nginx:1.24:*:*:*:*:*:*:*"
-        )
-        assert (
-            activities_impl._make_cpe23_app("vendor", "prod", None)
-            == "cpe:2.3:a:vendor:prod:*:*:*:*:*:*:*:*"
-        )
+        assert activities_impl._make_cpe23_app("nginx", "nginx", "1.24") == "cpe:2.3:a:nginx:nginx:1.24:*:*:*:*:*:*:*"
+        assert activities_impl._make_cpe23_app("vendor", "prod", None) == "cpe:2.3:a:vendor:prod:*:*:*:*:*:*:*:*"
 
 
 class TestDetermineSoftwareVersions:

@@ -68,7 +68,6 @@ class TestE2ELoadedData:
         payload = self._graphql_request(hosts_query)
         assert self.normalize_for_snapshot(payload) == snapshot(name="nmap")
 
-
     def test_e2e_easm_snapshot(self, snapshot: SnapshotAssertion) -> None:
         """
         Snapshot the CVE/Nuclei/component endpoint.
@@ -104,4 +103,3 @@ class TestE2ELoadedData:
 
         payload = self._graphql_request(vulns_query)
         assert self.normalize_for_snapshot(payload) == snapshot(name="nuclei")
-

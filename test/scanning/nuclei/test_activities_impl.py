@@ -419,9 +419,7 @@ class TestStatusUpdateHelpers:
             ([], "unconfirmed", ["unconfirmed"]),
         ],
     )
-    def test_compute_next_status(
-        self, current_status: list[str], nuclei_status: str, expected: list[str]
-    ) -> None:
+    def test_compute_next_status(self, current_status: list[str], nuclei_status: str, expected: list[str]) -> None:
         assert activities_impl._compute_next_status(current_status, nuclei_status) == expected
 
 

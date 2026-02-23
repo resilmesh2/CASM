@@ -9,8 +9,11 @@ import msgspec
 from cve_connector.nvd_cve.AbsClient import AbstractClient
 from cve_connector.nvd_cve.structs import (
     GetVulnerabilityStatusResponse,
+    ProductSoftwareRow,
+    SoftwareVersionNode,
+    SoftwareVersionRow,
     UpdateVulnerabilityStatusResponse,
-    VulnerabilityStatus, SoftwareVersionRow, SoftwareVersionNode, ProductSoftwareRow,
+    VulnerabilityStatus,
 )
 
 GraphqlResponseT = TypeVar("GraphqlResponseT", GetVulnerabilityStatusResponse, UpdateVulnerabilityStatusResponse)
@@ -521,7 +524,9 @@ class CVEConnectorClient(AbstractClient):
             if not vulnerabilities:
                 return
 
-            next_status = self._compute_next_status(vulnerabilities[0].status, primary_status, secondary_status, set_primary)
+            next_status = self._compute_next_status(
+                vulnerabilities[0].status, primary_status, secondary_status, set_primary
+            )
             if not next_status:
                 return
             self._graphql_request(

@@ -6,12 +6,12 @@ from logging import getLogger
 from typing import Any
 
 from structlog import getLogger
-from temporalio import workflow
 from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
 from config import AppConfig
 from temporal.nuclei.activities import NucleiActivities
+from temporalio import workflow
 
 
 @workflow.defn(name="NucleiWorkflow")
