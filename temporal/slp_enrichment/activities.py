@@ -2,9 +2,9 @@ from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
 import httpx
-from temporalio import activity
 
 from config import ISIMConfig
+from temporalio import activity
 
 
 class SLPEnrichmentActivities:
@@ -67,7 +67,7 @@ class SLPEnrichmentActivities:
                 {
                     "domain_name": domain_name,
                     "found": False,
-                    "subnet": asset_info[1]["range"] if asset_info[1] else ["0.0.0.0/0"],
+                    "subnet": asset_info[1]["range"] if asset_info[1] else "0.0.0.0/0",
                 }
             )
 

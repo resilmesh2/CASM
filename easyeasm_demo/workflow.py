@@ -8,15 +8,15 @@ from pathlib import Path
 from typing import Any
 
 from neo4j import GraphDatabase, basic_auth
-from redis.client import Redis
+from valkey import Valkey
 from structlog import getLogger
-from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 from yaml import safe_dump
 
 from config import AppConfig, Neo4jConfig, RedisConfig
 from easyeasm_demo.queries import CASM_INSERT_QUERY
 from easyeasm_demo.utils import EasyEASMParsedResult, determine_software_versions, validate_input_target
+from temporalio import activity, workflow
 
 EASYEASM_BASE_PATH = "/tmp/easyeasm"  # noqa: S108
 
@@ -68,14 +68,14 @@ class EasyEasmActivities:
         except UnicodeDecodeError:
             result = result_file.read_text("iso-8859-2").encode("utf-8").decode()
 
-        redis_client = Redis(host=self.redis_config.host, port=self.redis_config.port, db=0)
+        redis_client = Valkey(host=self.redis_config.host, port=self.redis_config.port, db=3)
         redis_client.set(scan_uuid, result)
         redis_client.close()
         return scan_uuid
 
     @activity.defn
     async def store_result_to_neo4j(self, scan_uuid: str, domains: list[str]) -> None:
-        redis_client = Redis(host=self.redis_config.host, port=self.redis_config.port, db=0)
+        redis_client = Valkey(host=self.redis_config.host, port=self.redis_config.port, db=3)
         neo4j_client = GraphDatabase.driver(
             self.neo4j_config.bolt, auth=basic_auth(self.neo4j_config.user, password=self.neo4j_config.password)
         )

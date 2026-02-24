@@ -5,7 +5,6 @@ from datetime import timedelta
 from logging import getLogger
 from typing import Any
 
-from temporalio import workflow
 from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
@@ -15,6 +14,7 @@ from temporal.easm.active_enumeration.workflow import ActiveEnumeratonWorkflow
 from temporal.easm.activities import EasmActivities
 from temporal.easm.passive_enumeration.activities import PassiveEnumerationActivities
 from temporal.easm.passive_enumeration.workflow import PassiveEnumerationWorkflow
+from temporalio import workflow
 
 
 @workflow.defn

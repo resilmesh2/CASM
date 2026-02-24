@@ -1,0 +1,20 @@
+<nmaprun>
+    <host>
+        <status state="up"/>
+        <address addr="192.168.1.60" addrtype="ipv4"/>
+        <ports>
+            <port protocol="tcp" portid="22">
+                <state state="closed"/>
+                <service name="ssh"/>
+            </port>
+            <port protocol="tcp" portid="25">
+                <state state="filtered"/>
+                <service name="smtp"/>
+            </port>
+            <port protocol="tcp" portid="80">
+                <state state="open"/>
+                <service name="http"/>
+            </port>
+        </ports>
+    </host>
+</nmaprun>
