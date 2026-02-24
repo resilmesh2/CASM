@@ -24,18 +24,30 @@ async def main() -> None:
     """
     config = AppConfig.get()
     client = await Client.connect(config.temporal.url)
-    workflows = [NmapBasicWorkflow, NmapTopologyWorkflow, NucleiWorkflow, ComponentScoreCalculationWorkflow, RiskFormulaCalculationWorkflow]
+    workflows = [
+        NmapBasicWorkflow,
+        NmapTopologyWorkflow,
+        NucleiWorkflow,
+        ComponentScoreCalculationWorkflow,
+        RiskFormulaCalculationWorkflow,
+    ]
     activities: list[Callable[..., Awaitable[Any]]] = []
     for workflow in workflows:
         activities += workflow.get_activities()
     workflow_runner = SandboxedWorkflowRunner(
         restrictions=SandboxRestrictions.default.with_passthrough_modules(
-            "temporal.nmap.basic", "temporal.nmap.topology", "temporal.nuclei", "config", "temporal.component_calculations"
+            "temporal.nmap.basic",
+            "temporal.nmap.topology",
+            "temporal.nuclei",
+            "config",
+            "temporal.component_calculations",
         )
     )
     redis_handler.init_redis()
 
-    await ComponentScoreCalculationWorkflow.initialize_core_component_schedules(client, config.temporal, config.isim_urls)
+    await ComponentScoreCalculationWorkflow.initialize_core_component_schedules(
+        client, config.temporal, config.isim_urls
+    )
     await RiskFormulaCalculationWorkflow.initialize_base_risk_schedule(client, config.temporal)
 
     worker = Worker(

@@ -7,10 +7,9 @@ from pathlib import Path
 
 import dacite
 import httpx
-from neo4j import GraphDatabase, basic_auth
 from valkey import Valkey
 
-from config import ISIMUrlsConfig, Neo4jConfig
+from config import ISIMUrlsConfig
 from temporal.lib import util
 from temporal.nuclei import dtos, exceptions
 
@@ -264,7 +263,7 @@ async def run_nuclei_scan(service_data: dtos.ServiceTemplateData, cve_status: di
         # Mark CVEs as not_found if no templates exist
         for cve_id in service_data.cves:
             if cve_id not in cve_status:
-                cve_status[cve_id] = "not_found"
+                cve_status[cve_id] = VulnerabilityStatus.NOT_FOUND.value
         return None
 
     # Create target URL/endpoint
@@ -295,21 +294,84 @@ async def run_nuclei_scan(service_data: dtos.ServiceTemplateData, cve_status: di
     return stdout
 
 
-def update_vulnerability_status(neo4j_config: Neo4jConfig, valkey_client: Valkey, cve_status_uuid: str) -> None:
-    """
-    Update vulnerability status in Neo4j database based on Nuclei scan results.
+def _normalize_status(value: object) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item) for item in value if item is not None]
+    if isinstance(value, str):
+        return [value]
+    return [str(value)]
 
-    :param neo4j_config: Neo4j database configuration (bolt URL, user, password)
+
+def _compute_next_status(current_status: list[str], nuclei_status: str) -> list[str]:
+    current_primary = current_status[0] if current_status else None
+    current_secondary = next((status for status in current_status if status in {"assessed", "reassessed"}), None)
+
+    if current_primary in {"resolved", "closed"}:
+        next_primary = current_primary
+    elif current_primary == VulnerabilityStatus.CONFIRMED.value and nuclei_status in {
+        VulnerabilityStatus.UNCONFIRMED.value,
+        VulnerabilityStatus.NOT_FOUND.value,
+    }:
+        next_primary = "closed"
+    else:
+        next_primary = nuclei_status
+
+    if next_primary in {"closed", "resolved"}:
+        return [next_primary]
+    if current_secondary:
+        return [next_primary, current_secondary]
+    return [next_primary]
+
+
+def _graphql_request(
+    client: httpx.Client, graphql_url: str, query: str, variables: dict[str, object]
+) -> dict[str, object]:
+    resp = client.post(graphql_url, json={"query": query, "variables": variables})
+    resp.raise_for_status()
+    payload = resp.json()
+    if payload.get("errors"):
+        logger.error("GraphQL request failed: %s", payload["errors"])
+    return payload
+
+
+def update_vulnerability_status(isim_urls: ISIMUrlsConfig, valkey_client: Valkey, cve_status_uuid: str) -> None:
+    """
+    Update vulnerability status in ISIM GraphQL API based on Nuclei scan results.
+
+    :param isim_urls: Configuration for ISIM GraphQL endpoint
     :param valkey_client: Valkey client for retrieving CVE status data
     :param cve_status_uuid: UUID key for accessing CVE status dictionary in Valkey
     :return: None
     """
     cve_status = json.loads(str(valkey_client.get(cve_status_uuid)))
-    logger.info(f"Updating vulnerabilities status in Neo4j: {cve_status}")
-    neo4j_client = GraphDatabase.driver(
-        neo4j_config.bolt, auth=basic_auth(neo4j_config.user, password=neo4j_config.password)
-    )
+    logger.info("Updating vulnerabilities status in ISIM GraphQL: %s", cve_status)
 
-    vulnerability_update = (Path(__file__).resolve().parent / "assets/update_vulnerabilities.cypher").read_text()
-    neo4j_client.execute_query(vulnerability_update, cve_status=cve_status)  # type: ignore[arg-type]
-    logger.info(f"Updated vulnerabilities status in Neo4j: {cve_status}")
+    assets_dir = Path(__file__).parent / "assets"
+    status_query = (assets_dir / "get_vulnerability_status.graphql").read_text(encoding="utf-8")
+    status_mutation = (assets_dir / "update_vulnerability_status.graphql").read_text(encoding="utf-8")
+
+    with httpx.Client(timeout=10) as client:
+        for cve_id, nuclei_status in cve_status.items():
+            query_payload = _graphql_request(
+                client,
+                isim_urls.graphql_url,
+                status_query,
+                {"cve_id": cve_id},
+            )
+            vulnerabilities = query_payload.get("data", {}).get("vulnerabilities", [])
+            if not vulnerabilities:
+                logger.warning("Skipping CVE %s because no vulnerability was found.", cve_id)
+                continue
+
+            current_status = _normalize_status(vulnerabilities[0].get("status"))
+            next_status = _compute_next_status(current_status, str(nuclei_status))
+            _graphql_request(
+                client,
+                isim_urls.graphql_url,
+                status_mutation,
+                {"cve_id": cve_id, "status": next_status},
+            )
+
+    logger.info("Updated vulnerabilities status in ISIM GraphQL: %s", cve_status)

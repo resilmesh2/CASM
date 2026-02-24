@@ -27,7 +27,6 @@ import time
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
-from temporalio import activity, workflow
 from temporalio.client import (
     Client,
     Schedule,
@@ -44,12 +43,12 @@ from config import AppConfig
 from cve_connector.nvd_cve.cpe_identifier import CpeIdentifier
 from cve_connector.nvd_cve.cve_client import search_cve_by_version
 from cve_connector.nvd_cve.cve_parser import parse_vulnerabilities
+from cve_connector.nvd_cve.CveConnectorClient import CVEConnectorClient
 from cve_connector.nvd_cve.toneo4j import (
-    get_software_versions_from_neo4j,
     move_cve_data_to_neo4j,
-    update_timestamp_for_software_version,
 )
 from temporal.lib import redis_handler
+from temporalio import activity, workflow
 
 if TYPE_CHECKING:
     from cve_connector.nvd_cve.nvd_types import NvdCvesApiResponse
@@ -90,8 +89,9 @@ def cve_version(
     :return: None
     :raises Exception: If Neo4j operations fail due to connection or query issues.
     """
+    cve_connector_client = CVEConnectorClient(password=neo4j_password, bolt=neo4j_bolt, user=neo4j_user)
     try:
-        versions_and_timestamps = get_software_versions_from_neo4j(neo4j_password, bolt=neo4j_bolt, user=neo4j_user)
+        versions_and_timestamps = cve_connector_client.get_all_software_versions()
     except Exception as e:
         logging.exception(f"Failed to retrieve software versions from Neo4j: {type(e).__name__}: {e}")
         raise
@@ -102,7 +102,7 @@ def cve_version(
 
     logging.info(f"Versions {len(versions_and_timestamps)}")
 
-    max_retries = 5
+    max_retries = 1
     retry_delay = 6
 
     def _parse_timestamp(timestamp: str | None) -> datetime | None:
@@ -202,12 +202,9 @@ def cve_version(
                 else:
                     obtained_all_results = True
 
-        update_timestamp_for_software_version(
+        cve_connector_client.update_timestamp_of_software_version(
             version,
             workflow_start.isoformat(),
-            neo4j_password,
-            neo4j_bolt,
-            neo4j_user,
         )
     return f"Executed CVE download for {len(versions_and_timestamps)} software versions."
 
