@@ -171,18 +171,18 @@ def cve_version(
                             parsed_data[slice_start : slice_start + 100],
                             version,
                             neo4j_password,
+                            neo4j_bolt,
+                            neo4j_user,
                             nvd_api_key,
-                            bolt=neo4j_bolt,
-                            user=neo4j_user,
                         )
                     else:
                         move_cve_data_to_neo4j(
                             parsed_data[slice_start:data_length],
                             version,
                             neo4j_password,
+                            neo4j_bolt,
+                            neo4j_user,
                             nvd_api_key,
-                            bolt=neo4j_bolt,
-                            user=neo4j_user,
                         )
                     logging.info(f"Successfully updated Neo4j with CVEs for {version}, slice_start: {slice_start}")
                     slice_start += 100

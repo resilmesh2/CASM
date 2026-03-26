@@ -45,9 +45,9 @@ def move_cve_data_to_neo4j(
     vulnerability_list: list[Vulnerability],
     cpe: str,
     neo4j_passwd: str,
+    bolt: str,
+    user: str,
     nvd_api_key: str | None = None,
-    bolt: str = "bolt://resilmesh-sap-neo4j:7687",
-    user: str = "neo4j",
 ) -> None:
     """
     Moves CVE data from Vulnerability objects into a Neo4j database.

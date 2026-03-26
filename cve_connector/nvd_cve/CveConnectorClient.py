@@ -21,7 +21,7 @@ GraphqlResponseT = TypeVar("GraphqlResponseT", GetVulnerabilityStatusResponse, U
 
 class CVEConnectorClient(AbstractClient):
     def __init__(
-        self, password: str, bolt: str = "bolt://resilmesh-sap-neo4j:7687", user: str = "neo4j", **kwargs: Any
+        self, password: str, bolt: str, user: str, **kwargs: Any
     ) -> None:
         """
         Initializes the CVEConnectorClient with Neo4j connection parameters.
