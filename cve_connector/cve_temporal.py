@@ -39,7 +39,7 @@ from temporalio.common import RetryPolicy
 from temporalio.exceptions import TemporalError
 from temporalio.worker import UnsandboxedWorkflowRunner, Worker
 
-from config import AppConfig
+from config import AppConfig, Config
 from cve_connector.nvd_cve.cpe_identifier import CpeIdentifier
 from cve_connector.nvd_cve.cve_client import search_cve_by_version
 from cve_connector.nvd_cve.cve_parser import parse_vulnerabilities
@@ -209,6 +209,14 @@ def cve_version(
     return f"Executed CVE download for {len(versions_and_timestamps)} software versions."
 
 
+def _get_neo4j_connection_settings(config: Config) -> tuple[str, str, str]:
+    return (
+        os.getenv("NEO4J_PASSWORD") or config.neo4j.password,
+        os.getenv("NEO4J_BOLT") or config.neo4j.bolt,
+        os.getenv("NEO4J_USER") or config.neo4j.user,
+    )
+
+
 class CveDatabaseUpdater:
     def run_database_update(self, workflow_start: datetime) -> None:
         """
@@ -221,21 +229,17 @@ class CveDatabaseUpdater:
         :raises Exception: If Neo4j operations fail due to connection or query issues.
         :raises KeyError: If required environment variables are missing.
         """
-        required_env_vars = ["NEO4J_PASSWORD", "NEO4J_BOLT", "NEO4J_USER"]
-        for var in required_env_vars:
-            if not os.getenv(var):
-                raise KeyError(f"Missing required environment variable: {var}")
-
-        config = AppConfig().get()
+        config = AppConfig.get()
         cve_config = config.cve_connector
+        neo4j_password, neo4j_bolt, neo4j_user = _get_neo4j_connection_settings(config)
 
         logging.info(f"NVD API KEY: {cve_config.nvd_api_key}")
 
         cve_version(
             workflow_start,
-            neo4j_password=os.getenv("NEO4J_PASSWORD", ""),
-            neo4j_bolt=os.getenv("NEO4J_BOLT", ""),
-            neo4j_user=os.getenv("NEO4J_USER", ""),
+            neo4j_password=neo4j_password,
+            neo4j_bolt=neo4j_bolt,
+            neo4j_user=neo4j_user,
             nvd_api_key=cve_config.nvd_api_key or os.getenv("NVD_KEY", ""),
         )
 
@@ -298,11 +302,16 @@ async def main() -> None:
     :raises ConnectionRefusedError: If connection to Temporal server fails after retries.
     :raises KeyError: If required environment variables are missing.
     """
-    required_env_vars = ["NEO4J_PASSWORD", "NEO4J_BOLT", "NEO4J_USER", "TEMPORAL_HOST", "TEMPORAL_PORT"]
+    config = AppConfig.get()
+    _, neo4j_bolt, neo4j_user = _get_neo4j_connection_settings(config)
+
+    required_env_vars = ["TEMPORAL_HOST", "TEMPORAL_PORT"]
     for env_var in required_env_vars:
         if not os.getenv(env_var):
             logging.error(f"Missing required environment variable: {env_var}")
             raise KeyError(f"Missing environment variable: {env_var}")
+
+    logging.info(f"Using Neo4j bolt endpoint {neo4j_bolt} with user {neo4j_user}")
 
     max_retries = 20
     retry_interval = 10
