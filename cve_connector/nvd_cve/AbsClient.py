@@ -12,8 +12,8 @@ class AbstractClient:
 
     def __init__(
         self,
-        bolt: str = "bolt://resilmesh-sap-neo4j:7687",
-        user: str = "neo4j",
+        bolt: str,
+        user: str,
         password: str | None = None,
         driver: Driver | None = None,
         lifetime: int = 200,
