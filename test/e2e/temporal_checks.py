@@ -112,7 +112,7 @@ async def wait_for_workflow_type(
     while datetime.now(tz=UTC) < deadline:
         try:
             workflows = await list_workflows_of_type(client, workflow_type)
-        except TemporalError as exc:  # Visibility may not be ready yet.
+        except TemporalError:  # Visibility may not be ready yet.
             last_seen = []
             await asyncio.sleep(poll_interval)
             continue

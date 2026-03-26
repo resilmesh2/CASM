@@ -27,6 +27,7 @@ import time
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
+from temporalio import activity, workflow
 from temporalio.client import (
     Client,
     Schedule,
@@ -48,7 +49,6 @@ from cve_connector.nvd_cve.toneo4j import (
     move_cve_data_to_neo4j,
 )
 from temporal.lib import redis_handler
-from temporalio import activity, workflow
 
 if TYPE_CHECKING:
     from cve_connector.nvd_cve.nvd_types import NvdCvesApiResponse

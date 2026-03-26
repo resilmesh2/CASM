@@ -6,6 +6,7 @@ from datetime import timedelta
 from typing import Any
 
 import yaml
+from temporalio import workflow
 from temporalio.client import (
     Client,
     Schedule,
@@ -19,7 +20,6 @@ from temporalio.common import RetryPolicy
 
 from config import AppConfig, TemporalConfig
 from temporal.component_calculations.risk_formula_calculation.activities import ComponentRiskFormulaActivities
-from temporalio import workflow
 
 logger = logging.getLogger(__name__)
 

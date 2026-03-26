@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Any
 
 from pytz import UTC
-
 from temporalio import activity
 
 from config import ISIMUrlsConfig

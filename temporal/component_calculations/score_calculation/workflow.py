@@ -3,6 +3,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from typing import Any
 
+from temporalio import workflow
 from temporalio.client import (
     Client,
     Schedule,
@@ -16,7 +17,6 @@ from temporalio.common import RetryPolicy
 
 from config import AppConfig, ISIMUrlsConfig, TemporalConfig
 from temporal.component_calculations.score_calculation.activities import ComponentScoreCalculationActivities
-from temporalio import workflow
 
 logger = logging.getLogger(__name__)
 

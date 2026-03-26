@@ -3,9 +3,9 @@ from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
 import httpx
+from temporalio import activity
 
 from config import ISIMUrlsConfig
-from temporalio import activity
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -5,12 +5,12 @@ from xml.etree import ElementTree
 
 import httpx
 import nmap3
+from temporalio import activity
 
 from config import ISIMUrlsConfig, NmapBasicConfig
 from temporal.lib import util
 from temporal.nmap.basic import parser_activities_impl
 from temporal.nmap.basic.dtos import NmapResults
-from temporalio import activity
 
 
 class NmapBasicActivities:

@@ -3,10 +3,10 @@ from typing import Any, Literal, TypedDict
 
 import httpx
 import msgspec
+from temporalio import activity
 
 from config import ISIMUrlsConfig
 from temporal.slp_enrichment import dtos
-from temporalio import activity
 
 
 class ISIMIpItemTD(TypedDict):
