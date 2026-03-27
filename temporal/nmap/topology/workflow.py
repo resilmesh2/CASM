@@ -5,12 +5,12 @@ from datetime import timedelta
 from typing import Any
 
 from structlog import getLogger
+from temporalio import workflow
 from temporalio.client import Client
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
 
 from config import AppConfig
 from temporal.nmap.topology.activities import NmapTopologyActivities
-from temporalio import workflow
 
 
 @workflow.defn(name="NmapTopologyWorkflow")
@@ -75,7 +75,7 @@ class NmapTopologyWorkflow:
         :return: A flat sequence of activity functions to be registered with a worker.
         """
         config = AppConfig.get()
-        activities = NmapTopologyActivities(config.isim)
+        activities = NmapTopologyActivities(config.isim_urls)
         return [*activities.get_activities()]
 
 
@@ -97,7 +97,7 @@ async def main() -> None:
         NmapTopologyWorkflow.run,
         args=(),
         id=workflow_id,
-        task_queue=config.temporal.nmap_task_queue,
+        task_queue=config.temporal.shared_task_queue,
         id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
     )
     workflow_description = await workflow_handle.describe()

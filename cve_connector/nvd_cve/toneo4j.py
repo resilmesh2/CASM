@@ -22,26 +22,32 @@ Dependencies:
   - re, logging modules.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import requests
 from packaging.version import Version
 
+from config import AppConfig
 from cve_connector.nvd_cve.cpe_identifier import CpeIdentifier
 from cve_connector.nvd_cve.CveConnectorClient import CVEConnectorClient
-from cve_connector.nvd_cve.vulnerability import Vulnerability
+from cve_connector.nvd_cve.nvd_types import VulnerabilityStatus
+
+if TYPE_CHECKING:
+    from cve_connector.nvd_cve.vulnerability import Vulnerability
 
 
 def move_cve_data_to_neo4j(
     vulnerability_list: list[Vulnerability],
     cpe: str,
     neo4j_passwd: str,
+    bolt: str,
+    user: str,
     nvd_api_key: str | None = None,
-    bolt: str = "bolt://resilmesh-sap-neo4j:7687",
-    user: str = "neo4j",
 ) -> None:
     """
     Moves CVE data from Vulnerability objects into a Neo4j database.
@@ -58,12 +64,13 @@ def move_cve_data_to_neo4j(
     :return: None
     """
     client = CVEConnectorClient(password=neo4j_passwd, bolt=bolt, user=user)
+    graphql_url = AppConfig.get().isim_urls.graphql_url
     cve_count_created = 0
     cve_count_updated = 0
     for vulnerability in vulnerability_list:
         vul_description = f"Assumed vulnerability with ID {vulnerability.cve}"
         if not client.cve_exists(vulnerability.cve):
-            client.create_new_vulnerability(vul_description)
+            client.create_new_vulnerability(vul_description, status=vulnerability.status)
             client.create_relationship_between_vulnerability_and_software_version(vul_description, cpe)
             client.create_cve_from_nvd(
                 cve_id=vulnerability.cve,
@@ -135,6 +142,19 @@ def move_cve_data_to_neo4j(
             client.create_relationship_between_cve_and_vulnerability(vulnerability.cve, vul_description)
             cve_count_created += 1
         else:
+            existing_last_modified = client.get_cve_last_modified(vulnerability.cve)
+            secondary_status = (
+                VulnerabilityStatus.ASSESSED.value
+                if VulnerabilityStatus.ASSESSED.value in vulnerability.status
+                else None
+            )
+            if (
+                secondary_status
+                and existing_last_modified
+                and vulnerability.lastModified
+                and existing_last_modified != vulnerability.lastModified
+            ):
+                secondary_status = VulnerabilityStatus.REASSESSED.value
             client.update_cve_from_nvd(
                 cve_id=vulnerability.cve,
                 description=vulnerability.description,
@@ -203,11 +223,18 @@ def move_cve_data_to_neo4j(
                 result_impacts=vulnerability.result_impacts,
             )
             client.create_relationship_between_cve_and_vulnerability(vulnerability.cve, vul_description)
+            client.update_vulnerability_status_for_cve(
+                cve_id=vulnerability.cve,
+                primary_status=VulnerabilityStatus.ESTIMATED.value,
+                secondary_status=secondary_status,
+                set_primary=False,
+                graphql_url=graphql_url,
+            )
             cve_count_updated += 1
     logging.info(f"Created {cve_count_created} CVEs, updated {cve_count_updated} CVEs")
 
 
-def check_ranges(cpe_match: dict[str, Any], version: str, nvd_api_key: str) -> bool:
+def check_ranges(cpe_match: dict[str, Any], version: str, nvd_api_key: str | None) -> bool:
     """
     Checks if a software version falls within the specified version range.
 
@@ -321,7 +348,11 @@ def check_configurations(
 
 
 def process_nvd_cpe(
-    client: CVEConnectorClient, cpe_match: dict[str, Any], vul_description: str, flag: bool, nvd_api_key
+    client: CVEConnectorClient,
+    cpe_match: dict[str, Any],
+    vul_description: str,
+    flag: bool,
+    nvd_api_key: str | None,
 ) -> bool:
     """
     Processes a CPE match to create relationships between vulnerabilities and software versions.
@@ -342,11 +373,16 @@ def process_nvd_cpe(
 
         if cpe.version.count(".") > 1:
             match = re.match(r"(?P<major>.*?)\.(?P<minor>.*?)\.(?P<build>.*)", cpe.version)
-            shortened_cpe = f"{cpe.vendor}:{cpe.product}:{match.group(1)}.{match.group(2)}"
-            if not vulnerability_created:
-                vulnerability_created = True
-                client.create_new_vulnerability(vul_description)
-                client.create_relationship_between_vulnerability_and_software_version(vul_description, shortened_cpe)
+            if match is not None:
+                shortened_cpe = f"{cpe.vendor}:{cpe.product}:{match.group('major')}.{match.group('minor')}"
+                if not vulnerability_created:
+                    vulnerability_created = True
+                    client.create_new_vulnerability(vul_description)
+                    client.create_relationship_between_vulnerability_and_software_version(
+                        vul_description, shortened_cpe
+                    )
+            else:
+                logging.warning(f"Unable to shorten CPE version string: {cpe.version}")
 
         for possible_software_version in [
             f"{cpe.vendor}:{cpe.product}:{cpe.version}",
@@ -366,7 +402,7 @@ def process_nvd_cpe(
             return vulnerability_created
 
         vendor_and_product = f"{cpe.vendor}:{cpe.product}"
-        sw_versions = [v["software"]["version"] for v in client.get_versions_of_product(vendor_and_product)]
+        sw_versions = [v.software.version for v in client.get_versions_of_product(vendor_and_product)]
 
         for sw_version in sw_versions:
             possible_version = sw_version.split(":")[-1]
@@ -382,35 +418,3 @@ def process_nvd_cpe(
         logging.warning(f"Skipping CPE processing due to error: {e}")
 
     return vulnerability_created
-
-
-def get_software_versions_from_neo4j(
-    neo4j_passwd: str, bolt: str = "bolt://resilmesh-sap-neo4j:7687", user: str = "neo4j"
-) -> list[dict[str, Any]]:
-    """
-    Retrieves all software versions stored in the Neo4j database.
-
-    :param neo4j_passwd: Password for Neo4j authentication.
-    :param bolt: Bolt connection string. Defaults to "bolt://resilmesh-sap-neo4j:7687".
-    :param user: Username for Neo4j. Defaults to "neo4j".
-    :return: List of software version strings.
-    """
-    client = CVEConnectorClient(password=neo4j_passwd, bolt=bolt, user=user)
-    return client.get_all_software_versions()
-
-
-def update_timestamp_for_software_version(
-    software_version: str, timestamp: str, neo4j_passwd: str, bolt: str = "bolt://resilmesh-sap-neo4j:7687", user: str = "neo4j"
-) -> None:
-    """
-    Creates or updates a timestamp for software version.
-
-    :param software_version: Software version that will be updated.
-    :param timestamp: Timestamp of the last retrieval of CVEs from the NVD.
-    :param neo4j_passwd: Password to Neo4j database.
-    :param bolt: Bolt connection string. Defaults to "bolt://resilmesh-sap-neo4j:7687".
-    :param user: Username for Neo4j. Defaults to "neo4j".
-    :return: None
-    """
-    client = CVEConnectorClient(password=neo4j_passwd, bolt=bolt, user=user)
-    client.update_timestamp_of_software_version(software_version, timestamp)

@@ -23,7 +23,7 @@ services:
 
   resilmesh-sap-casm-component-calculation-worker:
     container_name: resilmesh-sap-casm-component-calculation-worker
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
@@ -35,7 +35,7 @@ services:
 #        condition: service_healthy
     networks:
       - resilmesh_network
-  
+
   resilmesh-sap-casm-worker:
     container_name: resilmesh-sap-casm-easm-worker
     build: .
@@ -131,10 +131,10 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=supertestovaciheslo
 
-  resilmesh-sap-casm-nmap-worker:
-    container_name: resilmesh-sap-casm-nmap-worker
+  resilmesh-sap-casm-shared-worker:
+    container_name: resilmesh-sap-casm-shared-worker
     build:
-      dockerfile: nmap.Dockerfile
+      dockerfile: shared.Dockerfile
     restart: unless-stopped
     volumes:
       - ./docker/config.yaml:/app/config/config.yaml

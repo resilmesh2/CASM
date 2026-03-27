@@ -2,15 +2,15 @@ from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
 import httpx
+from temporalio import activity
 
-from config import EasmScannerConfig, ISIMConfig, RedisConfig
+from config import EasmScannerConfig, ISIMUrlsConfig, RedisConfig
 from temporal.easm import activities_impl
 from temporal.lib.util import validate_input_domain
-from temporalio import activity
 
 
 class EasmActivities:
-    def __init__(self, redis_config: RedisConfig, isim_config: ISIMConfig) -> None:
+    def __init__(self, redis_config: RedisConfig, isim_config: ISIMUrlsConfig) -> None:
         self.isim_config = isim_config
         self.redis_config = redis_config
 
@@ -46,7 +46,7 @@ class EasmActivities:
         :return: Redis UUID key where httpx JSONL output is stored.
         :raises temporal.lib.exceptions.EnumerationToolError: If the httpx command fails.
         """
-        return await activities_impl.run_httpx(domains_to_probe_uuid, httpx_path, self.redis_config)
+        return await activities_impl.run_httpx(domains_to_probe_uuid, httpx_path)
 
     @activity.defn
     async def parse_result_and_send_to_api(self, active_httpx_result_uuid: str) -> str:
@@ -59,12 +59,12 @@ class EasmActivities:
         :param active_httpx_result_uuid: Redis key from which to load httpx JSONL output.
         :return: The response body returned by the ISIM API.
         """
-        parsed_httpx = activities_impl.parse_httpx_output(active_httpx_result_uuid, self.redis_config)
+        parsed_httpx = activities_impl.parse_httpx_output(active_httpx_result_uuid)
         payload = [item.to_dict() for item in parsed_httpx]
         headers = {"Content-Type": "application/json"}
 
         async with httpx.AsyncClient() as conn:
-            return (await conn.post(f"{self.isim_config.url}/easm", json=payload, headers=headers)).text
+            return (await conn.post(f"{self.isim_config.rest_url}/easm", json=payload, headers=headers)).text
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
         return [self.run_httpx, self.parse_result_and_send_to_api, self.validate_input]

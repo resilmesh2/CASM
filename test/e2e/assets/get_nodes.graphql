@@ -1,0 +1,19 @@
+query Nodes {
+    nodeObjects {
+        ips {
+            domain_names {
+                domain_name
+            }
+        }
+        host {
+            network_services {
+                service
+                protocol
+                port
+            }
+            software_versions {
+                version
+            }
+        }
+    }
+}

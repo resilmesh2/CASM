@@ -1,0 +1,36 @@
+active_automations:
+  base-risk:
+    calculation_method: weighted_avg
+    components:
+    - current_value: 0
+      max_value: 10
+      name: Criticality
+      neo4jProperty: criticality
+      type: centrality
+      weight: 0.333
+    - current_value: 0
+      max_value: 10
+      name: CVSS
+      neo4jProperty: cvss_score
+      type: vulnerability
+      weight: 0.333
+    - current_value: 0
+      max_value: 10
+      name: Threat
+      neo4jProperty: threatScore
+      type: threat
+      weight: 0.333
+    created_date: '2026-01-19T20:05:01.458226'
+    custom_formula: ''
+    enabled: true
+    formula_config:
+      criticality: 0.333
+      cvss: 0.333
+      threat: 0.333
+    formula_name: Base Risk
+    hasSchedule: false
+    id: base-risk
+    target_property: Risk Score
+    target_type: all
+    target_values: []
+    update_frequency: hourly

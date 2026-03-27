@@ -8,6 +8,7 @@ from config import AppConfig
 from temporal.easm.active_enumeration.workflow import ActiveEnumeratonWorkflow
 from temporal.easm.parent_workflow import ParentEasmWorkflow
 from temporal.easm.passive_enumeration.workflow import PassiveEnumerationWorkflow
+from temporal.lib import redis_handler
 
 
 async def main() -> None:
@@ -22,6 +23,7 @@ async def main() -> None:
     workflow_runner = SandboxedWorkflowRunner(
         restrictions=SandboxRestrictions.default.with_passthrough_modules("temporal.easm", "config")
     )
+    redis_handler.init_redis()
 
     worker = Worker(
         client=client,

@@ -14,16 +14,16 @@ class Host:
 class Subnet:
     ip_range: str
     note: str = field(default="")
-    contacts: list[str] = field(default_factory=list)
-    parents: list[str] = field(default_factory=list)
-    org_units: list[str] = field(default_factory=list)
+    contacts: list[str] = field(default_factory=list[str])
+    parents: list[str] = field(default_factory=list[str])
+    org_units: list[str] = field(default_factory=list[str])
 
 
 @dataclass
 class Device:
     name: str
     ip_address: str
-    org_units: list[str] = field(default_factory=list)
+    org_units: list[str] = field(default_factory=list[str])
 
 
 @dataclass
@@ -31,7 +31,10 @@ class SoftwareVersion:
     version: str
     description: str
     ip_addresses: list[str]
-    tag: list[str]
+    tag: list[str] = field(default_factory=list[str])
+    service: str | None = None
+    protocol: str | None = None
+    port: int | None = None
 
 
 @dataclass
@@ -42,8 +45,8 @@ class Application:
 
 @dataclass
 class NmapResults:
-    hosts: list[Host] = field(default_factory=list)
-    subnets: list[Subnet] = field(default_factory=list)
-    devices: list[Device] = field(default_factory=list)
-    software_versions: list[SoftwareVersion] = field(default_factory=list)
-    applications: list[Application] = field(default_factory=list)
+    hosts: list[Host] = field(default_factory=list[Host])
+    subnets: list[Subnet] = field(default_factory=list[Subnet])
+    devices: list[Device] = field(default_factory=list[Device])
+    software_versions: list[SoftwareVersion] = field(default_factory=list[SoftwareVersion])
+    applications: list[Application] = field(default_factory=list[Application])

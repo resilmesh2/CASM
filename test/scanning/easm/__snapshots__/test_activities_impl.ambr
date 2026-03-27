@@ -1,0 +1,26 @@
+# serializer version: 1
+# name: TestDetermineSoftwareVersions.test_determine_software_versions_deduplication
+  list([
+    dict({
+      'name': 'nginx:1.24',
+      'version': 'cpe:2.3:a:nginx:nginx:1.24:*:*:*:*:*:*:*',
+    }),
+  ])
+# ---
+# name: TestDetermineSoftwareVersions.test_determine_software_versions_success
+  list([
+    dict({
+      'name': 'nginx:1.24',
+      'version': 'cpe:2.3:a:nginx:nginx:1.24:*:*:*:*:*:*:*',
+    }),
+    dict({
+      'name': 'Apache:2.4',
+      'version': 'cpe:2.3:a:apache:http_server:2.4:*:*:*:*:*:*:*',
+    }),
+  ])
+# ---
+# name: TestParseHttpxOutput.test_parse_httpx_output_success
+  list([
+    EasyEASMParsedResult(port=443, protocol='https', service='https', software_versions=[{'name': 'nginx:1.24', 'version': 'cpe:2.3:a:nginx:nginx:1.24:*:*:*:*:*:*:*'}], ip='1.2.3.4', domain_name='example.com'),
+  ])
+# ---

@@ -1,0 +1,112 @@
+# serializer version: 1
+# name: TestParseDataForNucleiScan.test_parse_handles_missing_node
+  dict({
+    'unknown:http:80': dict({
+      'cves': list([
+        'CVE-2021-12345',
+      ]),
+      'ip_address': 'unknown',
+      'port': 80,
+      'protocol': 'tcp',
+      'service': 'http',
+      'target': 'unknown',
+      'templates': list([
+      ]),
+    }),
+  })
+# ---
+# name: TestParseDataForNucleiScan.test_parse_service_data_with_no_domain_name
+  dict({
+    '10.0.0.5:ssh:22': dict({
+      'cves': list([
+        'CVE-2020-99999',
+      ]),
+      'ip_address': '10.0.0.5',
+      'port': 22,
+      'protocol': 'tcp',
+      'service': 'ssh',
+      'target': '10.0.0.5',
+      'templates': list([
+      ]),
+    }),
+  })
+# ---
+# name: TestParseDataForNucleiScan.test_parse_valid_service_data
+  dict({
+    'dvwa.resilmesh_network:http:80': dict({
+      'cves': list([
+        'CVE-2022-22719',
+        'CVE-2024-27316',
+        'CVE-2024-47252',
+        'CVE-2025-49812',
+        'CVE-2025-53020',
+      ]),
+      'ip_address': '172.19.0.5',
+      'port': 80,
+      'protocol': 'tcp',
+      'service': 'http',
+      'target': 'dvwa.resilmesh_network',
+      'templates': list([
+        '/path/to/template.yaml',
+      ]),
+    }),
+    'metasploitable3.resilmesh_network:ftp:21': dict({
+      'cves': list([
+        'CVE-2023-48795',
+        'CVE-2023-51713',
+      ]),
+      'ip_address': '172.19.0.4',
+      'port': 21,
+      'protocol': 'tcp',
+      'service': 'ftp',
+      'target': 'metasploitable3.resilmesh_network',
+      'templates': list([
+        '/path/to/template.yaml',
+      ]),
+    }),
+    'metasploitable3.resilmesh_network:http:80': dict({
+      'cves': list([
+        'CVE-2022-22719',
+        'CVE-2024-27316',
+        'CVE-2025-49812',
+        'CVE-2025-53020',
+      ]),
+      'ip_address': '172.19.0.4',
+      'port': 80,
+      'protocol': 'tcp',
+      'service': 'http',
+      'target': 'metasploitable3.resilmesh_network',
+      'templates': list([
+        '/path/to/template.yaml',
+      ]),
+    }),
+    'metasploitable3.resilmesh_network:ipp:631': dict({
+      'cves': list([
+        'CVE-2018-4300',
+        'CVE-2022-26691',
+      ]),
+      'ip_address': '172.19.0.4',
+      'port': 631,
+      'protocol': 'tcp',
+      'service': 'ipp',
+      'target': 'metasploitable3.resilmesh_network',
+      'templates': list([
+        '/path/to/template.yaml',
+      ]),
+    }),
+    'metasploitable3.resilmesh_network:ssh:22': dict({
+      'cves': list([
+        'CVE-2023-51385',
+        'CVE-2023-51767',
+      ]),
+      'ip_address': '172.19.0.4',
+      'port': 22,
+      'protocol': 'tcp',
+      'service': 'ssh',
+      'target': 'metasploitable3.resilmesh_network',
+      'templates': list([
+        '/path/to/template.yaml',
+      ]),
+    }),
+  })
+# ---

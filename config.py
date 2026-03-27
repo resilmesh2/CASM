@@ -23,14 +23,16 @@ class TemporalConfig:
     url: str = TEMPORAL_URL
     namespace: str = TEMPORAL_NAMESPACE
     easm_task_queue: str = "easm"
-    nmap_task_queue: str = "nmap"
+    shared_task_queue: str = "shared"
     cve_connector_task_queue: str = "cve_connector"
     slp_enrichment_task_queue: str = "slp_enrichment"
+    component_calculations: str = "component_calculations"
 
 
 @dataclass
 class RedisConfig:
     host: str
+    db: int
     username: str | None = None
     password: str | None = None
     port: int = 6379
@@ -41,12 +43,14 @@ class NmapBasicConfig:
     targets: list[str]
     arguments: str
     org_unit_name: str = "Internal IT"
-    tag: list[str] = field(default_factory=list)
+    tag: list[str] = field(default_factory=list[str])
 
 
 @dataclass
-class ISIMConfig:
-    url: str
+class ISIMUrlsConfig:
+    rest_url: str
+    graphql_url: str
+    risk_url: str
 
 
 @dataclass
@@ -97,7 +101,7 @@ class Config:
     redis: RedisConfig
     nmap_basic: NmapBasicConfig
     nmap_topology: NmapTopologyConfig
-    isim: ISIMConfig
+    isim_urls: ISIMUrlsConfig
     easm_scanner: EasmScannerConfig
     slp_enrichment: SLPEnrichmentConfig
     cve_connector: CveConnectorConfig

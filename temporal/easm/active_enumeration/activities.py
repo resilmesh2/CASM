@@ -1,15 +1,12 @@
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
-from config import RedisConfig
-from temporal.easm.active_enumeration import activities_impl
 from temporalio import activity
+
+from temporal.easm.active_enumeration import activities_impl
 
 
 class ActiveEnumerationActivities:
-    def __init__(self, redis_config: RedisConfig) -> None:
-        self.redis_config = redis_config
-
     @activity.defn
     async def run_dnsx_bruteforce(self, passive_scan_domains_uuid: str, wordlist: str, threads: str) -> str:
         """
@@ -21,9 +18,7 @@ class ActiveEnumerationActivities:
         :return: Redis key where dnsx bruteforce results are stored.
         :raises temporal.lib.exceptions.EnumerationToolError: If the dnsx command fails.
         """
-        return await activities_impl.run_dnsx_bruteforce(
-            passive_scan_domains_uuid, wordlist, threads, self.redis_config
-        )
+        return await activities_impl.run_dnsx_bruteforce(passive_scan_domains_uuid, wordlist, threads)
 
     @activity.defn
     async def run_alterx(self, dnsx_output_uuid: str) -> str:
@@ -34,7 +29,7 @@ class ActiveEnumerationActivities:
         :return: Redis key where alterx-generated domains are stored.
         :raises temporal.lib.exceptions.EnumerationToolError: If the alterx command fails.
         """
-        return await activities_impl.run_alterx(dnsx_output_uuid, self.redis_config)
+        return await activities_impl.run_alterx(dnsx_output_uuid)
 
     @activity.defn
     async def run_dnsx_resolver(self, dnsx_output_uuid: str) -> str:
@@ -45,7 +40,7 @@ class ActiveEnumerationActivities:
         :return: Redis key where resolvable/valid subdomains are stored.
         :raises temporal.lib.exceptions.EnumerationToolError: If the dnsx command fails.
         """
-        return await activities_impl.run_dnsx_resolver(dnsx_output_uuid, self.redis_config)
+        return await activities_impl.run_dnsx_resolver(dnsx_output_uuid)
 
     def get_activities(self) -> Sequence[Callable[..., Awaitable[Any]]]:
         return [self.run_dnsx_bruteforce, self.run_alterx, self.run_dnsx_resolver]

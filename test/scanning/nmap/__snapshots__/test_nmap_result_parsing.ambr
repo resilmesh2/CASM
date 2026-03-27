@@ -1,0 +1,19 @@
+# serializer version: 1
+# name: TestParseNmapXml.test_multiple_hostnames
+  NmapResults(hosts=[Host(ip_address='192.168.1.10', tag=['multi-hostname'], domain_names=['host1.example.com', 'host1.local', 'alias.example.com'], uris=[], subnets=['192.168.1.0/24'])], subnets=[Subnet(ip_range='192.168.1.0/24', note='192.168.1.0/24', contacts=[], parents=[], org_units=[])], devices=[Device(name='host1.example.com', ip_address='192.168.1.10', org_units=[])], software_versions=[], applications=[])
+# ---
+# name: TestParseNmapXml.test_multiple_hosts
+  NmapResults(hosts=[Host(ip_address='192.168.1.60', tag=['multi-host'], domain_names=[], uris=[], subnets=['192.168.1.0/24'])], subnets=[Subnet(ip_range='192.168.1.0/24', note='192.168.1.0/24', contacts=[], parents=[], org_units=[])], devices=[Device(name='192.168.1.60', ip_address='192.168.1.60', org_units=[])], software_versions=[], applications=[Application(name='http (port 80/tcp)', device='192.168.1.60')])
+# ---
+# name: TestParseNmapXml.test_parse_host_down
+  NmapResults(hosts=[], subnets=[], devices=[], software_versions=[], applications=[])
+# ---
+# name: TestParseNmapXml.test_parse_host_with_closed_ports
+  NmapResults(hosts=[Host(ip_address='192.168.1.60', tag=['filtered'], domain_names=[], uris=[], subnets=['192.168.1.0/24'])], subnets=[Subnet(ip_range='192.168.1.0/24', note='192.168.1.0/24', contacts=[], parents=[], org_units=[])], devices=[Device(name='192.168.1.60', ip_address='192.168.1.60', org_units=[])], software_versions=[], applications=[Application(name='http (port 80/tcp)', device='192.168.1.60')])
+# ---
+# name: TestParseNmapXml.test_parse_host_without_cpe
+  NmapResults(hosts=[Host(ip_address='192.168.1.60', tag=['no-cpe'], domain_names=[], uris=[], subnets=['192.168.1.0/24'])], subnets=[Subnet(ip_range='192.168.1.0/24', note='192.168.1.0/24', contacts=[], parents=[], org_units=[])], devices=[Device(name='192.168.1.60', ip_address='192.168.1.60', org_units=[])], software_versions=[], applications=[Application(name='http (port 80/tcp)', device='192.168.1.60')])
+# ---
+# name: TestParseNmapXml.test_parse_sample_nmap_xml
+  NmapResults(hosts=[], subnets=[], devices=[], software_versions=[], applications=[])
+# ---
