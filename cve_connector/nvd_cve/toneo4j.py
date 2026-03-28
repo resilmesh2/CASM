@@ -35,7 +35,7 @@ from packaging.version import Version
 from config import AppConfig
 from cve_connector.nvd_cve.cpe_identifier import CpeIdentifier
 from cve_connector.nvd_cve.CveConnectorClient import CVEConnectorClient
-from cve_connector.nvd_cve.nvd_types import VulnerabilityStatus
+from cve_connector.nvd_cve.structs import VulnerabilityStatus
 
 if TYPE_CHECKING:
     from cve_connector.nvd_cve.vulnerability import Vulnerability

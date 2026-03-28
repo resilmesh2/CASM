@@ -27,7 +27,7 @@ from typing import Any
 import msgspec
 import requests
 
-from cve_connector.nvd_cve.nvd_types import NvdCvesApiResponse
+from cve_connector.nvd_cve.structs import NvdCvesApiResponse
 
 
 def search_cve_by_date_range(
