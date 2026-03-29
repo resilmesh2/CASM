@@ -24,176 +24,8 @@
           'description': 'Microsoft Internet Information Services (IIS), when accessed through a TCP connection with a large window size, allows remote attackers to cause a denial of service (network bandwidth consumption) via a Range header that specifies multiple copies of the same fragment.  NOTE: the severity of this issue has been disputed by third parties, who state that the large window size required by the attack is not normally supported or configured by the server, or that a DDoS-style attack would accomplish the same goal',
         }),
         dict({
-          'cve_id': 'CVE-2007-2768',
-          'description': 'OpenSSH, when using OPIE (One-Time Passwords in Everything) for PAM, allows remote attackers to determine the existence of certain user accounts, which displays a different response if the user account exists and is configured to use one-time passwords (OTP), a similar issue to CVE-2007-2243.',
-        }),
-        dict({
           'cve_id': 'CVE-2007-3205',
           'description': 'The parse_str function in (1) PHP, (2) Hardened-PHP, and (3) Suhosin, when called without a second parameter, might allow remote attackers to overwrite arbitrary variables by specifying variable names and values in the string to be parsed.  NOTE: it is not clear whether this is a design limitation of the function or a bug in PHP, although it is likely to be regarded as a bug in Hardened-PHP and Suhosin.',
-        }),
-        dict({
-          'cve_id': 'CVE-2008-1033',
-          'description': 'The scheduler in CUPS in Apple Mac OS X 10.5 before 10.5.3, when debug logging is enabled and a printer requires a password, allows attackers to obtain sensitive information (credentials) by reading the log data, related to "authentication environment variables."',
-        }),
-        dict({
-          'cve_id': 'CVE-2008-3844',
-          'description': 'Certain Red Hat Enterprise Linux (RHEL) 4 and 5 packages for OpenSSH, as signed in August 2008 using a legitimate Red Hat GPG key, contain an externally introduced modification (Trojan Horse) that allows the package authors to have an unknown impact.  NOTE: since the malicious packages were not distributed from any official Red Hat sources, the scope of this issue is restricted to users who may have obtained these packages through unofficial distribution points.  As of 20080827, no unofficial distributions of this software are known.',
-        }),
-        dict({
-          'cve_id': 'CVE-2009-0032',
-          'description': 'CUPS on Mandriva Linux 2008.0, 2008.1, 2009.0, Corporate Server (CS) 3.0 and 4.0, and Multi Network Firewall (MNF) 2.0 allows local users to overwrite arbitrary files via a symlink attack on the /tmp/pdf.log temporary file.',
-        }),
-        dict({
-          'cve_id': 'CVE-2013-5704',
-          'description': 'The mod_headers module in the Apache HTTP Server 2.2.22 allows remote attackers to bypass "RequestHeader unset" directives by placing a header in the trailer portion of data sent with chunked transfer coding.  NOTE: the vendor states "this is not a security issue in httpd as such."',
-        }),
-        dict({
-          'cve_id': 'CVE-2013-6438',
-          'description': 'The dav_xml_get_cdata function in main/util.c in the mod_dav module in the Apache HTTP Server before 2.4.8 does not properly remove whitespace characters from CDATA sections, which allows remote attackers to cause a denial of service (daemon crash) via a crafted DAV WRITE request.',
-        }),
-        dict({
-          'cve_id': 'CVE-2013-6891',
-          'description': 'lppasswd in CUPS before 1.7.1, when running with setuid privileges, allows local users to read portions of arbitrary files via a modified HOME environment variable and a symlink attack involving .cups/client.conf.',
-        }),
-        dict({
-          'cve_id': 'CVE-2014-0098',
-          'description': 'The log_cookie function in mod_log_config.c in the mod_log_config module in the Apache HTTP Server before 2.4.8 allows remote attackers to cause a denial of service (segmentation fault and daemon crash) via a crafted cookie that is not properly handled during truncation.',
-        }),
-        dict({
-          'cve_id': 'CVE-2014-0117',
-          'description': 'The mod_proxy module in the Apache HTTP Server 2.4.x before 2.4.10, when a reverse proxy is enabled, allows remote attackers to cause a denial of service (child-process crash) via a crafted HTTP Connection header.',
-        }),
-        dict({
-          'cve_id': 'CVE-2014-0118',
-          'description': 'The deflate_in_filter function in mod_deflate.c in the mod_deflate module in the Apache HTTP Server before 2.4.10, when request body decompression is enabled, allows remote attackers to cause a denial of service (resource consumption) via crafted request data that decompresses to a much larger size.',
-        }),
-        dict({
-          'cve_id': 'CVE-2014-0226',
-          'description': 'Race condition in the mod_status module in the Apache HTTP Server before 2.4.10 allows remote attackers to cause a denial of service (heap-based buffer overflow), or possibly obtain sensitive credential information or execute arbitrary code, via a crafted request that triggers improper scoreboard handling within the status_handler function in modules/generators/mod_status.c and the lua_ap_scoreboard_worker function in modules/lua/lua_request.c.',
-        }),
-        dict({
-          'cve_id': 'CVE-2014-0231',
-          'description': 'The mod_cgid module in the Apache HTTP Server before 2.4.10 does not have a timeout mechanism, which allows remote attackers to cause a denial of service (process hang) via a request to a CGI script that does not read from its stdin file descriptor.',
-        }),
-        dict({
-          'cve_id': 'CVE-2014-2856',
-          'description': 'Cross-site scripting (XSS) vulnerability in scheduler/client.c in Common Unix Printing System (CUPS) before 1.7.2 allows remote attackers to inject arbitrary web script or HTML via the URL path, related to the is_path_absolute function.',
-        }),
-        dict({
-          'cve_id': 'CVE-2014-3523',
-          'description': 'Memory leak in the winnt_accept function in server/mpm/winnt/child.c in the WinNT MPM in the Apache HTTP Server 2.4.x before 2.4.10 on Windows, when the default AcceptFilter is enabled, allows remote attackers to cause a denial of service (memory consumption) via crafted requests.',
-        }),
-        dict({
-          'cve_id': 'CVE-2014-3537',
-          'description': 'The web interface in CUPS before 1.7.4 allows local users in the lp group to read arbitrary files via a symlink attack on a file in /var/cache/cups/rss/.',
-        }),
-        dict({
-          'cve_id': 'CVE-2014-3581',
-          'description': 'The cache_merge_headers_out function in modules/cache/cache_util.c in the mod_cache module in the Apache HTTP Server before 2.4.11 allows remote attackers to cause a denial of service (NULL pointer dereference and application crash) via an empty HTTP Content-Type header.',
-        }),
-        dict({
-          'cve_id': 'CVE-2014-5030',
-          'description': 'CUPS before 2.0 allows local users to read arbitrary files via a symlink attack on (1) index.html, (2) index.class, (3) index.pl, (4) index.php, (5) index.pyc, or (6) index.py.',
-        }),
-        dict({
-          'cve_id': 'CVE-2014-5031',
-          'description': 'The web interface in CUPS before 2.0 does not check that files have world-readable permissions, which allows remote attackers to obtains sensitive information via unspecified vectors.',
-        }),
-        dict({
-          'cve_id': 'CVE-2014-8109',
-          'description': 'mod_lua.c in the mod_lua module in the Apache HTTP Server 2.3.x and 2.4.x through 2.4.10 does not support an httpd configuration in which the same Lua authorization provider is used with different arguments within different contexts, which allows remote attackers to bypass intended access restrictions in opportunistic circumstances by leveraging multiple Require directives, as demonstrated by a configuration that specifies authorization for one group to access a certain directory, and authorization for a second group to access a second directory.',
-        }),
-        dict({
-          'cve_id': 'CVE-2014-9679',
-          'description': 'Integer underflow in the cupsRasterReadPixels function in filter/raster.c in CUPS before 2.0.2 allows remote attackers to have unspecified impact via a malformed compressed raster file, which triggers a buffer overflow.',
-        }),
-        dict({
-          'cve_id': 'CVE-2015-0228',
-          'description': 'The lua_websocket_read function in lua_request.c in the mod_lua module in the Apache HTTP Server through 2.4.12 allows remote attackers to cause a denial of service (child-process crash) by sending a crafted WebSocket Ping frame after a Lua script has called the wsupgrade function.',
-        }),
-        dict({
-          'cve_id': 'CVE-2015-3183',
-          'description': 'The chunked transfer coding implementation in the Apache HTTP Server before 2.4.14 does not properly parse chunk headers, which allows remote attackers to conduct HTTP request smuggling attacks via a crafted request, related to mishandling of large chunk-size values and invalid chunk-extension characters in modules/http/http_filters.c.',
-        }),
-        dict({
-          'cve_id': 'CVE-2015-3185',
-          'description': 'The ap_some_auth_required function in server/request.c in the Apache HTTP Server 2.4.x before 2.4.14 does not consider that a Require directive may be associated with an authorization setting rather than an authentication setting, which allows remote attackers to bypass intended access restrictions in opportunistic circumstances by leveraging the presence of a module that relies on the 2.2 API behavior.',
-        }),
-        dict({
-          'cve_id': 'CVE-2015-3306',
-          'description': 'The mod_copy module in ProFTPD 1.3.5 allows remote attackers to read and write to arbitrary files via the site cpfr and site cpto commands.',
-        }),
-        dict({
-          'cve_id': 'CVE-2015-5352',
-          'description': 'The x11_open_helper function in channels.c in ssh in OpenSSH before 6.9, when ForwardX11Trusted mode is not used, lacks a check of the refusal deadline for X connections, which makes it easier for remote attackers to bypass intended access restrictions via a connection outside of the permitted time window.',
-        }),
-        dict({
-          'cve_id': 'CVE-2015-5600',
-          'description': 'The kbdint_next_device function in auth2-chall.c in sshd in OpenSSH through 6.9 does not properly restrict the processing of keyboard-interactive devices within a single connection, which makes it easier for remote attackers to conduct brute-force attacks or cause a denial of service (CPU consumption) via a long and duplicative list in the ssh -oKbdInteractiveDevices option, as demonstrated by a modified client that provides a different password for each pam element on this list.',
-        }),
-        dict({
-          'cve_id': 'CVE-2015-6563',
-          'description': 'The monitor component in sshd in OpenSSH before 7.0 on non-OpenBSD platforms accepts extraneous username data in MONITOR_REQ_PAM_INIT_CTX requests, which allows local users to conduct impersonation attacks by leveraging any SSH login access in conjunction with control of the sshd uid to send a crafted MONITOR_REQ_PWNAM request, related to monitor.c and monitor_wrap.c.',
-        }),
-        dict({
-          'cve_id': 'CVE-2015-6564',
-          'description': 'Use-after-free vulnerability in the mm_answer_pam_free_ctx function in monitor.c in sshd in OpenSSH before 7.0 on non-OpenBSD platforms might allow local users to gain privileges by leveraging control of the sshd uid to send an unexpectedly early MONITOR_REQ_PAM_FREE_CTX request.',
-        }),
-        dict({
-          'cve_id': 'CVE-2015-9253',
-          'description': 'An issue was discovered in PHP 7.3.x before 7.3.0alpha3, 7.2.x before 7.2.8, and before 7.1.20. The php-fpm master process restarts a child process in an endless loop when using program execution functions (e.g., passthru, exec, shell_exec, or system) with a non-blocking STDIN stream, causing this master process to consume 100% of the CPU, and consume disk space with a large volume of error logs, as demonstrated by an attack by a customer of a shared-hosting facility.',
-        }),
-        dict({
-          'cve_id': 'CVE-2016-0736',
-          'description': 'In Apache HTTP Server versions 2.4.0 to 2.4.23, mod_session_crypto was encrypting its data/cookie using the configured ciphers with possibly either CBC or ECB modes of operation (AES256-CBC by default), hence no selectable or builtin authenticated encryption. This made it vulnerable to padding oracle attacks, particularly with CBC.',
-        }),
-        dict({
-          'cve_id': 'CVE-2016-10009',
-          'description': 'Untrusted search path vulnerability in ssh-agent.c in ssh-agent in OpenSSH before 7.4 allows remote attackers to execute arbitrary local PKCS#11 modules by leveraging control over a forwarded agent-socket.',
-        }),
-        dict({
-          'cve_id': 'CVE-2016-10010',
-          'description': 'sshd in OpenSSH before 7.4, when privilege separation is not used, creates forwarded Unix-domain sockets as root, which might allow local users to gain privileges via unspecified vectors, related to serverloop.c.',
-        }),
-        dict({
-          'cve_id': 'CVE-2016-10011',
-          'description': 'authfile.c in sshd in OpenSSH before 7.4 does not properly consider the effects of realloc on buffer contents, which might allow local users to obtain sensitive private-key information by leveraging access to a privilege-separated child process.',
-        }),
-        dict({
-          'cve_id': 'CVE-2016-10012',
-          'description': 'The shared memory manager (associated with pre-authentication compression) in sshd in OpenSSH before 7.4 does not ensure that a bounds check is enforced by all compilers, which might allows local users to gain privileges by leveraging access to a sandboxed privilege-separation process, related to the m_zback and m_zlib data structures.',
-        }),
-        dict({
-          'cve_id': 'CVE-2016-10708',
-          'description': 'sshd in OpenSSH before 7.4 allows remote attackers to cause a denial of service (NULL pointer dereference and daemon crash) via an out-of-sequence NEWKEYS message, as demonstrated by Honggfuzz, related to kex.c and packet.c.',
-        }),
-        dict({
-          'cve_id': 'CVE-2016-1908',
-          'description': 'The client in OpenSSH before 7.2 mishandles failed cookie generation for untrusted X11 forwarding and relies on the local X11 server for access-control decisions, which allows remote X11 clients to trigger a fallback and obtain trusted X11 forwarding privileges by leveraging configuration issues on this X11 server, as demonstrated by lack of the SECURITY extension on this X11 server.',
-        }),
-        dict({
-          'cve_id': 'CVE-2016-20012',
-          'description': 'OpenSSH through 8.7 allows remote attackers, who have a suspicion that a certain combination of username and public key is known to an SSH server, to test whether this suspicion is correct. This occurs because a challenge is sent only when that combination could be valid for a login session. NOTE: the vendor does not recognize user enumeration as a vulnerability for this product',
-        }),
-        dict({
-          'cve_id': 'CVE-2016-2161',
-          'description': 'In Apache HTTP Server versions 2.4.0 to 2.4.23, malicious input to mod_auth_digest can cause the server to crash, and each instance continues to crash even for subsequently valid requests.',
-        }),
-        dict({
-          'cve_id': 'CVE-2016-4975',
-          'description': 'Possible CRLF injection allowing HTTP response splitting attacks for sites which use mod_userdir. This issue was mitigated by changes made in 2.4.25 and 2.2.32 which prohibit CR or LF injection into the "Location" or other outbound header key or value. Fixed in Apache HTTP Server 2.4.25 (Affected 2.4.1-2.4.23). Fixed in Apache HTTP Server 2.2.32 (Affected 2.2.0-2.2.31).',
-        }),
-        dict({
-          'cve_id': 'CVE-2016-5387',
-          'description': 'The Apache HTTP Server through 2.4.23 follows RFC 3875 section 4.1.18 and therefore does not protect applications from the presence of untrusted client data in the HTTP_PROXY environment variable, which might allow remote attackers to redirect an application\'s outbound HTTP traffic to an arbitrary proxy server via a crafted Proxy header in an HTTP request, aka an "httpoxy" issue.  NOTE: the vendor states "This mitigation has been assigned the identifier CVE-2016-5387"; in other words, this is not a CVE ID for a vulnerability.',
-        }),
-        dict({
-          'cve_id': 'CVE-2016-8612',
-          'description': 'Apache HTTP Server mod_cluster before version httpd 2.4.23 is vulnerable to an Improper Input Validation in the protocol parsing logic in the load balancer resulting in a Segmentation Fault in the serving httpd process.',
-        }),
-        dict({
-          'cve_id': 'CVE-2016-8743',
-          'description': 'Apache HTTP Server, in all releases prior to 2.2.32 and 2.4.25, was liberal in the whitespace accepted from requests and sent in response lines and headers. Accepting these different behaviors represented a security concern when httpd participates in any chain of proxies or interacts with back-end application servers, either through mod_proxy or using conventional CGI mechanisms, and may result in request smuggling, response splitting and cache pollution.',
         }),
         dict({
           'cve_id': 'CVE-2017-15710',
@@ -204,28 +36,12 @@
           'description': "In Apache httpd 2.4.0 to 2.4.29, the expression specified in <FilesMatch> could match '$' to a newline character in a malicious filename, rather than matching only the end of the filename. This could be exploited in environments where uploads of some files are are externally blocked, but only by matching the trailing portion of the filename.",
         }),
         dict({
-          'cve_id': 'CVE-2017-15906',
-          'description': 'The process_open function in sftp-server.c in OpenSSH before 7.6 does not properly prevent write operations in readonly mode, which allows attackers to create zero-length files.',
-        }),
-        dict({
-          'cve_id': 'CVE-2017-18190',
-          'description': 'A localhost.localdomain whitelist entry in valid_host() in scheduler/client.c in CUPS before 2.2.2 allows remote attackers to execute arbitrary IPP commands by sending POST requests to the CUPS daemon in conjunction with DNS rebinding. The localhost.localdomain name is often resolved via a DNS server (neither the OS nor the web browser is responsible for ensuring that localhost.localdomain is 127.0.0.1).',
-        }),
-        dict({
-          'cve_id': 'CVE-2017-18248',
-          'description': 'The add_job function in scheduler/ipp.c in CUPS before 2.2.6, when D-Bus support is enabled, can be crashed by remote attackers by sending print jobs with an invalid username, related to a D-Bus notification.',
-        }),
-        dict({
           'cve_id': 'CVE-2017-3167',
           'description': 'In Apache httpd 2.2.x before 2.2.33 and 2.4.x before 2.4.26, use of the ap_get_basic_auth_pw() by third-party modules outside of the authentication phase may lead to authentication requirements being bypassed.',
         }),
         dict({
           'cve_id': 'CVE-2017-3169',
           'description': 'In Apache httpd 2.2.x before 2.2.33 and 2.4.x before 2.4.26, mod_ssl may dereference a NULL pointer when third-party modules call ap_hook_process_connection() during an HTTP request to an HTTPS port.',
-        }),
-        dict({
-          'cve_id': 'CVE-2017-7272',
-          'description': 'PHP through 7.1.11 enables potential SSRF in applications that accept an fsockopen or pfsockopen hostname argument with an expectation that the port number is constrained. Because a :port syntax is recognized, fsockopen will use the port number that is specified in the hostname argument, instead of the port number in the second argument of the function.',
         }),
         dict({
           'cve_id': 'CVE-2017-7659',
@@ -238,10 +54,6 @@
         dict({
           'cve_id': 'CVE-2017-7679',
           'description': 'In Apache httpd 2.2.x before 2.2.33 and 2.4.x before 2.4.26, mod_mime can read one byte past the end of a buffer when sending a malicious Content-Type response header.',
-        }),
-        dict({
-          'cve_id': 'CVE-2017-7963',
-          'description': 'The GNU Multiple Precision Arithmetic Library (GMP) interfaces for PHP through 7.1.4 allow attackers to cause a denial of service (memory consumption and application crash) via operations on long strings. NOTE: the vendor disputes this, stating "There is no security issue here, because GMP safely aborts in case of an OOM condition. The only attack vector here is denial of service. However, if you allow attacker-controlled, unbounded allocations you have a DoS vector regardless of GMP\'s OOM behavior.',
         }),
         dict({
           'cve_id': 'CVE-2017-8923',
@@ -284,36 +96,12 @@
           'description': 'By specially crafting HTTP/2 requests, workers would be allocated 60 seconds longer than necessary, leading to worker exhaustion and a denial of service. Fixed in Apache HTTP Server 2.4.34 (Affected 2.4.18-2.4.30,2.4.33).',
         }),
         dict({
-          'cve_id': 'CVE-2018-15473',
-          'description': 'OpenSSH through 7.7 is prone to a user enumeration vulnerability due to not delaying bailout for an invalid authenticating user until after the packet containing the request has been fully parsed, related to auth2-gss.c, auth2-hostbased.c, and auth2-pubkey.c.',
-        }),
-        dict({
-          'cve_id': 'CVE-2018-15919',
-          'description': 'Remotely observable behaviour in auth-gss2.c in OpenSSH through 7.8 could be used by remote attackers to detect existence of users on a target system when GSS2 is in use. NOTE: the discoverer states \'We understand that the OpenSSH developers do not want to treat such a username enumeration (or "oracle") as a vulnerability.\'',
-        }),
-        dict({
           'cve_id': 'CVE-2018-17189',
           'description': 'In Apache HTTP server versions 2.4.37 and prior, by sending request bodies in a slow loris way to plain resources, the h2 stream for that request unnecessarily occupied a server thread cleaning up that incoming data. This affects only HTTP/2 (mod_http2) connections.',
         }),
         dict({
           'cve_id': 'CVE-2018-17199',
           'description': 'In Apache HTTP Server 2.4 release 2.4.37 and prior, mod_session checks the session expiry time before decoding the session. This causes session expiry time to be ignored for mod_session_cookie sessions since the expiry time is loaded when the session is decoded.',
-        }),
-        dict({
-          'cve_id': 'CVE-2018-19395',
-          'description': 'ext/standard/var.c in PHP 5.x through 7.1.24 on Windows allows attackers to cause a denial of service (NULL pointer dereference and application crash) because com and com_safearray_proxy return NULL in com_properties_get in ext/com_dotnet/com_handlers.c, as demonstrated by a serialize call on COM("WScript.Shell").',
-        }),
-        dict({
-          'cve_id': 'CVE-2018-19396',
-          'description': 'ext/standard/var_unserializer.c in PHP 5.x through 7.1.24 allows attackers to cause a denial of service (application crash) via an unserialize call for the com, dotnet, or variant class.',
-        }),
-        dict({
-          'cve_id': 'CVE-2018-20685',
-          'description': 'In OpenSSH 7.9, scp.c in the scp client allows remote SSH servers to bypass intended access restrictions via the filename of . or an empty filename. The impact is modifying the permissions of the target directory on the client side.',
-        }),
-        dict({
-          'cve_id': 'CVE-2018-4300',
-          'description': 'The session cookie generated by the CUPS web interface was easy to guess on Linux, allowing unauthorized scripted access to the web interface when the web interface is enabled. This issue affected versions prior to v2.2.10.',
         }),
         dict({
           'cve_id': 'CVE-2019-0196',
@@ -384,48 +172,12 @@
           'description': 'In PHP versions 7.1.x below 7.1.33, 7.2.x below 7.2.24 and 7.3.x below 7.3.11 in certain configurations of FPM setup it is possible to cause FPM module to write past allocated buffers into the space reserved for FCGI protocol data, thus opening the possibility of remote code execution.',
         }),
         dict({
-          'cve_id': 'CVE-2019-12815',
-          'description': 'An arbitrary file copy vulnerability in mod_copy in ProFTPD up to 1.3.5b allows for remote code execution and information disclosure without authentication, a related issue to CVE-2015-3306.',
-        }),
-        dict({
           'cve_id': 'CVE-2019-13224',
           'description': 'A use-after-free in onig_new_deluxe() in regext.c in Oniguruma 6.9.2 allows attackers to potentially cause information disclosure, denial of service, or possibly code execution by providing a crafted regular expression. The attacker provides a pair of a regex pattern and a string, with a multi-byte encoding that gets handled by onig_new_deluxe(). Oniguruma issues often affect Ruby, as well as common optional libraries for PHP and Rust.',
         }),
         dict({
           'cve_id': 'CVE-2019-17567',
           'description': 'Apache HTTP Server versions 2.4.6 to 2.4.46 mod_proxy_wstunnel configured on an URL that is not necessarily Upgraded by the origin server was tunneling the whole connection regardless, thus allowing for subsequent requests on the same connection to pass through with no HTTP validation, authentication or authorization possibly configured.',
-        }),
-        dict({
-          'cve_id': 'CVE-2019-18217',
-          'description': 'ProFTPD before 1.3.6b and 1.3.7rc before 1.3.7rc2 allows remote unauthenticated denial-of-service due to incorrect handling of overly long commands because main.c in a child process enters an infinite loop.',
-        }),
-        dict({
-          'cve_id': 'CVE-2019-19269',
-          'description': 'An issue was discovered in tls_verify_crl in ProFTPD through 1.3.6b. A dereference of a NULL pointer may occur. This pointer is returned by the OpenSSL sk_X509_REVOKED_value() function when encountering an empty CRL installed by a system administrator. The dereference occurs when validating the certificate of a client connecting to the server in a TLS client/server mutual-authentication setup.',
-        }),
-        dict({
-          'cve_id': 'CVE-2019-19270',
-          'description': 'An issue was discovered in tls_verify_crl in ProFTPD through 1.3.6b. Failure to check for the appropriate field of a CRL entry (checking twice for subject, rather than once for subject and once for issuer) prevents some valid CRLs from being taken into account, and can allow clients whose certificates have been revoked to proceed with a connection to the server.',
-        }),
-        dict({
-          'cve_id': 'CVE-2019-19271',
-          'description': 'An issue was discovered in tls_verify_crl in ProFTPD before 1.3.6. A wrong iteration variable, used when checking a client certificate against CRL entries (installed by a system administrator), can cause some CRL entries to be ignored, and can allow clients whose certificates have been revoked to proceed with a connection to the server.',
-        }),
-        dict({
-          'cve_id': 'CVE-2019-19272',
-          'description': 'An issue was discovered in tls_verify_crl in ProFTPD before 1.3.6. Direct dereference of a NULL pointer (a variable initialized to NULL) leads to a crash when validating the certificate of a client connecting to the server in a TLS client/server mutual-authentication setup.',
-        }),
-        dict({
-          'cve_id': 'CVE-2019-6109',
-          'description': 'An issue was discovered in OpenSSH 7.9. Due to missing character encoding in the progress display, a malicious server (or Man-in-The-Middle attacker) can employ crafted object names to manipulate the client output, e.g., by using ANSI control codes to hide additional files being transferred. This affects refresh_progress_meter() in progressmeter.c.',
-        }),
-        dict({
-          'cve_id': 'CVE-2019-6110',
-          'description': 'In OpenSSH 7.9, due to accepting and displaying arbitrary stderr output from the server, a malicious server (or Man-in-The-Middle attacker) can manipulate the client output, for example to use ANSI control codes to hide additional files being transferred.',
-        }),
-        dict({
-          'cve_id': 'CVE-2019-6111',
-          'description': 'An issue was discovered in OpenSSH 7.9. Due to the scp implementation being derived from 1983 rcp, the server chooses which files/directories are sent to the client. However, the scp client only performs cursory validation of the object name returned (only directory traversal attacks are prevented). A malicious scp server (or Man-in-The-Middle attacker) can overwrite arbitrary files in the scp client target directory. If recursive operation (-r) is performed, the server can manipulate subdirectories as well (for example, to overwrite the .ssh/authorized_keys file).',
         }),
         dict({
           'cve_id': 'CVE-2019-9517',
@@ -456,24 +208,12 @@
           'description': 'An issue was discovered in PHP 7.x before 7.1.27 and 7.3.x before 7.3.3. phar_tar_writeheaders_int in ext/phar/tar.c has a buffer overflow via a long link value. NOTE: The vendor indicates that the link value is used only when an archive contains a symlink, which currently cannot happen: "This issue allows theoretical compromise of security, but a practical attack is usually impossible.',
         }),
         dict({
-          'cve_id': 'CVE-2020-11985',
-          'description': 'IP address spoofing when proxying using mod_remoteip and mod_rewrite For configurations using proxying with mod_remoteip and certain mod_rewrite rules, an attacker could spoof their IP address for logging and PHP scripts. Note this issue was fixed in Apache HTTP Server 2.4.24 but was retrospectively allocated a low severity CVE in 2020.',
-        }),
-        dict({
           'cve_id': 'CVE-2020-11993',
           'description': 'Apache HTTP Server versions 2.4.20 to 2.4.43 When trace/debug was enabled for the HTTP/2 module and on certain traffic edge patterns, logging statements were made on the wrong connection, causing concurrent use of memory pools. Configuring the LogLevel of mod_http2 above "info" will mitigate this vulnerability for unpatched servers.',
         }),
         dict({
           'cve_id': 'CVE-2020-13938',
           'description': 'Apache HTTP Server versions 2.4.0 to 2.4.46 Unprivileged local users can stop httpd on Windows',
-        }),
-        dict({
-          'cve_id': 'CVE-2020-14145',
-          'description': 'The client side in OpenSSH 5.7 through 8.4 has an Observable Discrepancy leading to an information leak in the algorithm negotiation. This allows man-in-the-middle attackers to target initial connection attempts (where no host key for the server has been cached by the client). NOTE: some reports state that 8.5 and 8.6 are also affected.',
-        }),
-        dict({
-          'cve_id': 'CVE-2020-15778',
-          'description': 'scp in OpenSSH through 8.3p1 allows command injection in the scp.c toremote function, as demonstrated by backtick characters in the destination argument. NOTE: the vendor reportedly has stated that they intentionally omit validation of "anomalous argument transfers" because that could "stand a great chance of breaking existing workflows."',
         }),
         dict({
           'cve_id': 'CVE-2020-1927',
@@ -488,16 +228,8 @@
           'description': 'Apache HTTP Server versions 2.4.0 to 2.4.46 A specially crafted Digest nonce can cause a stack overflow in mod_auth_digest. There is no report of this overflow being exploitable, nor the Apache HTTP Server team could create one, though some particular compiler and/or compilation option might make it possible, with limited consequences anyway due to the size (a single byte) and the value (zero byte) of the overflow',
         }),
         dict({
-          'cve_id': 'CVE-2020-9272',
-          'description': 'ProFTPD 1.3.7 has an out-of-bounds (OOB) read vulnerability in mod_cap via the cap_text.c cap_to_text function.',
-        }),
-        dict({
           'cve_id': 'CVE-2020-9490',
           'description': 'Apache HTTP Server versions 2.4.20 to 2.4.43. A specially crafted value for the \'Cache-Digest\' header in a HTTP/2 request would result in a crash when the server actually tries to HTTP/2 PUSH a resource afterwards. Configuring the HTTP/2 feature via "H2Push off" will mitigate this vulnerability for unpatched servers.',
-        }),
-        dict({
-          'cve_id': 'CVE-2021-23017',
-          'description': 'A security issue in nginx resolver was identified, which might allow an attacker who is able to forge UDP packets from the DNS server to cause 1-byte memory overwrite, resulting in worker process crash or potential other impact.',
         }),
         dict({
           'cve_id': 'CVE-2021-26690',
@@ -516,14 +248,6 @@
           'description': 'Malformed requests may cause the server to dereference a NULL pointer. This issue affects Apache HTTP Server 2.4.48 and earlier.',
         }),
         dict({
-          'cve_id': 'CVE-2021-3618',
-          'description': "ALPACA is an application layer protocol content confusion attack, exploiting TLS servers implementing different protocols but using compatible certificates, such as multi-domain or wildcard certificates. A MiTM attacker having access to victim's traffic at the TCP/IP layer can redirect traffic from one subdomain to another, resulting in a valid TLS session. This breaks the authentication of TLS and cross-protocol attacks may be possible where the behavior of one protocol service may compromise the other at the application layer.",
-        }),
-        dict({
-          'cve_id': 'CVE-2021-36368',
-          'description': 'An issue was discovered in OpenSSH before 8.9. If a client is using public-key authentication with agent forwarding but without -oLogLevel=verbose, and an attacker has silently modified the server to support the None authentication option, then the user cannot determine whether FIDO authentication is going to confirm that the user wishes to connect to that server, or that the user wishes to allow that server to connect to a different server on the user\'s behalf. NOTE: the vendor\'s position is "this is not an authentication bypass, since nothing is being bypassed.',
-        }),
-        dict({
           'cve_id': 'CVE-2021-39275',
           'description': 'ap_escape_quotes() may write beyond the end of a buffer when given malicious input. No included modules pass untrusted data to these functions, but third-party / external modules may. This issue affects Apache HTTP Server 2.4.48 and earlier.',
         }),
@@ -532,20 +256,12 @@
           'description': 'A crafted request uri-path can cause mod_proxy to forward the request to an origin server choosen by the remote user. This issue affects Apache HTTP Server 2.4.48 and earlier.',
         }),
         dict({
-          'cve_id': 'CVE-2021-41617',
-          'description': 'sshd in OpenSSH 6.2 through 8.x before 8.8, when certain non-default configurations are used, allows privilege escalation because supplemental groups are not initialized as expected. Helper programs for AuthorizedKeysCommand and AuthorizedPrincipalsCommand may run with privileges associated with group memberships of the sshd process, if the configuration specifies running the command as a different user.',
-        }),
-        dict({
           'cve_id': 'CVE-2021-44224',
           'description': 'A crafted URI sent to httpd configured as a forward proxy (ProxyRequests on) can cause a crash (NULL pointer dereference) or, for configurations mixing forward and reverse proxy declarations, can allow for requests to be directed to a declared Unix Domain Socket endpoint (Server Side Request Forgery). This issue affects Apache HTTP Server 2.4.7 up to 2.4.51 (included).',
         }),
         dict({
           'cve_id': 'CVE-2021-44790',
           'description': 'A carefully crafted request body can cause a buffer overflow in the mod_lua multipart parser (r:parsebody() called from Lua scripts). The Apache httpd team is not aware of an exploit for the vulnerabilty though it might be possible to craft one. This issue affects Apache HTTP Server 2.4.51 and earlier.',
-        }),
-        dict({
-          'cve_id': 'CVE-2021-46854',
-          'description': 'mod_radius in ProFTPD before 1.3.7c allows memory disclosure to RADIUS servers because it copies blocks of 16 characters.',
         }),
         dict({
           'cve_id': 'CVE-2022-22719',
@@ -566,10 +282,6 @@
         dict({
           'cve_id': 'CVE-2022-26377',
           'description': "Inconsistent Interpretation of HTTP Requests ('HTTP Request Smuggling') vulnerability in mod_proxy_ajp of Apache HTTP Server allows an attacker to smuggle requests to the AJP server it forwards requests to. This issue affects Apache HTTP Server Apache HTTP Server 2.4 version 2.4.53 and prior versions.",
-        }),
-        dict({
-          'cve_id': 'CVE-2022-26691',
-          'description': 'A logic issue was addressed with improved state management. This issue is fixed in Security Update 2022-003 Catalina, macOS Monterey 12.3, macOS Big Sur 11.6.5. An application may be able to gain elevated privileges.',
         }),
         dict({
           'cve_id': 'CVE-2022-28330',
@@ -645,20 +357,12 @@
           'description': 'Out-of-bounds Read vulnerability in mod_macro of Apache HTTP Server.This issue affects Apache HTTP Server: through 2.4.57.',
         }),
         dict({
-          'cve_id': 'CVE-2023-38408',
-          'description': 'The PKCS#11 feature in ssh-agent in OpenSSH before 9.3p2 has an insufficiently trustworthy search path, leading to remote code execution if an agent is forwarded to an attacker-controlled system. (Code in /usr/lib is not necessarily safe for loading into ssh-agent.) NOTE: this issue exists because of an incomplete fix for CVE-2016-10009.',
-        }),
-        dict({
           'cve_id': 'CVE-2023-38709',
           'description': '''
             Faulty input validation in the core of Apache allows malicious or exploitable backend/content generators to split HTTP responses.
             
             This issue affects Apache HTTP Server: through 2.4.58.
           ''',
-        }),
-        dict({
-          'cve_id': 'CVE-2023-44487',
-          'description': 'The HTTP/2 protocol allows a denial of service (server resource consumption) because request cancellation can reset many streams quickly, as exploited in the wild in August through October 2023.',
         }),
         dict({
           'cve_id': 'CVE-2023-45802',
@@ -669,22 +373,6 @@
             
             Users are recommended to upgrade to version 2.4.58, which fixes the issue.
           ''',
-        }),
-        dict({
-          'cve_id': 'CVE-2023-48795',
-          'description': "The SSH transport protocol with certain OpenSSH extensions, found in OpenSSH before 9.6 and other products, allows remote attackers to bypass integrity checks such that some packets are omitted (from the extension negotiation message), and a client and server may consequently end up with a connection for which some security features have been downgraded or disabled, aka a Terrapin attack. This occurs because the SSH Binary Packet Protocol (BPP), implemented by these extensions, mishandles the handshake phase and mishandles use of sequence numbers. For example, there is an effective attack against SSH's use of ChaCha20-Poly1305 (and CBC with Encrypt-then-MAC). The bypass occurs in chacha20-poly1305@openssh.com and (if CBC is used) the -etm@openssh.com MAC algorithms. This also affects Maverick Synergy Java SSH API before 3.1.0-SNAPSHOT, Dropbear through 2022.83, Ssh before 5.1.1 in Erlang/OTP, PuTTY before 0.80, AsyncSSH before 2.14.2, golang.org/x/crypto before 0.17.0, libssh before 0.10.6, libssh2 through 1.11.0, Thorn Tech SFTP Gateway before 3.4.6, Tera Term before 5.1, Paramiko before 3.4.0, jsch before 0.2.15, SFTPGo before 2.5.6, Netgate pfSense Plus through 23.09.1, Netgate pfSense CE through 2.7.2, HPN-SSH through 18.2.0, ProFTPD before 1.3.8b (and before 1.3.9rc2), ORYX CycloneSSH before 2.3.4, NetSarang XShell 7 before Build 0144, CrushFTP before 10.6.0, ConnectBot SSH library before 2.2.22, Apache MINA sshd through 2.11.0, sshj through 0.37.0, TinySSH through 20230101, trilead-ssh2 6401, LANCOM LCOS and LANconfig, FileZilla before 3.66.4, Nova before 11.8, PKIX-SSH before 14.4, SecureCRT before 9.4.3, Transmit5 before 5.10.4, Win32-OpenSSH before 9.5.0.0p1-Beta, WinSCP before 6.2.2, Bitvise SSH Server before 9.32, Bitvise SSH Client before 9.33, KiTTY through 0.76.1.13, the net-ssh gem 7.2.0 for Ruby, the mscdex ssh2 module before 1.15.0 for Node.js, the thrussh library before 0.35.1 for Rust, and the Russh crate before 0.40.2 for Rust.",
-        }),
-        dict({
-          'cve_id': 'CVE-2023-51385',
-          'description': 'In ssh in OpenSSH before 9.6, OS command injection might occur if a user name or host name has shell metacharacters, and this name is referenced by an expansion token in certain situations. For example, an untrusted Git repository can have a submodule with shell metacharacters in a user name or host name.',
-        }),
-        dict({
-          'cve_id': 'CVE-2023-51713',
-          'description': 'make_ftp_cmd in main.c in ProFTPD before 1.3.8a has a one-byte out-of-bounds read, and daemon crash, because of mishandling of quote/backslash semantics.',
-        }),
-        dict({
-          'cve_id': 'CVE-2023-51767',
-          'description': 'OpenSSH through 10.0, when common types of DRAM are used, might allow row hammer attacks (for authentication bypass) because the integer value of authenticated in mm_answer_authpassword does not resist flips of a single bit. NOTE: this is applicable to a certain threat model of attacker-victim co-location in which the attacker has user privileges. NOTE: this is disputed by the Supplier, who states "we do not consider it to be the application\'s responsibility to defend against platform architectural weaknesses."',
         }),
         dict({
           'cve_id': 'CVE-2024-24795',
@@ -806,14 +494,6 @@
           ''',
         }),
         dict({
-          'cve_id': 'CVE-2025-23419',
-          'description': '''
-            When multiple server blocks are configured to share the same IP address and port, an attacker can use session resumption to bypass client certificate authentication requirements on these servers. This vulnerability arises when  TLS Session Tickets https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_session_ticket_key  are used and/or the  SSL session cache https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_session_cache  are used in the default server and the default server is performing client certificate authentication.  
-            
-            Note: Software versions which have reached End of Technical Support (EoTS) are not evaluated.
-          ''',
-        }),
-        dict({
           'cve_id': 'CVE-2025-49812',
           'description': '''
             In some mod_ssl configurations on Apache HTTP Server versions through to 2.4.63, an HTTP desynchronisation attack allows a man-in-the-middle attacker to hijack an HTTP session via a TLS upgrade.
@@ -896,29 +576,24 @@
           'ips': list([
             dict({
               'domain_names': list([
-                dict({
-                  'domain_name': 'resilmesh-sap-casm-metasploitable3',
-                }),
-                dict({
-                  'domain_name': 'resilmesh-sap-casm-metasploitable3.resilmesh_network',
-                }),
               ]),
             }),
           ]),
         }),
         dict({
-          'host': dict({
-            'network_services': list([
-            ]),
-            'software_versions': list([
-            ]),
-          }),
+          'host': None,
           'ips': list([
             dict({
               'domain_names': list([
-                dict({
-                  'domain_name': 'rest.vulnweb.com',
-                }),
+              ]),
+            }),
+          ]),
+        }),
+        dict({
+          'host': None,
+          'ips': list([
+            dict({
+              'domain_names': list([
               ]),
             }),
           ]),
@@ -943,8 +618,25 @@
         dict({
           'host': dict({
             'network_services': list([
+              dict({
+                'port': 80,
+                'protocol': 'http',
+                'service': 'http',
+              }),
             ]),
             'software_versions': list([
+              dict({
+                'version': 'cpe:2.3:a:adobe:dreamweaver:*:*:*:*:*:*:*:*',
+              }),
+              dict({
+                'version': 'cpe:2.3:a:microsoft:asp.net:*:*:*:*:*:*:*:*',
+              }),
+              dict({
+                'version': 'cpe:2.3:a:microsoft:asp.net:2.0.50727:*:*:*:*:*:*:*',
+              }),
+              dict({
+                'version': 'cpe:2.3:a:microsoft:internet_information_server:8.5:*:*:*:*:*:*:*',
+              }),
             ]),
           }),
           'ips': list([
@@ -963,65 +655,18 @@
         dict({
           'host': dict({
             'network_services': list([
-            ]),
-            'software_versions': list([
-            ]),
-          }),
-          'ips': list([
-            dict({
-              'domain_names': list([
-                dict({
-                  'domain_name': 'testhtml5.vulnweb.com',
-                }),
-                dict({
-                  'domain_name': 'testphp.vulnweb.com',
-                }),
-                dict({
-                  'domain_name': 'vulnweb.com',
-                }),
-                dict({
-                  'domain_name': 'www.vulnweb.com',
-                }),
-              ]),
-            }),
-          ]),
-        }),
-        dict({
-          'host': dict({
-            'network_services': list([
-              dict({
-                'port': 21,
-                'protocol': 'tcp',
-                'service': 'ftp',
-              }),
-              dict({
-                'port': 22,
-                'protocol': 'tcp',
-                'service': 'ssh',
-              }),
-              dict({
-                'port': 631,
-                'protocol': 'tcp',
-                'service': 'ipp',
-              }),
               dict({
                 'port': 80,
-                'protocol': 'tcp',
+                'protocol': 'http',
                 'service': 'http',
               }),
             ]),
             'software_versions': list([
               dict({
-                'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+                'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
               }),
               dict({
-                'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
-              }),
-              dict({
-                'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-              }),
-              dict({
-                'version': 'cpe:2.3:a:proftpd:proftpd:1.3.5:*:*:*:*:*:*',
+                'version': 'cpe:2.3:a:php:php:7.1.26:*:*:*:*:*:*:*',
               }),
             ]),
           }),
@@ -1029,10 +674,7 @@
             dict({
               'domain_names': list([
                 dict({
-                  'domain_name': 'resilmesh-sap-casm-metasploitable3',
-                }),
-                dict({
-                  'domain_name': 'resilmesh-sap-casm-metasploitable3.resilmesh_network',
+                  'domain_name': 'rest.vulnweb.com',
                 }),
               ]),
             }),
@@ -1061,38 +703,43 @@
           'hostname': None,
           'network_services': list([
             dict({
-              'port': 21,
-              'protocol': 'tcp',
-              'service': 'ftp',
-            }),
-            dict({
-              'port': 22,
-              'protocol': 'tcp',
-              'service': 'ssh',
-            }),
-            dict({
-              'port': 631,
-              'protocol': 'tcp',
-              'service': 'ipp',
-            }),
-            dict({
               'port': 80,
-              'protocol': 'tcp',
+              'protocol': 'http',
               'service': 'http',
             }),
           ]),
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:adobe:dreamweaver:*:*:*:*:*:*:*:*',
             }),
             dict({
-              'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:microsoft:asp.net:*:*:*:*:*:*:*:*',
             }),
             dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:microsoft:asp.net:2.0.50727:*:*:*:*:*:*:*',
             }),
             dict({
-              'version': 'cpe:2.3:a:proftpd:proftpd:1.3.5:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:microsoft:internet_information_server:8.5:*:*:*:*:*:*:*',
+            }),
+          ]),
+        }),
+        dict({
+          'components': list([
+          ]),
+          'hostname': None,
+          'network_services': list([
+            dict({
+              'port': 80,
+              'protocol': 'http',
+              'service': 'http',
+            }),
+          ]),
+          'software_versions': list([
+            dict({
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
+            }),
+            dict({
+              'version': 'cpe:2.3:a:php:php:7.1.26:*:*:*:*:*:*:*',
             }),
           ]),
         }),
@@ -1141,12 +788,12 @@
           'description': 'Assumed vulnerability with ID CVE-2006-20001',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -1166,21 +813,6 @@
         }),
         dict({
           'cve': dict({
-            'cve_id': 'CVE-2007-2768',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2007-2768',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
             'cve_id': 'CVE-2007-3205',
           }),
           'description': 'Assumed vulnerability with ID CVE-2007-3205',
@@ -1196,714 +828,9 @@
         }),
         dict({
           'cve': dict({
-            'cve_id': 'CVE-2008-1033',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2008-1033',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2008-3844',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2008-3844',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2009-0032',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2009-0032',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2013-5704',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2013-5704',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2013-6438',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2013-6438',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2013-6891',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2013-6891',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2014-0098',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2014-0098',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2014-0117',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2014-0117',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2014-0118',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2014-0118',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2014-0226',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2014-0226',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2014-0231',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2014-0231',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2014-2856',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2014-2856',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2014-3523',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2014-3523',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2014-3537',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2014-3537',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2014-3581',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2014-3581',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2014-5030',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2014-5030',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2014-5031',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2014-5031',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2014-8109',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2014-8109',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2014-9679',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2014-9679',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2015-0228',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2015-0228',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2015-3183',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2015-3183',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2015-3185',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2015-3185',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2015-3306',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2015-3306',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:proftpd:proftpd:1.3.5:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'confirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2015-5352',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2015-5352',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2015-5600',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2015-5600',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2015-6563',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2015-6563',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2015-6564',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2015-6564',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2015-9253',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2015-9253',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:php:php:5.6.40:*:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'estimated',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2016-0736',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2016-0736',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2016-10009',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2016-10009',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2016-10010',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2016-10010',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2016-10011',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2016-10011',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2016-10012',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2016-10012',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2016-10708',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2016-10708',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2016-1908',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2016-1908',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2016-20012',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2016-20012',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2016-2161',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2016-2161',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2016-4975',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2016-4975',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2016-5387',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2016-5387',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2016-8612',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2016-8612',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2016-8743',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2016-8743',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
             'cve_id': 'CVE-2017-15710',
           }),
           'description': 'Assumed vulnerability with ID CVE-2017-15710',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2017-15715',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2017-15715',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2017-15906',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2017-15906',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2017-18190',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2017-18190',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2017-18248',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2017-18248',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2017-3167',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2017-3167',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2017-3169',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2017-3169',
           'software_versions': list([
             dict({
               'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
@@ -1916,12 +843,42 @@
         }),
         dict({
           'cve': dict({
-            'cve_id': 'CVE-2017-7272',
+            'cve_id': 'CVE-2017-15715',
           }),
-          'description': 'Assumed vulnerability with ID CVE-2017-7272',
+          'description': 'Assumed vulnerability with ID CVE-2017-15715',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:php:php:5.6.40:*:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
+            }),
+          ]),
+          'status': list([
+            'assessed',
+            'estimated',
+          ]),
+        }),
+        dict({
+          'cve': dict({
+            'cve_id': 'CVE-2017-3167',
+          }),
+          'description': 'Assumed vulnerability with ID CVE-2017-3167',
+          'software_versions': list([
+            dict({
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
+            }),
+          ]),
+          'status': list([
+            'assessed',
+            'estimated',
+          ]),
+        }),
+        dict({
+          'cve': dict({
+            'cve_id': 'CVE-2017-3169',
+          }),
+          'description': 'Assumed vulnerability with ID CVE-2017-3169',
+          'software_versions': list([
+            dict({
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
@@ -1966,22 +923,7 @@
           'description': 'Assumed vulnerability with ID CVE-2017-7679',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2017-7963',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2017-7963',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:php:php:5.6.40:*:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
@@ -2011,12 +953,12 @@
           'description': 'Assumed vulnerability with ID CVE-2017-9788',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2026,12 +968,12 @@
           'description': 'Assumed vulnerability with ID CVE-2017-9798',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2056,12 +998,12 @@
           'description': 'Assumed vulnerability with ID CVE-2018-1283',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2071,12 +1013,12 @@
           'description': 'Assumed vulnerability with ID CVE-2018-1301',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2086,12 +1028,12 @@
           'description': 'Assumed vulnerability with ID CVE-2018-1302',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2101,12 +1043,12 @@
           'description': 'Assumed vulnerability with ID CVE-2018-1303',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2116,12 +1058,12 @@
           'description': 'Assumed vulnerability with ID CVE-2018-1312',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2137,36 +1079,6 @@
           'status': list([
             'assessed',
             'estimated',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2018-15473',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2018-15473',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2018-15919',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2018-15919',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
           ]),
         }),
         dict({
@@ -2191,72 +1103,12 @@
           'description': 'Assumed vulnerability with ID CVE-2018-17199',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2018-19395',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2018-19395',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:php:php:5.6.40:*:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
             'estimated',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2018-19396',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2018-19396',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:php:php:5.6.40:*:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'estimated',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2018-20685',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2018-20685',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2018-4300',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2018-4300',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
           ]),
         }),
         dict({
@@ -2296,12 +1148,12 @@
           'description': 'Assumed vulnerability with ID CVE-2019-0217',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2311,12 +1163,12 @@
           'description': 'Assumed vulnerability with ID CVE-2019-0220',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2356,12 +1208,12 @@
           'description': 'Assumed vulnerability with ID CVE-2019-10092',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2371,12 +1223,12 @@
           'description': 'Assumed vulnerability with ID CVE-2019-10098',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2516,21 +1368,6 @@
         }),
         dict({
           'cve': dict({
-            'cve_id': 'CVE-2019-12815',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2019-12815',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:proftpd:proftpd:1.3.5:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
             'cve_id': 'CVE-2019-13224',
           }),
           'description': 'Assumed vulnerability with ID CVE-2019-13224',
@@ -2551,132 +1388,12 @@
           'description': 'Assumed vulnerability with ID CVE-2019-17567',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2019-18217',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2019-18217',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:proftpd:proftpd:1.3.5:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'confirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2019-19269',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2019-19269',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:proftpd:proftpd:1.3.5:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2019-19270',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2019-19270',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:proftpd:proftpd:1.3.5:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2019-19271',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2019-19271',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:proftpd:proftpd:1.3.5:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2019-19272',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2019-19272',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:proftpd:proftpd:1.3.5:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2019-6109',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2019-6109',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2019-6110',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2019-6110',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2019-6111',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2019-6111',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
+            'estimated',
           ]),
         }),
         dict({
@@ -2786,21 +1503,6 @@
         }),
         dict({
           'cve': dict({
-            'cve_id': 'CVE-2020-11985',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2020-11985',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
             'cve_id': 'CVE-2020-11993',
           }),
           'description': 'Assumed vulnerability with ID CVE-2020-11993',
@@ -2821,42 +1523,12 @@
           'description': 'Assumed vulnerability with ID CVE-2020-13938',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2020-14145',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2020-14145',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2020-15778',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2020-15778',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
+            'estimated',
           ]),
         }),
         dict({
@@ -2866,12 +1538,12 @@
           'description': 'Assumed vulnerability with ID CVE-2020-1927',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2881,12 +1553,12 @@
           'description': 'Assumed vulnerability with ID CVE-2020-1934',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2896,27 +1568,12 @@
           'description': 'Assumed vulnerability with ID CVE-2020-35452',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2020-9272',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2020-9272',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:proftpd:proftpd:1.3.5:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -2936,12 +1593,12 @@
         }),
         dict({
           'cve': dict({
-            'cve_id': 'CVE-2021-23017',
+            'cve_id': 'CVE-2021-26690',
           }),
-          'description': 'Assumed vulnerability with ID CVE-2021-23017',
+          'description': 'Assumed vulnerability with ID CVE-2021-26690',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:f5:nginx:1.19.0:*:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
@@ -2951,32 +1608,17 @@
         }),
         dict({
           'cve': dict({
-            'cve_id': 'CVE-2021-26690',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2021-26690',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
             'cve_id': 'CVE-2021-26691',
           }),
           'description': 'Assumed vulnerability with ID CVE-2021-26691',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3001,22 +1643,7 @@
           'description': 'Assumed vulnerability with ID CVE-2021-34798',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2021-3618',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2021-3618',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:f5:nginx:1.19.0:*:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
@@ -3026,32 +1653,17 @@
         }),
         dict({
           'cve': dict({
-            'cve_id': 'CVE-2021-36368',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2021-36368',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
             'cve_id': 'CVE-2021-39275',
           }),
           'description': 'Assumed vulnerability with ID CVE-2021-39275',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3061,27 +1673,12 @@
           'description': 'Assumed vulnerability with ID CVE-2021-40438',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2021-41617',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2021-41617',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
+            'estimated',
           ]),
         }),
         dict({
@@ -3091,12 +1688,12 @@
           'description': 'Assumed vulnerability with ID CVE-2021-44224',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3106,27 +1703,12 @@
           'description': 'Assumed vulnerability with ID CVE-2021-44790',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2021-46854',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2021-46854',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:proftpd:proftpd:1.3.5:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3136,12 +1718,12 @@
           'description': 'Assumed vulnerability with ID CVE-2022-22719',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3151,12 +1733,12 @@
           'description': 'Assumed vulnerability with ID CVE-2022-22720',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3166,12 +1748,12 @@
           'description': 'Assumed vulnerability with ID CVE-2022-22721',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3181,12 +1763,12 @@
           'description': 'Assumed vulnerability with ID CVE-2022-23943',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3196,27 +1778,12 @@
           'description': 'Assumed vulnerability with ID CVE-2022-26377',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2022-26691',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2022-26691',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apple:cups:1.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
+            'estimated',
           ]),
         }),
         dict({
@@ -3226,12 +1793,12 @@
           'description': 'Assumed vulnerability with ID CVE-2022-28330',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3241,12 +1808,12 @@
           'description': 'Assumed vulnerability with ID CVE-2022-28614',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3256,12 +1823,12 @@
           'description': 'Assumed vulnerability with ID CVE-2022-28615',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3271,12 +1838,12 @@
           'description': 'Assumed vulnerability with ID CVE-2022-29404',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3286,12 +1853,12 @@
           'description': 'Assumed vulnerability with ID CVE-2022-30556',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3331,12 +1898,12 @@
           'description': 'Assumed vulnerability with ID CVE-2022-31813',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3346,12 +1913,12 @@
           'description': 'Assumed vulnerability with ID CVE-2022-36760',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3361,12 +1928,12 @@
           'description': 'Assumed vulnerability with ID CVE-2022-37436',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3391,12 +1958,12 @@
           'description': 'Assumed vulnerability with ID CVE-2023-25690',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3406,27 +1973,12 @@
           'description': 'Assumed vulnerability with ID CVE-2023-31122',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2023-38408',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2023-38408',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
+            'estimated',
           ]),
         }),
         dict({
@@ -3436,22 +1988,7 @@
           'description': 'Assumed vulnerability with ID CVE-2023-38709',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2023-44487',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2023-44487',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:f5:nginx:1.19.0:*:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
@@ -3476,77 +2013,17 @@
         }),
         dict({
           'cve': dict({
-            'cve_id': 'CVE-2023-48795',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2023-48795',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:proftpd:proftpd:1.3.5:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2023-51385',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2023-51385',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2023-51713',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2023-51713',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:proftpd:proftpd:1.3.5:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'confirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2023-51767',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2023-51767',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:openbsd:openssh:6.6.1p1:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'not_found',
-          ]),
-        }),
-        dict({
-          'cve': dict({
             'cve_id': 'CVE-2024-24795',
           }),
           'description': 'Assumed vulnerability with ID CVE-2024-24795',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3586,12 +2063,12 @@
           'description': 'Assumed vulnerability with ID CVE-2024-38472',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3601,12 +2078,12 @@
           'description': 'Assumed vulnerability with ID CVE-2024-38473',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3616,12 +2093,12 @@
           'description': 'Assumed vulnerability with ID CVE-2024-38474',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3631,12 +2108,12 @@
           'description': 'Assumed vulnerability with ID CVE-2024-38475',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3646,12 +2123,12 @@
           'description': 'Assumed vulnerability with ID CVE-2024-38476',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3661,12 +2138,12 @@
           'description': 'Assumed vulnerability with ID CVE-2024-38477',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3676,12 +2153,12 @@
           'description': 'Assumed vulnerability with ID CVE-2024-39573',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3691,12 +2168,12 @@
           'description': 'Assumed vulnerability with ID CVE-2024-40898',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3706,12 +2183,12 @@
           'description': 'Assumed vulnerability with ID CVE-2024-42516',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3721,12 +2198,12 @@
           'description': 'Assumed vulnerability with ID CVE-2024-43204',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3736,12 +2213,12 @@
           'description': 'Assumed vulnerability with ID CVE-2024-43394',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3751,22 +2228,7 @@
           'description': 'Assumed vulnerability with ID CVE-2024-47252',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
-            }),
-          ]),
-          'status': list([
-            'assessed',
-            'unconfirmed',
-          ]),
-        }),
-        dict({
-          'cve': dict({
-            'cve_id': 'CVE-2025-23419',
-          }),
-          'description': 'Assumed vulnerability with ID CVE-2025-23419',
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:f5:nginx:1.19.0:*:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
@@ -3781,12 +2243,12 @@
           'description': 'Assumed vulnerability with ID CVE-2025-49812',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3811,12 +2273,12 @@
           'description': 'Assumed vulnerability with ID CVE-2025-58098',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3826,12 +2288,12 @@
           'description': 'Assumed vulnerability with ID CVE-2025-59775',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3841,12 +2303,12 @@
           'description': 'Assumed vulnerability with ID CVE-2025-65082',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
         dict({
@@ -3856,12 +2318,12 @@
           'description': 'Assumed vulnerability with ID CVE-2025-66200',
           'software_versions': list([
             dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.7:*:*:*:*:*:*',
+              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
             }),
           ]),
           'status': list([
             'assessed',
-            'unconfirmed',
+            'estimated',
           ]),
         }),
       ]),
