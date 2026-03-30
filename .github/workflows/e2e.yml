@@ -1,12 +1,13 @@
 name: e2e
 
+# Commented out until we have images for the e2e tests in the container registry
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [ main ]
-    types: [ opened, reopened ]
-  push:
-    branches: [48-update-e2e-tests]
+#  pull_request:
+#    branches: [ main ]
+#    types: [ opened, reopened ]
+#  push:
+#    branches: [ main ]
 
 jobs:
   e2e:
