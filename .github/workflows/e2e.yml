@@ -6,7 +6,7 @@ on:
     branches: [ main ]
     types: [ opened, reopened ]
   push:
-    branches: [main]
+    branches: [48-update-e2e-tests]
 
 jobs:
   e2e:
