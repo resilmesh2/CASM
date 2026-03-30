@@ -157,7 +157,6 @@ services:
       - NEO4J_dbms_security_procedures_allowlist=gds.*,apoc.*
     volumes:
       - test-resilmesh-sap-isim-neo4j-data:/data
-      - ./plugins:/var/lib/neo4j/plugins
     #      - ${DATA_PATH}:/tmp/dumps/neo4j.dump
     ports:
       - 17474:7474
