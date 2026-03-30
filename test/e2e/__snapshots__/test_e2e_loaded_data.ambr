@@ -581,41 +581,6 @@
           ]),
         }),
         dict({
-          'host': None,
-          'ips': list([
-            dict({
-              'domain_names': list([
-              ]),
-            }),
-          ]),
-        }),
-        dict({
-          'host': None,
-          'ips': list([
-            dict({
-              'domain_names': list([
-              ]),
-            }),
-          ]),
-        }),
-        dict({
-          'host': dict({
-            'network_services': list([
-            ]),
-            'software_versions': list([
-            ]),
-          }),
-          'ips': list([
-            dict({
-              'domain_names': list([
-                dict({
-                  'domain_name': 'test.cz',
-                }),
-              ]),
-            }),
-          ]),
-        }),
-        dict({
           'host': dict({
             'network_services': list([
               dict({
@@ -688,61 +653,6 @@
   dict({
     'data': dict({
       'hosts': list([
-        dict({
-          'components': list([
-          ]),
-          'hostname': None,
-          'network_services': list([
-          ]),
-          'software_versions': list([
-          ]),
-        }),
-        dict({
-          'components': list([
-          ]),
-          'hostname': None,
-          'network_services': list([
-            dict({
-              'port': 80,
-              'protocol': 'http',
-              'service': 'http',
-            }),
-          ]),
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:adobe:dreamweaver:*:*:*:*:*:*:*:*',
-            }),
-            dict({
-              'version': 'cpe:2.3:a:microsoft:asp.net:*:*:*:*:*:*:*:*',
-            }),
-            dict({
-              'version': 'cpe:2.3:a:microsoft:asp.net:2.0.50727:*:*:*:*:*:*:*',
-            }),
-            dict({
-              'version': 'cpe:2.3:a:microsoft:internet_information_server:8.5:*:*:*:*:*:*:*',
-            }),
-          ]),
-        }),
-        dict({
-          'components': list([
-          ]),
-          'hostname': None,
-          'network_services': list([
-            dict({
-              'port': 80,
-              'protocol': 'http',
-              'service': 'http',
-            }),
-          ]),
-          'software_versions': list([
-            dict({
-              'version': 'cpe:2.3:a:apache:http_server:2.4.25:*:*:*:*:*:*:*',
-            }),
-            dict({
-              'version': 'cpe:2.3:a:php:php:7.1.26:*:*:*:*:*:*:*',
-            }),
-          ]),
-        }),
       ]),
     }),
   })
