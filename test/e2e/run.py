@@ -5,6 +5,7 @@ import asyncio
 import os
 import shlex
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from neo4j import GraphDatabase, basic_auth
@@ -21,7 +22,9 @@ if TYPE_CHECKING:
 
     from test.e2e.util.run_test_fce_with_pytest import TestRunResult
 
-TEMPORAL_ADDRESS = os.getenv("E2E_TEMPORAL_ADDRESS", "localhost:7233")
+os.environ.setdefault("CASM_CONFIG_PATH", str((Path(__file__).with_name("config.yaml")).resolve()))
+
+TEMPORAL_ADDRESS = os.getenv("E2E_TEMPORAL_ADDRESS", "localhost:17233")
 TEMPORAL_NAMESPACE = os.getenv("E2E_TEMPORAL_NAMESPACE", "default")
 
 SHARED_WORKER = os.getenv("E2E_SHARED_WORKER", "test-resilmesh-sap-casm-shared-worker")
