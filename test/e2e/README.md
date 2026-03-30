@@ -24,17 +24,18 @@ poetry install
 
 Two config files matter during a local E2E run:
 
-- `docker/config.yaml`
+- `docker/test.config.yaml`
   Used inside the worker and ISIM containers started by `e2e-compose.yml`.
-- `config/config.yaml`
+- `test/e2e/config.yaml`
   Used by the local `poetry run python -m test.e2e.run` process when it queries the REST and GraphQL endpoints on `localhost`.
 
-The checked-in defaults already match the local E2E stack:
+The checked-in defaults already match the isolated local E2E stack:
 
-- Temporal: `localhost:7233`
-- ISIM REST: `http://localhost:8000`
-- ISIM GraphQL: `http://localhost:4001/graphql`
-- Neo4j: `bolt://localhost:7687`
+- Temporal: `localhost:17233`
+- ISIM REST: `http://localhost:18000`
+- ISIM GraphQL: `http://localhost:14001/graphql`
+- Neo4j: `bolt://localhost:17687`
+- Redis: `localhost:16379`
 
 ## Run The Stack
 
@@ -70,13 +71,13 @@ poetry run python -m test.e2e.run
 This runner:
 
 - Resets the local E2E Neo4j graph and configured Redis DB before any workflow runs
-- Connects to Temporal on `localhost:7233`
+- Connects to Temporal on `localhost:17233`
 - Triggers Nmap, EASM, CVE connector, Nuclei, and component workflows
 - Verifies the resulting GraphQL payloads against the snapshots in `test/e2e/__snapshots__/`
 
 If the command exits with status `0`, the local E2E flow passed.
 
-The reset step is destructive for the local E2E stack data. Do not point `config/config.yaml` at a shared or non-test Neo4j/Redis instance when running this command.
+The reset step is destructive for the local E2E stack data. Do not point `test/e2e/config.yaml` at a shared or non-test Neo4j/Redis instance when running this command.
 
 To intentionally rewrite snapshots during the same flow, pass `--snapshot-update`:
 
@@ -86,10 +87,10 @@ poetry run python -m test.e2e.run --snapshot-update
 
 ## Useful Endpoints While Debugging
 
-- Temporal UI: `http://localhost:8080`
-- Neo4j Browser: `http://localhost:7474`
-- ISIM REST: `http://localhost:8000`
-- ISIM GraphQL: `http://localhost:4001/graphql`
+- Temporal UI: `http://localhost:18080`
+- Neo4j Browser: `http://localhost:17474`
+- ISIM REST: `http://localhost:18000`
+- ISIM GraphQL: `http://localhost:14001/graphql`
 
 ## Cleanup
 

@@ -24,9 +24,9 @@ if TYPE_CHECKING:
 TEMPORAL_ADDRESS = os.getenv("E2E_TEMPORAL_ADDRESS", "localhost:7233")
 TEMPORAL_NAMESPACE = os.getenv("E2E_TEMPORAL_NAMESPACE", "default")
 
-SHARED_WORKER = os.getenv("E2E_SHARED_WORKER", "resilmesh-sap-casm-shared-worker")
-EASM_WORKER = os.getenv("E2E_EASM_WORKER", "resilmesh-sap-casm-easm-worker")
-CVE_WORKER = os.getenv("E2E_CVE_WORKER", "resilmesh-sap-casm-cve-connector")
+SHARED_WORKER = os.getenv("E2E_SHARED_WORKER", "test-resilmesh-sap-casm-shared-worker")
+EASM_WORKER = os.getenv("E2E_EASM_WORKER", "test-resilmesh-sap-casm-easm-worker")
+CVE_WORKER = os.getenv("E2E_CVE_WORKER", "test-resilmesh-sap-casm-cve-connector")
 CVE_SCHEDULE_ID = "cve-update-scheduled-workflow"
 COMPONENT_SCHEDULE_IDS = [
     "component-schedule-criticality",

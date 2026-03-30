@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -113,7 +114,10 @@ class AppConfig:
     @classmethod
     def get(cls) -> Config:
         if cls._config is None:
-            config_file = BASE_DIR / "config/config.yaml"
+            config_path = os.getenv("CASM_CONFIG_PATH")
+            config_file = Path(config_path) if config_path else BASE_DIR / "config/config.yaml"
+            if not config_file.is_absolute():
+                config_file = BASE_DIR / config_file
             with Path.open(config_file, "r") as f:
                 raw_config = yaml.safe_load(f)
             cls._config = from_dict(Config, raw_config)
