@@ -41,6 +41,25 @@ def _extract_ip_addresses(host: Element) -> list[str]:
     ]
 
 
+def _filter_non_loopback_ip_addresses(ip_addresses: list[str]) -> list[str]:
+    """
+    Filter out loopback IP addresses so local self-scan artifacts are not ingested as assets.
+
+    :param ip_addresses: Candidate IPv4/IPv6 addresses extracted from an nmap host.
+    :return: Only non-loopback addresses. Invalid inputs are kept as-is so they can be handled
+             by the existing downstream validation.
+    """
+    filtered: list[str] = []
+    for ip_str in ip_addresses:
+        try:
+            if ipaddress.ip_address(ip_str).is_loopback:
+                continue
+        except ValueError:
+            pass
+        filtered.append(ip_str)
+    return filtered
+
+
 def _extract_hostnames(host: Element) -> list[str]:
     """
     Collect hostname labels from an nmap <host> element.
@@ -226,7 +245,7 @@ def parse_nmap_xml(nmap_output: Element, tag: list[str]) -> NmapResults:
         if not _is_host_up(host):
             continue
 
-        ip_addresses = _extract_ip_addresses(host)
+        ip_addresses = _filter_non_loopback_ip_addresses(_extract_ip_addresses(host))
         if not ip_addresses:
             continue
 
