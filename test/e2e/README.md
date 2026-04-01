@@ -29,6 +29,9 @@ Two config files matter during a local E2E run:
 - `test/e2e/config.yaml`
   Used by the local `poetry run python -m test.e2e.run` process when it queries the REST and GraphQL endpoints on `localhost`.
 
+The local runner reads its config from `CASM_CONFIG_PATH` when that environment variable is set.
+If `CASM_CONFIG_PATH` is not set, `test.e2e.run` defaults it to `test/e2e/config.yaml`.
+
 The checked-in defaults already match the isolated local E2E stack:
 
 - Temporal: `localhost:17233`
@@ -66,6 +69,12 @@ Start the orchestrated E2E flow from the repository root:
 
 ```bash
 poetry run python -m test.e2e.run
+```
+
+If you want to point the local runner at a different config file explicitly, set `CASM_CONFIG_PATH`:
+
+```bash
+CASM_CONFIG_PATH=test/e2e/config.yaml poetry run python -m test.e2e.run
 ```
 
 This runner:
