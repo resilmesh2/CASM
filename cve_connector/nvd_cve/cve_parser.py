@@ -14,7 +14,7 @@ import logging
 from typing import Any
 
 from cve_connector.nvd_cve.categorization.classifier import classifier
-from cve_connector.nvd_cve.nvd_types import VulnerabilityStatus
+from cve_connector.nvd_cve.structs import VulnerabilityStatus
 from cve_connector.nvd_cve.vulnerability import Vulnerability
 
 

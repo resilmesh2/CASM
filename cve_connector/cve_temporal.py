@@ -51,7 +51,7 @@ from cve_connector.nvd_cve.toneo4j import (
 from temporal.lib import redis_handler
 
 if TYPE_CHECKING:
-    from cve_connector.nvd_cve.nvd_types import NvdCvesApiResponse
+    from cve_connector.nvd_cve.structs import NvdCvesApiResponse
 
 logging.basicConfig(
     level=logging.INFO,
@@ -304,6 +304,7 @@ async def main() -> None:
     """
     config = AppConfig.get()
     _, neo4j_bolt, neo4j_user = _get_neo4j_connection_settings(config)
+    temporal_namespace = os.getenv("TEMPORAL_NAMESPACE") or config.temporal.namespace
 
     required_env_vars = ["TEMPORAL_HOST", "TEMPORAL_PORT"]
     for env_var in required_env_vars:
@@ -320,8 +321,11 @@ async def main() -> None:
     client: Client | None = None
     for attempt in range(1, max_retries + 1):
         try:
-            client = await Client.connect(temporal_address)
-            logging.info(f"Successfully connected to Temporal server on attempt {attempt}")
+            client = await Client.connect(temporal_address, namespace=temporal_namespace)
+            logging.info(
+                f"Successfully connected to Temporal server on attempt {attempt} "
+                f"(namespace={temporal_namespace})"
+            )
             break
         except ConnectionRefusedError as e:
             logging.warning(f"Connection refused on attempt {attempt}/{max_retries}: {e}")
@@ -340,16 +344,13 @@ async def main() -> None:
         raise ConnectionRefusedError("Failed to connect to Temporal server")
 
     schedule_id = "cve-update-scheduled-workflow"
+    workflow_task_queue = "cve-update-task-queue"
     try:
-        async for schedule_item in await client.list_schedules():
-            if schedule_item.id == schedule_id:
-                raise ScheduleAlreadyRunningError()
-
         schedule = Schedule(
             action=ScheduleActionStartWorkflow(
                 CveUpdateWorkflow.run,
                 id="cve-update-workflow-instance",
-                task_queue="cve-update-task-queue",
+                task_queue=workflow_task_queue,
             ),
             spec=ScheduleSpec(intervals=[ScheduleIntervalSpec(every=timedelta(hours=2))]),
         )
@@ -386,7 +387,7 @@ async def main() -> None:
 
     worker = Worker(
         client,
-        task_queue="cve-update-task-queue",
+        task_queue=workflow_task_queue,
         workflows=[CveUpdateWorkflow],
         activities=[activities.do_database_thing],
         workflow_runner=UnsandboxedWorkflowRunner(),

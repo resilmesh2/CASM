@@ -69,8 +69,14 @@ async def update_nuclei(nuclei_path: str | None = None) -> None:
     commands = [[nuclei_binary, "-update-templates"], [nuclei_binary, "-update"]]
 
     for command in commands:
-        _stdout, _stderr, returncode = await util.run_command_with_output(command)
-        logger.info(f"Executed {' '.join(command)}: returncode={returncode}")
+        stdout, stderr, returncode = await util.run_command_with_output(command)
+        logger.info(
+            "Executed %s: returncode=%s stdout=%r stderr=%r",
+            " ".join(command),
+            returncode,
+            stdout,
+            stderr,
+        )
 
         if returncode != 0:
             raise exceptions.NucleiRunError(f"Failed to update Nuclei templates/binary: returncode={returncode}")

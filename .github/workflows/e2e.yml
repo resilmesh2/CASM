@@ -1,12 +1,13 @@
 name: e2e
 
+# Commented out until we have images for the e2e tests in the container registry
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [ main ]
-    types: [ opened, reopened ]
-  push:
-    branches: [main]
+#  pull_request:
+#    branches: [ main ]
+#    types: [ opened, reopened ]
+#  push:
+#    branches: [ main ]
 
 jobs:
   e2e:
@@ -17,7 +18,8 @@ jobs:
       E2E_COMPOSE_FILE: e2e-compose.yml
       E2E_BUILD_FLAG: --build
       E2E_WAIT_TIMEOUT_SECONDS: 900
-      E2E_TEMPORAL_ADDRESS: localhost:7233
+      E2E_TEMPORAL_ADDRESS: localhost:17233
+      CASM_CONFIG_PATH: test/e2e/config.yaml
       E2E_TEMPORAL_NAMESPACE: default
       E2E_TEMPORAL_CONNECT_TIMEOUT_SECONDS: 600
       E2E_SCHEDULE_TIMEOUT_SECONDS: 900

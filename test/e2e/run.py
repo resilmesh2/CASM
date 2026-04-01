@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+import argparse
 import asyncio
 import os
 import shlex
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import TYPE_CHECKING
 
+from neo4j import GraphDatabase, basic_auth
 from temporalio.exceptions import TemporalError
+from valkey import Valkey
 
+from config import AppConfig
 from test.e2e.temporal_checks import connect_temporal, trigger_schedule, wait_for_workflow_type
 from test.e2e.test_e2e_loaded_data import TestE2ELoadedData
 from test.e2e.util import run_test_fce_with_pytest
@@ -17,12 +22,14 @@ if TYPE_CHECKING:
 
     from test.e2e.util.run_test_fce_with_pytest import TestRunResult
 
-TEMPORAL_ADDRESS = os.getenv("E2E_TEMPORAL_ADDRESS", "localhost:7233")
+os.environ.setdefault("CASM_CONFIG_PATH", str((Path(__file__).with_name("config.yaml")).resolve()))
+
+TEMPORAL_ADDRESS = os.getenv("E2E_TEMPORAL_ADDRESS", "localhost:17233")
 TEMPORAL_NAMESPACE = os.getenv("E2E_TEMPORAL_NAMESPACE", "default")
 
-SHARED_WORKER = os.getenv("E2E_SHARED_WORKER", "resilmesh-sap-casm-shared-worker")
-EASM_WORKER = os.getenv("E2E_EASM_WORKER", "resilmesh-sap-casm-easm-worker")
-CVE_WORKER = os.getenv("E2E_CVE_WORKER", "resilmesh-sap-casm-cve-connector")
+SHARED_WORKER = os.getenv("E2E_SHARED_WORKER", "test-resilmesh-sap-casm-shared-worker")
+EASM_WORKER = os.getenv("E2E_EASM_WORKER", "test-resilmesh-sap-casm-easm-worker")
+CVE_WORKER = os.getenv("E2E_CVE_WORKER", "test-resilmesh-sap-casm-cve-connector")
 CVE_SCHEDULE_ID = "cve-update-scheduled-workflow"
 COMPONENT_SCHEDULE_IDS = [
     "component-schedule-criticality",
@@ -74,6 +81,33 @@ async def run_docker_module(container: str, module: str) -> None:
     if output.strip():
         tail = "\n".join(output.strip().splitlines()[-20:])
         print(f"[exec:tail]\n{tail}")
+
+
+def reset_e2e_state() -> None:
+    config = AppConfig.get()
+
+    print("\n== Stage 0: Reset Neo4j and Redis state ==")
+
+    neo4j_client = GraphDatabase.driver(
+        config.neo4j.bolt,
+        auth=basic_auth(config.neo4j.user, password=config.neo4j.password),
+    )
+    try:
+        neo4j_client.execute_query("MATCH (n) DETACH DELETE n")
+    finally:
+        neo4j_client.close()
+
+    redis_client = Valkey(
+        host=config.redis.host,
+        port=config.redis.port,
+        db=config.redis.db,
+        username=config.redis.username,
+        password=config.redis.password,
+    )
+    try:
+        redis_client.flushdb()
+    finally:
+        redis_client.close()
 
 
 async def stage_nmap(client: Client) -> None:
@@ -159,13 +193,24 @@ async def stage_components(client: Client) -> None:
     )
 
 
-async def main() -> None:
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run the local CASM E2E workflow orchestration.")
+    parser.add_argument(
+        "--snapshot-update",
+        action="store_true",
+        help="Update E2E snapshot assertions instead of only verifying them.",
+    )
+    return parser.parse_args()
+
+
+async def main(snapshot_update: bool = False) -> None:
     print(
         "Starting E2E workflow orchestration with:\n"
         f"- Temporal: {TEMPORAL_ADDRESS} (ns={TEMPORAL_NAMESPACE})\n"
         f"- Shared worker: {SHARED_WORKER}\n"
         f"- EASM worker: {EASM_WORKER}\n"
-        f"- CVE worker: {CVE_WORKER}"
+        f"- CVE worker: {CVE_WORKER}\n"
+        f"- Snapshot update: {snapshot_update}"
     )
 
     client = await _connect_with_retry(
@@ -174,14 +219,15 @@ async def main() -> None:
         timeout_seconds=_timeout("E2E_TEMPORAL_CONNECT_TIMEOUT_SECONDS", 300),
     )
 
-    E2E_SNAPSHOT_UPDATE = False
+    reset_e2e_state()
+
     results: list[TestRunResult] = []
 
     await stage_nmap(client)
     results.append(
         run_test_fce_with_pytest.run_test_callable_subprocess(
             TestE2ELoadedData.test_e2e_nmap_snapshot,
-            update_snapshots=E2E_SNAPSHOT_UPDATE,
+            update_snapshots=snapshot_update,
         )
     )
 
@@ -189,7 +235,7 @@ async def main() -> None:
     results.append(
         run_test_fce_with_pytest.run_test_callable_subprocess(
             TestE2ELoadedData.test_e2e_easm_snapshot,
-            update_snapshots=E2E_SNAPSHOT_UPDATE,
+            update_snapshots=snapshot_update,
         )
     )
 
@@ -197,7 +243,7 @@ async def main() -> None:
     results.append(
         run_test_fce_with_pytest.run_test_callable_subprocess(
             TestE2ELoadedData.test_e2e_cve_connector_snapshot,
-            update_snapshots=E2E_SNAPSHOT_UPDATE,
+            update_snapshots=snapshot_update,
         )
     )
 
@@ -205,7 +251,7 @@ async def main() -> None:
     results.append(
         run_test_fce_with_pytest.run_test_callable_subprocess(
             TestE2ELoadedData.test_e2e_nuclei_snapshot,
-            update_snapshots=E2E_SNAPSHOT_UPDATE,
+            update_snapshots=snapshot_update,
         )
     )
 
@@ -217,4 +263,5 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    args = parse_args()
+    asyncio.run(main(snapshot_update=args.snapshot_update))

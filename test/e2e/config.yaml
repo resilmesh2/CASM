@@ -1,0 +1,46 @@
+temporal:
+  url: "localhost:17233"
+  namespace: default
+  easm_task_queue: easm
+  nmap_task_queue: nmap
+  cve_connector_task_queue: cve_connector
+  slp_enrichment_task_queue: slp_enrichment
+
+neo4j:
+  password: supertestovaciheslo
+  bolt: bolt://localhost:17687
+  user: neo4j
+
+redis:
+  host: localhost
+  port: 16379
+  db: 3
+
+isim_urls:
+  rest_url: "http://localhost:18000"
+  risk_url: "http://localhost:15000"
+  graphql_url: "http://localhost:14001/graphql"
+
+nmap_basic:
+  targets:
+    - localhost
+  arguments: "-sV -A"
+
+nmap_topology:
+  targets:
+    - localhost
+  arguments: "-sn -n --traceroute"
+
+easm_scanner:
+  domains:
+    - vulnweb.com
+  mode: fast  # fast or complete
+  httpx_path: "path/to/httpx"
+  threads: 100  # required only for complete mode
+  wordlist_path: "path/to/wordlist.txt"  # required only for complete mode
+
+slp_enrichment:
+  x_api_key: ""
+
+cve_connector:
+  nvd_api_key: ""
