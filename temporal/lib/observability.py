@@ -48,9 +48,7 @@ def _build_renderer(formatter: LogFormatter, *, pretty_print_exceptions: bool) -
     if formatter == "key_value":
         return structlog.processors.LogfmtRenderer(sort_keys=True)
 
-    exception_formatter = (
-        structlog.dev.rich_traceback if pretty_print_exceptions else structlog.dev.plain_traceback
-    )
+    exception_formatter = structlog.dev.rich_traceback if pretty_print_exceptions else structlog.dev.plain_traceback
     return structlog.dev.ConsoleRenderer(
         colors=formatter == "colored",
         exception_formatter=exception_formatter,
