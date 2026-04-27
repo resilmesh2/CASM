@@ -1,5 +1,4 @@
 import json
-import logging
 import uuid
 from dataclasses import asdict
 from enum import Enum
@@ -7,13 +6,14 @@ from pathlib import Path
 
 import dacite
 import httpx
+import structlog
 from valkey import Valkey
 
 from config import ISIMUrlsConfig
 from temporal.lib import util
 from temporal.nuclei import dtos, exceptions
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 # Template directory paths
 NUCLEI_TEMPLATE_DIR = Path("/root/nuclei-templates")
@@ -71,11 +71,11 @@ async def update_nuclei(nuclei_path: str | None = None) -> None:
     for command in commands:
         stdout, stderr, returncode = await util.run_command_with_output(command)
         logger.info(
-            "Executed %s: returncode=%s stdout=%r stderr=%r",
-            " ".join(command),
-            returncode,
-            stdout,
-            stderr,
+            "nuclei_update_command_executed",
+            command=" ".join(command),
+            returncode=returncode,
+            stdout=stdout,
+            stderr=stderr,
         )
 
         if returncode != 0:
@@ -169,7 +169,7 @@ def parse_data_for_nuclei_scan(valkey_client: Valkey, service_data_uuid: str) ->
                         all_templates.extend(templates)
 
                         if templates:
-                            logger.info(f"Found {len(templates)} template(s) for {cve_id}")
+                            logger.info("found_nuclei_templates", cve_id=cve_id, template_count=len(templates))
 
             # Remove duplicates
             all_templates = list(set(all_templates))
@@ -251,7 +251,10 @@ def _determine_cve_status_from_nuclei_scan_results(
 
     if vulnerabilities_found > 0:
         logger.info(
-            f"Found {vulnerabilities_found} confirmed vulnerability/vulnerabilities at {service_data.target}:{service_data.port}"
+            "confirmed_vulnerabilities_found",
+            count=vulnerabilities_found,
+            target=service_data.target,
+            port=service_data.port,
         )
 
 
@@ -294,7 +297,7 @@ async def run_nuclei_scan(service_data: dtos.ServiceTemplateData, cve_status: di
     stdout, stderr, returncode = await util.run_command_with_output(command)
 
     if stderr and returncode != 0:
-        logger.warning(f"Nuclei scan on {scan_target} completed with errors: {stderr}")
+        logger.warning("nuclei_scan_completed_with_errors", target=scan_target, stderr=stderr)
         raise exceptions.NucleiRunError(stderr)
 
     return stdout
@@ -338,7 +341,7 @@ def _graphql_request(
     resp.raise_for_status()
     payload = resp.json()
     if payload.get("errors"):
-        logger.error("GraphQL request failed: %s", payload["errors"])
+        logger.error("graphql_request_failed", errors=payload["errors"])
     return payload
 
 
@@ -352,7 +355,7 @@ def update_vulnerability_status(isim_urls: ISIMUrlsConfig, valkey_client: Valkey
     :return: None
     """
     cve_status = json.loads(str(valkey_client.get(cve_status_uuid)))
-    logger.info("Updating vulnerabilities status in ISIM GraphQL: %s", cve_status)
+    logger.info("updating_vulnerability_status_in_graphql", cve_status=cve_status)
 
     assets_dir = Path(__file__).parent / "assets"
     status_query = (assets_dir / "get_vulnerability_status.graphql").read_text(encoding="utf-8")
@@ -368,7 +371,7 @@ def update_vulnerability_status(isim_urls: ISIMUrlsConfig, valkey_client: Valkey
             )
             vulnerabilities = query_payload.get("data", {}).get("vulnerabilities", [])
             if not vulnerabilities:
-                logger.warning("Skipping CVE %s because no vulnerability was found.", cve_id)
+                logger.warning("skipping_cve_without_vulnerability", cve_id=cve_id)
                 continue
 
             current_status = _normalize_status(vulnerabilities[0].get("status"))
@@ -380,4 +383,4 @@ def update_vulnerability_status(isim_urls: ISIMUrlsConfig, valkey_client: Valkey
                 {"cve_id": cve_id, "status": next_status},
             )
 
-    logger.info("Updated vulnerabilities status in ISIM GraphQL: %s", cve_status)
+    logger.info("updated_vulnerability_status_in_graphql", cve_status=cve_status)

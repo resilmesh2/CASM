@@ -1,8 +1,8 @@
-import logging
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from typing import Any
 
+import structlog
 from temporalio import workflow
 from temporalio.client import (
     Client,
@@ -18,7 +18,7 @@ from temporalio.common import RetryPolicy
 from config import AppConfig, ISIMUrlsConfig, TemporalConfig
 from temporal.component_calculations.score_calculation.activities import ComponentScoreCalculationActivities
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 @workflow.defn
@@ -52,7 +52,7 @@ class ComponentScoreCalculationWorkflow:
         cls, client: Client, temporal_config: TemporalConfig, isim_urls: ISIMUrlsConfig
     ) -> None:
         """Initialize schedules for core risk components"""
-        logger.info("Initializing core component schedules...")
+        logger.info("initializing_core_component_schedules")
 
         core_components = [
             {
@@ -106,15 +106,19 @@ class ComponentScoreCalculationWorkflow:
 
             try:
                 await client.create_schedule(component["schedule_id"], schedule)
-                logger.info(f"Created schedule '{component['schedule_id']}' (runs every 2 hours)")
+                logger.info("created_component_schedule", schedule_id=component["schedule_id"])
             except ScheduleAlreadyRunningError:
-                logger.info(f"Schedule '{component['schedule_id']}' already exists, skipping creation")
+                logger.info("component_schedule_already_exists", schedule_id=component["schedule_id"])
             except Exception as e:
                 import traceback
 
                 logger.warning(
-                    f"Could not create schedule '{component['schedule_id']}' at {temporal_config.url} "
-                    f"(ns={temporal_config.namespace}): {e}\n{traceback.format_exc()}"
+                    "failed_to_create_component_schedule",
+                    schedule_id=component["schedule_id"],
+                    temporal_url=temporal_config.url,
+                    namespace=temporal_config.namespace,
+                    error=str(e),
+                    traceback=traceback.format_exc(),
                 )
 
     @classmethod

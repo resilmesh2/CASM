@@ -9,6 +9,7 @@ from temporal.easm.active_enumeration.workflow import ActiveEnumeratonWorkflow
 from temporal.easm.parent_workflow import ParentEasmWorkflow
 from temporal.easm.passive_enumeration.workflow import PassiveEnumerationWorkflow
 from temporal.lib import redis_handler
+from temporal.lib.observability import configure_logging
 
 
 async def main() -> None:
@@ -17,6 +18,7 @@ async def main() -> None:
     :return: None
     """
     config = AppConfig.get()
+    configure_logging("easm-worker", config.logging)
     client = await Client.connect(config.temporal.url)
     workflows = [ParentEasmWorkflow, PassiveEnumerationWorkflow, ActiveEnumeratonWorkflow]
     activities = ParentEasmWorkflow.get_activities()

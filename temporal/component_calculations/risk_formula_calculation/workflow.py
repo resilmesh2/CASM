@@ -1,10 +1,10 @@
-import logging
 import os
 import pathlib
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from typing import Any
 
+import structlog
 import yaml
 from temporalio import workflow
 from temporalio.client import (
@@ -21,7 +21,7 @@ from temporalio.common import RetryPolicy
 from config import AppConfig, TemporalConfig
 from temporal.component_calculations.risk_formula_calculation.activities import ComponentRiskFormulaActivities
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 RISK_API_URL = os.environ.get("RISK_API_URL", "http://resilmesh_sap_isim_automation:5000")
 COMPONENT_CONFIG_PATH = (
@@ -53,7 +53,7 @@ def _save_component_config(config: dict[str, Any]) -> bool | None:
             yaml.dump(config, file, default_flow_style=False)
         return True
     except Exception as e:
-        logger.debug(f"Could not save config (non-fatal): {e}")
+        logger.debug("could_not_save_component_config", error=str(e))
         return False
 
 
@@ -109,14 +109,14 @@ class RiskFormulaCalculationWorkflow:
 
         try:
             await client.create_schedule(schedule_id, schedule)
-            logger.info(f"Created schedule '{schedule_id}' (every 2h, +30m offset)")
+            logger.info("created_risk_formula_schedule", schedule_id=schedule_id)
             cfg = _load_component_config()
             if "active_automations" in cfg and "base-risk" in cfg["active_automations"]:
                 cfg["active_automations"]["base-risk"]["hasSchedule"] = True
                 _save_component_config(cfg)
 
         except ScheduleAlreadyRunningError:
-            logger.info(f"Schedule '{schedule_id}' already exists, skipping creation")
+            logger.info("risk_formula_schedule_already_exists", schedule_id=schedule_id)
 
     @classmethod
     def get_activities(cls) -> Sequence[Callable[..., Awaitable[Any]]]:

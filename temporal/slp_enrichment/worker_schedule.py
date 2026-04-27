@@ -1,7 +1,7 @@
 import asyncio
 from datetime import timedelta
-from logging import getLogger
 
+import structlog
 from temporalio.client import (
     Client,
     Schedule,
@@ -15,6 +15,7 @@ from temporalio.worker import Worker
 from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxRestrictions
 
 from config import AppConfig
+from temporal.lib.observability import configure_logging
 from temporal.slp_enrichment.workflow import SLPEnrichmentWorkflow
 
 
@@ -25,8 +26,9 @@ async def main() -> None:
     """
 
     config = AppConfig.get()
+    configure_logging("slp-enrichment-worker", config.logging)
     client = await Client.connect(config.temporal.url)
-    logger = getLogger()
+    logger = structlog.get_logger(__name__)
     workflows = [SLPEnrichmentWorkflow]
     activities = SLPEnrichmentWorkflow.get_activities()
     workflow_runner = SandboxedWorkflowRunner(
@@ -61,13 +63,13 @@ async def main() -> None:
                 ),
             ),
         )
-        logger.info(f"Schedule: {schedule_id} and workflow created.")
+        logger.info("schedule_and_workflow_created", schedule_id=schedule_id, workflow_id=workflow_id)
     except ScheduleAlreadyRunningError:
         try:
-            logger.info(f"Schedule {schedule_id} already running.")
+            logger.info("schedule_already_running", schedule_id=schedule_id)
             await worker.run()
         except TemporalError:
-            logger.info("Schedule and workflow already running.")
+            logger.info("schedule_and_workflow_already_running", schedule_id=schedule_id)
 
 
 if __name__ == "__main__":

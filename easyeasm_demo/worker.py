@@ -7,10 +7,12 @@ from temporalio.worker.workflow_sandbox import SandboxedWorkflowRunner, SandboxR
 from config import AppConfig
 from easyeasm_demo.workflow import EasyEasmWorkflow
 from temporal.lib import redis_handler
+from temporal.lib.observability import configure_logging
 
 
 async def main() -> None:
     config = AppConfig.get()
+    configure_logging("easyeasm-demo-worker", config.logging)
     client = await Client.connect(config.temporal.url, namespace=config.temporal.namespace)
     workflows = [EasyEasmWorkflow]
     activities = []
