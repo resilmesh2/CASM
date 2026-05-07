@@ -45,3 +45,9 @@ slp_enrichment:
 
 cve_connector:
   nvd_api_key: ""
+
+logging:
+  level: INFO
+  pretty_print_exceptions: False
+  formatter: json
+  verbose_origin: True

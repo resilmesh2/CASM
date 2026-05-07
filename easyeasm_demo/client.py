@@ -5,10 +5,12 @@ from temporalio.client import Client
 
 from config import AppConfig
 from easyeasm_demo.workflow import CASMInput, EasyEasmWorkflow
+from temporal.lib.observability import configure_logging
 
 
 async def main() -> None:
     config = AppConfig.get()
+    configure_logging("easyeasm-demo-client", config.logging)
     temporal_client = await Client.connect(config.temporal.url, namespace=config.temporal.namespace)
     domains = ["vulnweb.com"]
     mode = "fast"

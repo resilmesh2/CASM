@@ -18,7 +18,6 @@ Dependencies:
   - re: For CVE ID validation.
 """
 
-import logging
 import re
 import time
 from datetime import datetime, timedelta
@@ -26,8 +25,11 @@ from typing import Any
 
 import msgspec
 import requests
+import structlog
 
 from cve_connector.nvd_cve.structs import NvdCvesApiResponse
+
+logger = structlog.get_logger(__name__)
 
 
 def search_cve_by_date_range(
@@ -49,7 +51,7 @@ def search_cve_by_date_range(
     :raises ValueError: If start_date is after end_date.
     """
     if start_date > end_date:
-        logging.error("Invalid date range: start_date must be before end_date")
+        logger.error("invalid_date_range", start_date=start_date.isoformat(), end_date=end_date.isoformat())
         raise ValueError("start_date must be before end_date")
 
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
@@ -67,18 +69,18 @@ def search_cve_by_date_range(
             data = msgspec.json.decode(response.content, type=NvdCvesApiResponse)
             return [vuln.cve for vuln in data.vulnerabilities]
         if response.status_code == 429:
-            logging.error("Rate limit exceeded (HTTP 429)")
+            logger.error("nvd_rate_limit_exceeded")
             return None
-        logging.error(f"HTTP error {response.status_code}")
+        logger.error("nvd_http_error", status_code=response.status_code)
         return None
     except requests.exceptions.ConnectionError:
-        logging.exception("Network connection error")
+        logger.exception("nvd_network_connection_error")
         return None
     except requests.exceptions.Timeout:
-        logging.exception("Request timed out")
+        logger.exception("nvd_request_timed_out")
         return None
     except requests.exceptions.RequestException as e:
-        logging.exception(f"Request error: {e}")
+        logger.exception("nvd_request_error", error=str(e))
         return None
 
 
@@ -96,7 +98,7 @@ def search_cve_by_id(cve_id: str, api_key: str | None = None) -> list[dict[str, 
     :raises ValueError: If cve_id format is invalid.
     """
     if not re.match(r"^CVE-\d{4}-\d{4,}$", cve_id):
-        logging.error(f"Invalid CVE ID format: {cve_id}")
+        logger.error("invalid_cve_id_format", cve_id=cve_id)
         raise ValueError("CVE ID must match format 'CVE-YYYY-NNNN'")
 
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
@@ -111,18 +113,18 @@ def search_cve_by_id(cve_id: str, api_key: str | None = None) -> list[dict[str, 
             data = msgspec.json.decode(response.content, type=NvdCvesApiResponse)
             return [data.vulnerabilities[0].cve] if data.vulnerabilities else []
         if response.status_code == 429:
-            logging.error(f"Rate limit exceeded for {cve_id} (HTTP 429)")
+            logger.error("nvd_rate_limit_exceeded_for_cve", cve_id=cve_id)
             return None
-        logging.error(f"HTTP error {response.status_code} for {cve_id}")
+        logger.error("nvd_http_error_for_cve", cve_id=cve_id, status_code=response.status_code)
         return None
     except requests.exceptions.ConnectionError:
-        logging.exception(f"Network connection error for {cve_id}")
+        logger.exception("nvd_network_connection_error_for_cve", cve_id=cve_id)
         return None
     except requests.exceptions.Timeout:
-        logging.exception(f"Request timed out for {cve_id}")
+        logger.exception("nvd_request_timed_out_for_cve", cve_id=cve_id)
         return None
     except requests.exceptions.RequestException as e:
-        logging.exception(f"Request error for {cve_id}: {e}")
+        logger.exception("nvd_request_error_for_cve", cve_id=cve_id, error=str(e))
         return None
 
 
@@ -152,11 +154,11 @@ def search_cve_by_version(
     :raises ValueError: If version format or part value is invalid.
     """
     if not version or version.count(":") < 2:
-        logging.error(f"Invalid version format: {version}. Expected 'vendor:product:version'")
+        logger.error("invalid_version_format", version=version)
         raise ValueError("Version must be in format 'vendor:product:version'")
 
     if part not in ["a", "h", "o"]:
-        logging.error(f"Invalid part value: {part}. Must be 'a', 'h', or 'o'")
+        logger.error("invalid_cpe_part", part=part)
         raise ValueError("Part must be 'a', 'h', or 'o'")
 
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
@@ -171,7 +173,7 @@ def search_cve_by_version(
     elif last_mod_start_date:
         params["lastModEndDate"] = (datetime.now() + timedelta(hours=1)).isoformat().replace("+", "%2B")
     headers = {"apiKey": api_key} if api_key else {}
-    logging.info(f"Searching for CVEs for {version} (part: {part}). Last timestamp is {last_mod_start_date}.")
+    logger.info("searching_cves_for_version", version=version, part=part, last_mod_start_date=last_mod_start_date)
 
     try:
         response = requests.get(url, headers=headers, params=params)
@@ -181,19 +183,19 @@ def search_cve_by_version(
             data = msgspec.json.decode(response.content, type=NvdCvesApiResponse)
             total_results = data.totalResults
             if total_results is not None:
-                logging.info(f"Total results: {total_results}")
+                logger.info("nvd_total_results", version=version, total_results=total_results)
             return data
         if response.status_code == 429:
-            logging.error(f"Rate limit exceeded for version {version} (HTTP 429)")
+            logger.error("nvd_rate_limit_exceeded_for_version", version=version)
             return None
-        logging.error(f"HTTP error {response.status_code} for version {version}")
+        logger.error("nvd_http_error_for_version", version=version, status_code=response.status_code)
         return None
     except requests.exceptions.ConnectionError:
-        logging.exception(f"Network connection error for version {version}")
+        logger.exception("nvd_network_connection_error_for_version", version=version)
         return None
     except requests.exceptions.Timeout:
-        logging.exception(f"Request timed out for version {version}")
+        logger.exception("nvd_request_timed_out_for_version", version=version)
         return None
     except requests.exceptions.RequestException as e:
-        logging.exception(f"Request error for version {version}: {e}")
+        logger.exception("nvd_request_error_for_version", version=version, error=str(e))
         return None

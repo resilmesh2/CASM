@@ -2,7 +2,6 @@ import asyncio
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
-from logging import getLogger
 from typing import Any
 
 from temporalio import workflow
@@ -15,6 +14,7 @@ from temporal.easm.active_enumeration.workflow import ActiveEnumeratonWorkflow
 from temporal.easm.activities import EasmActivities
 from temporal.easm.passive_enumeration.activities import PassiveEnumerationActivities
 from temporal.easm.passive_enumeration.workflow import PassiveEnumerationWorkflow
+from temporal.lib.observability import configure_logging
 
 
 @workflow.defn
@@ -113,8 +113,11 @@ async def main() -> None:
     :return: None
     """
     config = AppConfig.get()
+    configure_logging("easm-starter", config.logging)
+    import structlog
+
     client = await Client.connect(config.temporal.url)
-    logger = getLogger()
+    logger = structlog.get_logger(__name__)
     workflow_id = uuid.uuid4().hex
     # noinspection PyTypeChecker
     workflow_handle = await client.start_workflow(
@@ -125,9 +128,7 @@ async def main() -> None:
         id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
     )
     workflow_description = await workflow_handle.describe()
-    logger.info(
-        f"Workflow start requested. workflow_id={workflow_description.id}, run_id={workflow_description.run_id}"
-    )
+    logger.info("workflow_start_requested", workflow_id=workflow_description.id, run_id=workflow_description.run_id)
 
 
 if __name__ == "__main__":

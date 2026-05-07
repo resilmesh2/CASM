@@ -1,15 +1,14 @@
-import logging
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import datetime
 from typing import Any
 
+import structlog
 from pytz import UTC
 from temporalio import activity
 
 from config import ISIMUrlsConfig
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class ComponentScoreCalculationActivities:

@@ -10,12 +10,15 @@ each vulnerability. The resulting Vulnerability objects are then used as part of
 analysis and classification framework.
 """
 
-import logging
 from typing import Any
+
+import structlog
 
 from cve_connector.nvd_cve.categorization.classifier import classifier
 from cve_connector.nvd_cve.structs import VulnerabilityStatus
 from cve_connector.nvd_cve.vulnerability import Vulnerability
+
+logger = structlog.get_logger(__name__)
 
 
 def parse_vulnerabilities(data: list[dict[str, Any]]) -> list[Vulnerability]:
@@ -46,7 +49,7 @@ def parse_vulnerabilities(data: list[dict[str, Any]]) -> list[Vulnerability]:
     for item in data:
         vulnerability = Vulnerability()
         if not item.get("id") or not item.get("descriptions"):
-            logging.warning(f"Skipping CVE with missing id or descriptions: {item}")
+            logger.warning("skipping_cve_with_missing_fields", item=item)
             continue
         vulnerability.cve = item["id"]
         vulnerability.description = item["descriptions"][0].get("value", "")

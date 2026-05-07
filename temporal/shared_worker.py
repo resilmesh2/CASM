@@ -9,6 +9,7 @@ from config import AppConfig
 from temporal.component_calculations.risk_formula_calculation.workflow import RiskFormulaCalculationWorkflow
 from temporal.component_calculations.score_calculation.workflow import ComponentScoreCalculationWorkflow
 from temporal.lib import redis_handler
+from temporal.lib.observability import configure_logging
 from temporal.nmap.basic.workflow import NmapBasicWorkflow
 from temporal.nmap.topology.workflow import NmapTopologyWorkflow
 from temporal.nuclei.workflow import NucleiWorkflow
@@ -23,6 +24,7 @@ async def main() -> None:
     :return: None
     """
     config = AppConfig.get()
+    configure_logging("shared-worker", config.logging)
     client = await Client.connect(config.temporal.url)
     workflows = [
         NmapBasicWorkflow,

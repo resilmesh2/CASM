@@ -1,6 +1,9 @@
 import os
 from dataclasses import dataclass, field
+from functools import cached_property
+from logging import getLevelName
 from pathlib import Path
+from typing import Literal, cast, get_args
 
 import yaml
 from dacite import from_dict
@@ -95,11 +98,42 @@ class CveConnectorConfig:
     nvd_api_key: str | None = None
 
 
+LogFormatter = Literal["json", "colored", "key_value", "plain"]
+
+
+@dataclass(unsafe_hash=True)
+class LoggingConfig:
+    level: str
+    pretty_print_exceptions: bool = False
+    verbose_origin: bool = True
+    formatter: str = "key_value"
+    endpoints_skip_list: list[str] = field(default_factory=list)
+
+    @cached_property
+    def level_const(self) -> int:
+        return cast("int", getLevelName((self.level or "INFO").upper()))  # pyright: ignore[reportDeprecated]
+
+    @cached_property
+    def formatter_const(self) -> LogFormatter:
+        return cast("LogFormatter", self.formatter)
+
+    def __post_init__(self) -> None:
+        resolved_level = getLevelName(self.level.upper())
+        if not isinstance(resolved_level, int):
+            msg = f"Invalid log level: {self.level}"
+            raise ValueError(msg)
+
+        if self.formatter not in get_args(LogFormatter):
+            msg = f"Invalid formatter: {self.formatter}. Expected one of: {', '.join(get_args(LogFormatter))}"
+            raise ValueError(msg)
+
+
 @dataclass
 class Config:
     temporal: TemporalConfig
     neo4j: Neo4jConfig
     redis: RedisConfig
+    logging: LoggingConfig
     nmap_basic: NmapBasicConfig
     nmap_topology: NmapTopologyConfig
     isim_urls: ISIMUrlsConfig

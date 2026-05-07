@@ -24,12 +24,12 @@ Dependencies:
 
 from __future__ import annotations
 
-import logging
 import re
 import time
 from typing import TYPE_CHECKING, Any
 
 import requests
+import structlog
 from packaging.version import Version
 
 from config import AppConfig
@@ -39,6 +39,8 @@ from cve_connector.nvd_cve.structs import VulnerabilityStatus
 
 if TYPE_CHECKING:
     from cve_connector.nvd_cve.vulnerability import Vulnerability
+
+logger = structlog.get_logger(__name__)
 
 
 def move_cve_data_to_neo4j(
@@ -231,7 +233,7 @@ def move_cve_data_to_neo4j(
                 graphql_url=graphql_url,
             )
             cve_count_updated += 1
-    logging.info(f"Created {cve_count_created} CVEs, updated {cve_count_updated} CVEs")
+    logger.info("cve_sync_complete", created=cve_count_created, updated=cve_count_updated)
 
 
 def check_ranges(cpe_match: dict[str, Any], version: str, nvd_api_key: str | None) -> bool:
@@ -245,7 +247,7 @@ def check_ranges(cpe_match: dict[str, Any], version: str, nvd_api_key: str | Non
     :param nvd_api_key: API key for NVD REST API.
     :return: True if version is within range; False otherwise.
     """
-    logging.info(f"Checking CPE range: {cpe_match}")
+    logger.info("checking_cpe_range", cpe_match=cpe_match)
     if CpeIdentifier.from_string(cpe_match["criteria"]).version != "*":
         raise ValueError(f"Invalid CPE range containing version number: {cpe_match}")
 
@@ -277,7 +279,7 @@ def check_ranges(cpe_match: dict[str, Any], version: str, nvd_api_key: str | Non
             if current_version >= condition:
                 return False
             result = True
-        logging.info(f"Successful check CPE range: {cpe_match}")
+        logger.info("cpe_range_check_succeeded", cpe_match=cpe_match)
         return result
 
     # CPE has * (ANY) as a version, but does not have any indication of start and end - matchCriteriaId should be used
@@ -293,7 +295,7 @@ def check_ranges(cpe_match: dict[str, Any], version: str, nvd_api_key: str | Non
         for match_string in data["matchStrings"]:
             for match in match_string["matchString"]["matches"]:
                 if CpeIdentifier.from_string(match["cpeName"]).version == version:
-                    logging.info(f"Successful check of CPE range: {cpe_match} and version: {match['cpeName']}")
+                    logger.info("cpe_range_match_found", cpe_match=cpe_match, cpe_name=match["cpeName"])
                     return True
     return False
 
@@ -327,15 +329,16 @@ def check_configurations(
                     vuln_node = nodes[0] if nodes[0].get("cpeMatch", [{}])[0].get("vulnerable") else nodes[1]
                     non_vuln_node = nodes[1] if nodes[0].get("cpeMatch", [{}])[0].get("vulnerable") else nodes[0]
                     if vuln_node.get("operator") != "OR" or non_vuln_node.get("operator") != "OR":
-                        logging.error("Invalid recursion depth in AND configuration")
+                        logger.error("invalid_and_configuration_recursion_depth")
                         raise ValueError("Depth of recursion was more than 1")
                     for cpe_item in vuln_node.get("cpeMatch", []):
                         create_vulnerability = process_nvd_cpe(
                             client, cpe_item, vul_description, create_vulnerability, nvd_api_key
                         )
                 else:
-                    logging.warning(
-                        f"Expected two nodes in AND configuration, got {len(configuration.get('nodes', []))}"
+                    logger.warning(
+                        "unexpected_and_configuration_node_count",
+                        node_count=len(configuration.get("nodes", [])),
                     )
         else:
             for node in configuration.get("nodes", []):
@@ -367,8 +370,12 @@ def process_nvd_cpe(
     vulnerability_created = flag
     try:
         cpe = CpeIdentifier.from_string(cpe_match["criteria"])
-        logging.info(
-            f"{vul_description} Processing CPE match for vendor={cpe.vendor}, product={cpe.product}, version={cpe.version}"
+        logger.info(
+            "processing_cpe_match",
+            vulnerability_description=vul_description,
+            vendor=cpe.vendor,
+            product=cpe.product,
+            version=cpe.version,
         )
 
         if cpe.version.count(".") > 1:
@@ -382,7 +389,7 @@ def process_nvd_cpe(
                         vul_description, shortened_cpe
                     )
             else:
-                logging.warning(f"Unable to shorten CPE version string: {cpe.version}")
+                logger.warning("unable_to_shorten_cpe_version", version=cpe.version)
 
         for possible_software_version in [
             f"{cpe.vendor}:{cpe.product}:{cpe.version}",
@@ -415,6 +422,6 @@ def process_nvd_cpe(
                 )
 
     except Exception as e:
-        logging.warning(f"Skipping CPE processing due to error: {e}")
+        logger.warning("skipping_cpe_processing_due_to_error", error=str(e), cpe_match=cpe_match)
 
     return vulnerability_created

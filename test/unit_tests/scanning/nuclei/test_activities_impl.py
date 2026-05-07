@@ -1,4 +1,3 @@
-# ruff: noqa: SLF001
 # pyright: reportPrivateUsage=false
 
 import json
