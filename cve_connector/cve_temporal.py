@@ -189,7 +189,6 @@ def cve_version(
                 )
                 continue
 
-            # TODO: Why was there start at 2000?
             if raw_data is None:
                 obtained_all_results = True
             else:
