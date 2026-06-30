@@ -270,7 +270,7 @@ docker compose up -d
 Then, build and start the ISIM application similarly and ensure the `external: true` is uncommented in the `resilmesh_network` network.
 When everything is up and running, you can run the nmap demo by running:
 
-```shell
+```bash
 docker exec -it <resilmesh-sap-casm-shared-worker_id> python -m temporal.nmap.topology.workflow && docker exec -it <resilmesh-sap-casm-shared-worker_id> python -m temporal.nmap.basic.workflow
 ```
 
