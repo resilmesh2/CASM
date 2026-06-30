@@ -270,8 +270,8 @@ docker compose up -d
 Then, build and start the ISIM application similarly and ensure the `external: true` is uncommented in the `resilmesh_network` network.
 When everything is up and running, you can run the nmap demo by running:
 
-```bash
-docker exec -it resilmesh_sap_casm_scanning-worker python -m temporal.nmap.topology.workflow && docker exec -it resilmesh_sap_casm_scanning-worker python -m temporal.nmap.basic.workflow
+```shell
+docker exec -it <resilmesh-sap-casm-shared-worker_id> python -m temporal.nmap.topology.workflow && docker exec -it <resilmesh-sap-casm-shared-worker_id> python -m temporal.nmap.basic.workflow
 ```
 
 You can check the workflow progress in the Temporal server GUI http://localhost:8080/namespaces/default/workflows.
@@ -323,7 +323,7 @@ Its goal is to determine whether reported CVEs are actually exploitable on the d
 Execute the following command to start the Nuclei workflow:
 
 ```bash
-docker exec -it resilmesh_sap_casm_scanning-worker python -m temporal.nuclei.workflow
+docker exec -it <resilmesh-sap-casm-shared-worker_id> python -m temporal.nuclei.workflow
 ```
 
 # Tests
