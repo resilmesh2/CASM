@@ -49,23 +49,23 @@ services:
     networks:
       - resilmesh_network
 
-  resilmesh-sap-casm-metasploitable3:
-    container_name: resilmesh-sap-casm-metasploitable3
-    image: kirscht/metasploitable3-ub1404
-    # use environment variables to set password, enable root and start services
-    entrypoint: /entrypoint.sh
-    environment:
-      PASS: myPass
-      ROOT: yes
-      CUPS: yes
-      FTP: yes
-      HTTP: yes
-      IRC: yes
-      SMB: yes
-      SSH: yes
-      SQL: yes
-    networks:
-      - resilmesh_network
+#  resilmesh-sap-casm-metasploitable3:
+#    container_name: resilmesh-sap-casm-metasploitable3
+#    image: kirscht/metasploitable3-ub1404
+#    # use environment variables to set password, enable root and start services
+#    entrypoint: /entrypoint.sh
+#    environment:
+#      PASS: myPass
+#      ROOT: yes
+#      CUPS: yes
+#      FTP: yes
+#      HTTP: yes
+#      IRC: yes
+#      SMB: yes
+#      SSH: yes
+#      SQL: yes
+#    networks:
+#      - resilmesh_network
 
 
 #  neo4j:
