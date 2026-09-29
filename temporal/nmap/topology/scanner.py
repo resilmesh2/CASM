@@ -119,7 +119,7 @@ def topology_scan_neo(targets: list[str]) -> dtos.ScanResult:
                 logger.error(f"Nmap command returned empty results for {target}")
                 continue
 
-            connections.data = parse_nmap_results(nmap_results, target, my_ip, logger)
+            connections.data.extend(parse_nmap_results(nmap_results, target, my_ip, logger))
 
             logger.info(f"Topology scan of {target} succeeded.")
 

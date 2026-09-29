@@ -1,6 +1,6 @@
 import asyncio
 
-from validators import ValidationError, domain, hostname
+from validators import ValidationError, domain, hostname, ipv4
 
 
 def validate_input_domain(target: str) -> bool:
@@ -19,8 +19,9 @@ def validate_input_hostname(target: str) -> bool:
     :param target: string to be validated.
     :return: True if input string is a valid hostname, False otherwise.
     """
-    res = hostname(target)
-    return not isinstance(res, ValidationError)
+    res_hostname = hostname(target)
+    res_ipv4 = ipv4(target)
+    return not isinstance(res_hostname, ValidationError) or not isinstance(res_ipv4, ValidationError)
 
 
 async def run_command_with_output(
